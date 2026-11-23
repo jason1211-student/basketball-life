@@ -42,9 +42,9 @@ function communityMount() {
   target.append(tabs);
   var filter=node('div',undefined,'mbl-c-filter'),levels=node('div',undefined,'mbl-c-difficulty');
   levels.setAttribute('role','radiogroup');levels.setAttribute('aria-label','生涯难度');
-  ['easy','hard'].forEach(function(key){var b=button(key==='hard'?'困难':'普通','browse-difficulty');b.setAttribute('aria-label',key==='hard'?'困难人生':'普通人生');b.dataset.difficulty=key;b.setAttribute('role','radio');levels.append(b);});
+  ['easy'].forEach(function(key){var b=button('普通','browse-difficulty');b.setAttribute('aria-label','普通人生');b.dataset.difficulty=key;b.setAttribute('role','radio');levels.append(b);});
   filter.append(levels);top.insertBefore(filter,refresh);
-  levels.addEventListener('keydown',function(e){if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();var key=e.key==='Home'?'easy':e.key==='End'?'hard':communityState.difficulty==='hard'?'easy':'hard',b=levels.querySelector('[data-difficulty="'+key+'"]');b.click();b.focus();});
+  levels.addEventListener('keydown',function(e){if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();var b=levels.querySelector('[data-difficulty="easy"]');if(b){b.click();b.focus();}});
   var panel = node('div', undefined, 'mbl-c-panel'); panel.id = 'mbl-career-panel'; panel.setAttribute('role', 'tabpanel');
   panel.append(node('p', '', 'mbl-c-caption'), node('p', '', 'mbl-c-status'), node('ol', undefined, 'mbl-c-rows'), button('加载更多生涯', 'browse-more'));
   var pager = node('div', undefined, 'mbl-c-carousel-nav');

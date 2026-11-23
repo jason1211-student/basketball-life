@@ -1,0 +1,24 @@
+/* 三步引导 */
+dialog.mbl-guide{
+  width:min(430px,calc(100% - 32px));
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--card);
+  color:var(--ink);
+  padding:0;
+  font:14px/1.65 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+dialog.mbl-guide::backdrop{background:var(--backdrop)}
+.mbl-guide-card{padding:22px 22px 18px}
+.mbl-guide-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mbl-guide-step{font-size:11px;letter-spacing:.08em;color:var(--faint)}
+.mbl-guide-skip{border:0;background:transparent;color:var(--muted);font:12px system-ui;cursor:pointer;padding:4px 2px}
+.mbl-guide-title{margin:0 0 8px;font:22px/1.35 SimSun,serif}
+.mbl-guide-body{margin:0 0 16px;color:var(--muted);min-height:72px}
+.mbl-guide-dots{display:flex;gap:6px;margin-bottom:16px}
+.mbl-guide-dots i{width:18px;height:3px;border-radius:2px;background:var(--line)}
+.mbl-guide-dots i.on{background:var(--accent)}
+.mbl-guide-actions{display:flex;justify-content:flex-end;gap:10px}
+.mbl-guide-actions button{border-radius:var(--radius);padding:8px 18px;font:13px system-ui;cursor:pointer}
+.mbl-guide-prev{border:1px solid var(--line);background:transparent;color:inherit}
+.mbl-guide-next{border:1px solid var(--accent);background:var(--accent);color:#fff}

@@ -56,12 +56,26 @@
       '打法风格：' + esc(styleName) + '（按能力自动识别）</p>';
   }
 
-  function buildPoints(b, canEdit) {
-    if (!canEdit) return '';
-    var pts = (window.MBLAttrPoints && MBLAttrPoints.points()) || 0;
+  function buildTraining(b, canEdit) {
+    if (!canEdit || !window.MBLAttrPoints) return '';
+    var pts = MBLAttrPoints.points();
+    var cards = MBLAttrPoints.programs();
+    var tip = pts > 0
+      ? '选择一个专项，消耗 1 个训练点。练什么，就少练什么。'
+      : '下一次生日会获得 1 个训练点（最多存 3 个）。';
     return '<div class="mbl-badge-points"><span class="mbl-badge-points-label">可用训练点</span>' +
       '<span class="mbl-badge-points-num">' + pts + '</span></div>' +
-      '<p class="mbl-badge-points-tip">点属性右侧「+」消耗 1 个训练点，不能超过潜力上限。</p>';
+      '<p class="mbl-badge-points-tip">' + tip + '</p>' +
+      '<div class="mbl-train-grid">' + cards.map(function (p) {
+        var usable = p.available && pts > 0;
+        return '<div class="mbl-train-card' + (usable ? '' : ' is-off') + '">' +
+          '<b>' + esc(p.name) + '</b>' +
+          '<p class="mbl-train-desc">' + esc(p.desc) + '</p>' +
+          '<p class="mbl-train-gain">' + esc(MBLAttrPoints.gainText(p.gains)) + '</p>' +
+          '<p class="mbl-train-loss">' + esc(MBLAttrPoints.lossText(p.loss)) + '</p>' +
+          '<button type="button" class="mbl-train-btn" data-train="' + esc(p.id) + '"' +
+          (usable ? '' : ' disabled') + '>训练 · 1 点</button></div>';
+      }).join('') + '</div><p class="mbl-train-msg"></p>';
   }
 
   function buildAttrs(b, canEdit) {
@@ -70,12 +84,9 @@
         var v = C.round(b.skills[k]), p = C.num(b.potential[k], v);
         var pct = Math.round(C.clamp(v / 99, 0, 1) * 100);
         var potPct = Math.round(C.clamp(p / 99, 0, 1) * 100);
-        var plus = canEdit
-          ? '<button type="button" class="mbl-badge-plus" data-attr="' + k + '" aria-label="加点">+</button>'
-          : '';
         return '<div class="mbl-badge-attr"><div class="mbl-badge-attr-top"><span>' +
           esc(S.ATTR_CN[k]) + '</span><span class="mbl-badge-attr-right"><span class="mbl-badge-attr-val">' +
-          v + ' / ' + p + '</span>' + plus + '</span></div>' +
+          v + ' / ' + p + '</span></span></div>' +
           '<div class="mbl-badge-bar"><i class="mbl-badge-bar-fill" style="width:' + pct + '%"></i>' +
           '<i class="mbl-badge-bar-pot" style="left:' + potPct + '%"></i></div></div>';
       }).join('');
@@ -116,6 +127,18 @@
     }).join('');
   }
 
+  function bindTraining(container, rerender) {
+    if (!window.MBLAttrPoints) return;
+    container.querySelectorAll('.mbl-train-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var result = MBLAttrPoints.apply(btn.getAttribute('data-train'));
+        if (result && result.ok) { rerender(); return; }
+        var msg = container.querySelector('.mbl-train-msg');
+        if (msg) msg.textContent = (result && result.reason) || '训练没有完成';
+      });
+    });
+  }
+
   function render() {
     var b = ball();
     if (!dialog) return;
@@ -135,21 +158,14 @@
     head.append(h2, close);
 
     var body = document.createElement('div');
-    body.innerHTML = buildOvr(b, pos) + buildPoints(b, canEdit) + buildAttrs(b, canEdit) +
+    body.innerHTML = buildOvr(b, pos) + buildTraining(b, canEdit) + buildAttrs(b, canEdit) +
       '<p class="mbl-badge-sub">徽章（按能力自动点亮，比赛中提供实战加成）</p>' +
       buildBadges(b) +
       '<p class="mbl-badge-foot">徽章档位：铜 / 银 / 金 / 名人堂；每档给对应比赛轴 +1/+2/+3/+4，单项封顶 +8。</p>';
 
     dialog.replaceChildren(head, body);
     dialog.scrollTop = keepTop;
-    if (canEdit) {
-      body.querySelectorAll('.mbl-badge-plus').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var k = btn.getAttribute('data-attr');
-          if (window.MBLAttrPoints && MBLAttrPoints.spend(k)) render();
-        });
-      });
-    }
+    if (canEdit) bindTraining(body, function () { render(); });
   }
 
   function openPanel() {
@@ -178,16 +194,9 @@
       return;
     }
     var pos = posOf(b), canEdit = editable(b);
-    container.innerHTML = buildOvr(b, pos) + buildPoints(b, canEdit) +
+    container.innerHTML = buildOvr(b, pos) + buildTraining(b, canEdit) +
       buildAttrs(b, canEdit) + buildBadges(b);
-    if (canEdit) {
-      container.querySelectorAll('.mbl-badge-plus').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var k = btn.getAttribute('data-attr');
-          if (window.MBLAttrPoints && MBLAttrPoints.spend(k)) renderInto(container);
-        });
-      });
-    }
+    if (canEdit) bindTraining(container, function () { renderInto(container); });
   }
 
   C.onHeartbeat(function () {

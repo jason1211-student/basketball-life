@@ -329,7 +329,7 @@
     var bp = birthParams(l);
     window.Got({
       seed: l.seed,
-      difficulty: l.difficulty === 'hard' ? 'hard' : 'easy',
+      difficulty: 'easy',
       country: bp.country,
       urban: bp.urban,
       city: bp.city,

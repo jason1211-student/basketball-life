@@ -153,7 +153,7 @@
       // silent：手动微调单项时不播“随机一组”的抽奖滚动音，也不重启抽奖动画。
       silent: !randomize,
       seed: randomize ? void 0 : old.seed,
-      difficulty: old.difficulty === 'hard' ? 'hard' : 'easy',
+      difficulty: 'easy',
       country: randomize ? void 0 : params.country,
       urban: randomize ? void 0 : params.urban,
       city: randomize ? void 0 : params.city,

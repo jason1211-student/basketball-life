@@ -102,7 +102,7 @@
         alive: life.alive !== false,
         ended: life.alive === false,
         stage: stageOf(life),
-        difficulty: life.difficulty === 'hard' ? 'hard' : 'normal',
+        difficulty: 'normal',
         team: pickTeam(life),
         perks: (life.mblBirthPerks && life.mblBirthPerks.keys) || [],
         record: false
@@ -314,7 +314,7 @@
     var loc = [s.countryCn, s.city].filter(Boolean).join(' · ');
     if (loc) parts.push(loc);
     if (s.team) parts.push(s.team);
-    if (s.difficulty === 'hard') parts.push('困难');
+    
     return parts.join('　');
   }
 
