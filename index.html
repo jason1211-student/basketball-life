@@ -1,0 +1,1442 @@
+<!doctype html>
+<!--
+  The game in Simplified Chinese, at /cn/: the same game as index.html (English) and zh/index.html
+  (Traditional Chinese), with its own title, description, social preview and text for crawlers that
+  do not run JavaScript. Opening this address starts the game in Simplified Chinese (app.ts, langOfPath).
+  Keep the three pages in step. No "NBA", no league list and no counts of real data here.
+-->
+<html lang="zh-Hans">
+  <head>
+<script data-shaper-web-guard-context>(function () {
+    function newVisitId() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+      });
+    }
+    // Resolve preview identity synchronously, before the SDK's first event.
+    var isPreview = new URLSearchParams(location.search).get('shaper_preview') === '1';
+    try {
+      var parentSession = window.parent !== window && window.parent.__SHAPER_WEB_GUARD_SESSION__;
+      if (parentSession && parentSession.applicationId === "app_ad6bae0e21" && parentSession.deploymentKind === 'preview') isPreview = true;
+      if (window.frameElement && window.frameElement.getAttribute('data-shaper-preview') === 'true') isPreview = true;
+    } catch (_) { /* Cross-origin console previews carry the URL marker. */ }
+    var session = window.__SHAPER_WEB_GUARD_SESSION__ = {
+      applicationId: "app_ad6bae0e21", releaseId: "appv_26ad565e52e14dac92bf4c76e1f594f1",
+      frameRole: "content",
+      deploymentKind: !isPreview && /\/shaper\/published\//.test(location.pathname) ? 'published' : 'preview',
+      telemetryEnvironment: !isPreview && /\/shaper\/published\//.test(location.pathname) ? 'prod' : "dev",
+      visitId: newVisitId(),
+      navigationStart: performance.timeOrigin || (performance.timing && performance.timing.navigationStart) || Date.now()
+    };
+    window.__SHAPER_WEB_GUARD_CONTEXT__ = function () {
+      var root = session;
+      try {
+        var candidate = window.parent !== window && window.parent.__SHAPER_WEB_GUARD_SESSION__;
+        if (candidate && candidate.applicationId === session.applicationId) root = candidate;
+      } catch (error) { /* Cross-origin documents have independent visits. */ }
+      return {
+        application_id: session.applicationId, release_id: session.releaseId || root.releaseId,
+        frame_role: session.frameRole, deployment_kind: session.deploymentKind,
+        collection_end_reason: session.collectionEndReason || root.collectionEndReason || null,
+        collection_end_at: session.collectionEndAt || root.collectionEndAt || null,
+        visit_id: root.visitId, root_navigation_start: root.navigationStart,
+        root_navigation_valid: root !== session ? root.frameRole === 'shell' : window.parent === window
+      };
+    };
+    window.addEventListener('pageshow', function (event) {
+      if (!event.persisted) return;
+      session.visitId = newVisitId(); session.navigationStart = Date.now();
+    });
+  })();(function () {
+    var session = window.__SHAPER_WEB_GUARD_SESSION__;
+    var parentVisible = true;
+    var intersects = window.parent === window || typeof IntersectionObserver !== 'function';
+    var childIntersects = true;
+    var rewardFlow = null;
+    var observedFrame;
+    var parentOrigin;
+    try {
+      parentOrigin = location.ancestorOrigins && location.ancestorOrigins[0];
+      if (!parentOrigin && document.referrer) parentOrigin = new URL(document.referrer).origin;
+    } catch (_) {}
+    try {
+      var parentSession = window.parent !== window && window.parent.__SHAPER_WEB_GUARD_SESSION__;
+      if (parentSession && parentSession.applicationId === session.applicationId) {
+        if (typeof parentSession.visible === 'boolean') parentVisible = parentSession.visible;
+        session.collectionEndReason = parentSession.collectionEndReason || null;
+        session.collectionEndAt = parentSession.collectionEndAt || null;
+      }
+    } catch (_) { /* Cross-origin visibility arrives through the parent protocol. */ }
+
+    function sendToChild(force) {
+      var frame = document.getElementById('ai-render-frame');
+      if (!frame || !frame.contentWindow) return;
+      var rect = frame.getBoundingClientRect();
+      var visible = session.visible && childIntersects && rect.width > 0 && rect.height > 0 &&
+        rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth;
+      for (var element = frame; visible && element; element = element.parentElement) {
+        var style = getComputedStyle(element);
+        visible = style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapse' &&
+          style.contentVisibility !== 'hidden' && Number(style.opacity) !== 0;
+      }
+      if (!force && frame.__shaperTelemetryVisible === visible) return;
+      frame.__shaperTelemetryVisible = visible;
+      try {
+        var child = frame.contentWindow;
+        if (child.__SHAPER_WEB_GUARD_SESSION__ && child.__SHAPER_WEB_GUARD_SESSION__.applicationId === session.applicationId &&
+            typeof child.__SHAPER_SET_PARENT_VISIBILITY__ === 'function') {
+          child.__SHAPER_SET_PARENT_VISIBILITY__(visible, session.collectionEndReason, session.collectionEndAt);
+          return;
+        }
+      } catch (_) { /* Cross-origin frames use the same protocol. */ }
+      try {
+        var origin = new URL(frame.src || location.href, location.href).origin;
+        if (origin !== 'null') frame.contentWindow.postMessage({
+          type: 'shaper:telemetry:visibility', visible: visible,
+          collectionEndReason: session.collectionEndReason, collectionEndAt: session.collectionEndAt
+        }, origin);
+      } catch (_) {}
+    }
+
+    function update() {
+      // Native overlays need not change document.visibilityState. Pause until
+      // native confirms closure/failure; foreground or reward alone is not closure.
+      session.visible = !session.collectionEndReason && parentVisible && intersects && document.visibilityState === 'visible';
+      if (window.WebGuard && typeof window.WebGuard.setPageVisibility === 'function') {
+        window.WebGuard.setPageVisibility(session.visible);
+      }
+      sendToChild(false);
+    }
+    window.__SHAPER_SET_PARENT_VISIBILITY__ = function (visible, reason, at) {
+      if (typeof visible !== 'boolean') return;
+      parentVisible = visible;
+      session.collectionEndReason = reason === 'reward-ad' ? reason : null;
+      session.collectionEndAt = session.collectionEndReason && typeof at === 'number' ? at : null;
+      update();
+    };
+    function terminalRewardStatus(result) {
+      if (typeof result === 'string') {
+        try { result = JSON.parse(result); } catch (_) { return null; }
+      }
+      if (!result || typeof result !== 'object') return null;
+      var name = result.callbackName;
+      return name === 'onClose' || name === 'onReqError' || name === 'onLoadError' || name === 'onShowError' ? name : null;
+    }
+    function resumeRewardFlow(method, status) {
+      if (!rewardFlow || typeof method !== 'string' || !status || (method !== 'hupu.adver.rewardFlowStatusCallBack' &&
+          method !== rewardFlow.successcb && method !== rewardFlow.errorcb)) return;
+      rewardFlow = null;
+      session.collectionEndReason = null;
+      session.collectionEndAt = null;
+      try {
+        if (window.WebGuard && typeof window.WebGuard.markPerformanceBoundary === 'function') {
+          window.WebGuard.markPerformanceBoundary(status === 'onClose' ? 'reward-ad-close' : 'reward-ad-failed');
+        }
+      } catch (_) { /* Diagnostics must not prevent restoration. */ }
+      update();
+      // Also clear inherited pause metadata if the frame is still offscreen.
+      sendToChild(true);
+    }
+    window.addEventListener('onHupuJSBridgeHandle', function (event) {
+      var detail = event && event.detail;
+      if (session.frameRole === 'shell' && detail && detail.method === 'hupu.adver.rewardFlowStatusCallBack') {
+        resumeRewardFlow(detail.method, terminalRewardStatus(detail.result));
+      }
+    });
+    window.addEventListener('message', function (event) {
+      var data = event.data;
+      if (!data) return;
+      if (window.parent !== window && event.source === window.parent && (!parentOrigin || event.origin === parentOrigin) &&
+          data.type === 'shaper:telemetry:visibility' && typeof data.visible === 'boolean') {
+        window.__SHAPER_SET_PARENT_VISIBILITY__(data.visible, data.collectionEndReason, data.collectionEndAt);
+      }
+      // The shell runtime forwards native _handle_ events and request replies.
+      // Relay only terminal status labels, never raw bridge response payloads.
+      if (window.parent !== window && event.source === window.parent && (!parentOrigin || event.origin === parentOrigin) &&
+          data.protocol === 'colorbox-ai-bridge' && data.version === 1 && data.direction === 'host-to-frame' && data.payload) {
+        var method;
+        var result;
+        if (data.type === 'bridge.event' && data.payload.method === 'hupu.adver.rewardFlowStatusCallBack') {
+          method = data.payload.method;
+          result = data.payload.result;
+        } else if (data.type === 'bridge.callback') {
+          method = data.payload.callbackName;
+          result = data.payload.args && data.payload.args[0];
+        }
+        var status = terminalRewardStatus(result);
+        if (typeof method === 'string' && status) window.parent.postMessage({
+          type: 'shaper:telemetry:reward-ad-result', method: method, status: status
+        }, event.origin);
+      }
+      var frame = document.getElementById('ai-render-frame');
+      if (session.frameRole === 'shell' && frame && event.source === frame.contentWindow && event.origin === location.origin &&
+          data.type === 'shaper:telemetry:reward-ad-result') {
+        resumeRewardFlow(data.method, terminalRewardStatus({ callbackName: data.status }));
+      }
+      // Installed before the shell runtime's bridge proxy: synchronously pause
+      // the same-origin game's observation BEFORE the next listener calls native.
+      // Match the proxy's source/origin/protocol checks; unrelated frames and
+      // preflight failures (login/task lookup) must not pause game observation.
+      if (session.frameRole === 'shell' && frame && event.source === frame.contentWindow && event.origin === location.origin &&
+          data.protocol === 'colorbox-ai-bridge' && data.version === 1 && data.direction === 'frame-to-host' &&
+          data.type === 'bridge.call' && data.payload && data.payload.payload &&
+          data.payload.payload.method === 'hupu.adver.beginRewardFlow') {
+        if (!rewardFlow) {
+          session.collectionEndAt = performance.timeOrigin ? performance.timeOrigin + performance.now() : Date.now();
+          rewardFlow = {
+            successcb: data.payload.payload.successcb,
+            errorcb: data.payload.payload.errorcb
+          };
+        }
+        session.collectionEndReason = 'reward-ad';
+        try {
+          if (window.WebGuard && typeof window.WebGuard.markPerformanceBoundary === 'function') {
+            window.WebGuard.markPerformanceBoundary('reward-ad-request');
+          }
+        } catch (_) { /* Diagnostics must never prevent native calls or visibility propagation. */ }
+        update();
+      }
+      if (frame && event.source === frame.contentWindow && data.type === 'shaper:telemetry:ready') {
+        try { if (event.origin === new URL(frame.src, location.href).origin) sendToChild(true); } catch (_) {}
+      }
+    });
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('pageshow', function (event) {
+      // Only BFCache starts a new visit. Ordinary foreground restoration cannot
+      // override an active ad; native close/failure resumes the existing visit.
+      if (event.persisted) {
+        rewardFlow = null;
+        session.collectionEndReason = null;
+        session.collectionEndAt = null;
+      }
+      update();
+      if (window.parent !== window) window.parent.postMessage({ type: 'shaper:telemetry:ready' }, parentOrigin || '*');
+    });
+    if (window.parent !== window && typeof IntersectionObserver === 'function') {
+      var ownObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          // A zero-height content root is not evidence that its viewport is hidden.
+          intersects = entry.isIntersecting;
+          update();
+        });
+      });
+      ownObserver.observe(document.documentElement);
+    }
+    function bindChild() {
+      var frame = document.getElementById('ai-render-frame');
+      if (!frame || observedFrame === frame) return;
+      observedFrame = frame;
+      frame.addEventListener('load', function () { sendToChild(true); });
+      if (typeof IntersectionObserver === 'function') {
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            childIntersects = entry.isIntersecting && entry.intersectionRect.width > 0 && entry.intersectionRect.height > 0;
+            sendToChild(false);
+          });
+        });
+        observer.observe(frame);
+      }
+      var mutations = new MutationObserver(function () { sendToChild(false); });
+      mutations.observe(document.documentElement, { subtree: true, attributes: true, childList: true,
+        attributeFilter: ['style', 'class', 'hidden', 'open'] });
+      window.addEventListener('scroll', function () { sendToChild(false); }, { capture: true, passive: true });
+      window.addEventListener('resize', function () { sendToChild(false); });
+      sendToChild(true);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindChild, { once: true });
+    else bindChild();
+    update();
+    if (window.parent !== window) window.parent.postMessage({ type: 'shaper:telemetry:ready' }, parentOrigin || '*');
+  })();(function () {
+    var businessReady = false;
+    var sdkInitialized = false;
+    var delivered = false;
+    var resetTimer;
+    var content = window.__SHAPER_WEB_GUARD_SESSION__.frameRole === 'content';
+
+    function state() {
+      return { businessReady: businessReady, sdkInitialized: sdkInitialized, delivered: delivered };
+    }
+    function flush() {
+      if (!content || !businessReady || !sdkInitialized || delivered) return;
+      if (!window.WebGuard || typeof window.WebGuard.markReady !== 'function') return;
+      window.WebGuard.markReady();
+      delivered = true;
+      document.documentElement.setAttribute('data-shaper-performance-ready', 'explicit');
+    }
+    window.ShaperPerformance = {
+      markReady: function () {
+        if (!content) return;
+        businessReady = true;
+        flush();
+      },
+      getReadiness: state
+    };
+    // Injected SDK bootstraps call this instead of init directly. Checking for
+    // the exported markReady function alone cannot prove init has completed.
+    window.__SHAPER_INIT_WEB_GUARD__ = function (sdk, options, queued) {
+      var result = sdk.init(options, queued);
+      return Promise.resolve(result).then(function (value) {
+        sdkInitialized = true;
+        flush();
+        return value;
+      });
+    };
+    window.addEventListener('pageshow', function (event) {
+      if (!event.persisted || !content) return;
+      businessReady = false;
+      delivered = false;
+      document.documentElement.removeAttribute('data-shaper-performance-ready');
+      // WebGuard resets its telemetry in its own pageshow listener. Ask the
+      // business to recheck only after all synchronous reset listeners finish.
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(function () {
+        window.dispatchEvent(new Event('shaper:performance:reset'));
+      }, 0);
+    });
+  })();</script><script>
+    (function () {
+    if (new URLSearchParams(location.search).get('hupu_debug') !== 'true' || window.__SHAPER_DEBUG_LOG__) return;
+    var projectId = "app_ad6bae0e21";
+    var pageId = 'page_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+    var queue = [], sequence = 0, sent = 0, since = Date.now(), sending = false;
+    function redact(value, depth, seen) {
+      if (depth > 5) return '[内容过深]';
+      if (typeof value === 'string' && /^[[{]/.test(value.trim())) { try { return redact(JSON.parse(value), depth + 1, seen); } catch (_) {} }
+      if (typeof value === 'string') return value.slice(0, 8000).replace(/((?:[?&#]|\b)(?:debug_code|actorToken|authToken|access_token|token|secret|password|api_key)=)[^&#\s]+/gi, '$1[已隐藏]').replace(/Bearer\s+[^\s"']+/gi, 'Bearer [已隐藏]').replace(/(?:bc|at)_[A-Za-z0-9_-]{20,}/g, '[已隐藏凭证]');
+      if (!value || typeof value !== 'object') return typeof value === 'bigint' ? String(value) : value;
+      if (seen.indexOf(value) >= 0) return '[循环引用]';
+      seen.push(value);
+      if (value instanceof Error) return { message: redact(value.message, depth + 1, seen), stack: redact(value.stack, depth + 1, seen) };
+      var result = Array.isArray(value) ? [] : {};
+      Object.keys(value).slice(0, 50).forEach(function (key) { result[key] = /token|authorization|cookie|password|secret|credential|api.?key|debug_code/i.test(key) ? '[已隐藏]' : redact(value[key], depth + 1, seen); });
+      return result;
+    }
+    function flush() {
+      if (sending || !window.WebGuard || typeof window.WebGuard.hupuLog !== 'function') return;
+      sending = true;
+      try { while (queue.length) window.WebGuard.hupuLog(queue.shift()); } catch (_) {} finally { sending = false; }
+    }
+    window.__SHAPER_DEBUG_LOG__ = function (input) {
+      if (sending) return;
+      if (Date.now() - since > 60000) { since = Date.now(); sent = 0; }
+      if (sent++ >= 200) return;
+      var context = window.__COLORBOX_DEBUG_AUTH__ || {}, actor = context.actor || {};
+      var record = redact(input || {}, 0, []);
+      record.schema = 'colorbox.debug.log.v1'; record.debug = true;
+      record.projectId = projectId; record.buildId = context.buildId || null;
+      record.debugRunId = context.debugRunId || null; record.debugGrantId = context.grantId || null;
+      record.actorId = actor.actorId || null; record.pageInstanceId = pageId;
+      record.eventId = pageId + '_' + (++sequence); record.occurredAt = new Date().toISOString();
+      record.traceId = record.traceId || record.eventId; record.source = record.source || 'browser-iframe';
+      record.type = record.type || 'console'; record.level = record.level || 'info';
+      if (queue.length >= 200) queue.shift(); queue.push(record); flush();
+      return record.traceId;
+    };
+    window.__SHAPER_DEBUG_LOG_CONTEXT__ = { projectId: projectId, pageInstanceId: pageId };
+    ['log', 'info', 'debug', 'warn', 'error'].forEach(function (name) {
+      var original = console[name].bind(console);
+      console[name] = function () {
+        var args = Array.prototype.slice.call(arguments);
+        original.apply(console, args);
+        try { window.__SHAPER_DEBUG_LOG__({ type: 'console', level: name === 'error' ? 'error' : name === 'warn' ? 'warn' : 'info', message: typeof args[0] === 'string' ? args[0] : '页面日志', detail: { args: args } }); } catch (_) {}
+      };
+    });
+    window.addEventListener('error', function (e) { window.__SHAPER_DEBUG_LOG__({ type: 'runtime.error', level: 'error', message: e.message || '资源加载失败', stack: e.error && e.error.stack || '', detail: { filename: e.filename, line: e.lineno } }); }, true);
+    window.addEventListener('unhandledrejection', function (e) { window.__SHAPER_DEBUG_LOG__({ type: 'runtime.error', level: 'error', message: e.reason && e.reason.message || String(e.reason), detail: { reason: e.reason } }); });
+    var timer = setInterval(flush, 1000); window.addEventListener('pagehide', function () { clearInterval(timer); flush(); }); window.addEventListener('pageshow', function (e) { if (e.persisted) timer = setInterval(flush, 1000); });
+  })();
+    (function () {
+      var config = {"projectId":"app_ad6bae0e21","exchangeUrl":"https://shaper.hupu.com/api/v1/debug/bootstrap/exchange","loginUrl":"https://shaper.hupu.com/api/v1/debug/cloud/login","gameLoginUrl":"https://shaper.hupu.com/api/v1/debug/game/login"};
+      // Platform preview ingress may be a DEV/SIT public relay. Keep its auth
+      // requests on that ingress; published CDN pages retain the configured API.
+      if (location.pathname.indexOf('/api/v1/previews/') === 0 || location.pathname.indexOf('/api/v2/agent/sessions/') === 0) {
+        config.exchangeUrl = location.origin + '/api/v1/debug/bootstrap/exchange';
+        config.loginUrl = location.origin + '/api/v1/debug/cloud/login';
+        config.gameLoginUrl = location.origin + '/api/v1/debug/game/login';
+      }
+      var code = new URLSearchParams(window.location.hash.slice(1)).get('debug_code');
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('hupu_debug') !== 'true') return;
+      var storageKey = 'shaper.debug.' + config.projectId, saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null'); } catch (_) {}
+      if (!code && (!saved || !saved.actorToken)) return;
+      var mockAllowed = params.get('hupu_mock_login') !== 'false';
+      var mockAvailable = false;
+      window.__SHAPER_DEBUG_MOCK_ENABLED__ = mockAllowed;
+      window.__SHAPER_DEBUG_MOCK_AVAILABLE__ = false;
+
+      window.__SHAPER_DEBUG_AUTH_STATE__ = 'pending';
+      function notifyDebugState() {
+        window.dispatchEvent(new Event('shaper:debug-auth'));
+        var auth = window.__COLORBOX_DEBUG_AUTH__ || {}, cloud = window.__SHAPER_DEBUG_CLOUD_STATE__ || {};
+        if (window.__SHAPER_DEBUG_LOG__) window.__SHAPER_DEBUG_LOG__({ type: 'bridge.call', level: cloud.state === 'failed' || window.__SHAPER_DEBUG_AUTH_STATE__ === 'failed' ? 'error' : 'info', message: '登录状态更新', detail: { auth: window.__SHAPER_DEBUG_AUTH_STATE__, mockLogin: window.__SHAPER_DEBUG_MOCK_ENABLED__, userName: auth.actor && auth.actor.displayName, cloud: cloud, device: { userAgent: navigator.userAgent, language: navigator.language, viewport: innerWidth + 'x' + innerHeight } } });
+      }
+      var originalFetch = window.fetch.bind(window);
+      var mockUserInfo = null;
+      var debugPageInstanceId = 'page_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+      function installDebugLogBridge() {
+        if (!window.WebGuard || typeof window.WebGuard.hupuLog !== 'function' || window.WebGuard.__colorboxDebugWrapped) return;
+        var originalLog = window.WebGuard.hupuLog.bind(window.WebGuard);
+        window.WebGuard.hupuLog = function (args) {
+          var context = window.__COLORBOX_DEBUG_AUTH__ || {};
+          var actor = context.actor || {};
+          var source = args && typeof args === 'object' ? Object.assign({}, args) : { message: String(args || '') };
+          source.schema = 'colorbox.debug.log.v1';
+          source.debug = true;
+          source.projectId = context.projectId || config.projectId;
+          source.buildId = context.buildId || null;
+          source.debugGrantId = context.grantId || null;
+          source.debugRunId = context.debugRunId || null;
+          source.actorId = actor.actorId || context.actorId || null;
+          source.pageInstanceId = debugPageInstanceId;
+          source.source = source.source || 'browser-iframe';
+          return originalLog(source);
+        };
+        window.WebGuard.__colorboxDebugWrapped = true;
+      }
+      function installMockAuth() {
+        if (!mockAllowed) return false;
+        var context = window.__COLORBOX_DEBUG_AUTH__;
+        if (!context || !context.actor) return false;
+        var actor = context.actor;
+        mockUserInfo = {
+          code: 200,
+          message: 'success',
+          islogin: 1,
+          isLogin: true,
+          isDebug: true,
+          puid: actor.mockUserId,
+          userId: actor.mockUserId,
+          actorId: actor.actorId,
+          nickname: actor.displayName,
+          avatar: actor.profile && actor.profile.avatarUrl || '',
+          userHeadUrl: actor.profile && actor.profile.avatarUrl || '',
+          authToken: 'debug_mock_' + actor.actorId,
+          token: 'debug_mock_' + actor.actorId
+        };
+        // Match the bridge/SDK response contract used by uploaded applications.
+        mockUserInfo.data = Object.assign({}, mockUserInfo);
+        delete mockUserInfo.data.code;
+        delete mockUserInfo.data.message;
+        window.__SHAPER_DEBUG_MOCK_READY__ = true;
+        installDebugLogBridge();
+        return true;
+      }
+      // The developer can switch the login mode from the in-page assistant.
+      // Reloading keeps the real SDK and the mock SDK from sharing mutable state.
+      window.__SHAPER_DEBUG_SET_MOCK_LOGIN__ = function (enabled) {
+        if (enabled && !mockAvailable) return false;
+        var value = enabled === true;
+        var next = new URL(location.href);
+        next.searchParams.set('hupu_mock_login', String(value));
+        try { location.replace(next.href); } catch (_) { location.href = next.href; }
+        return true;
+      };
+      var exchangePromise = originalFetch(code ? config.exchangeUrl : config.exchangeUrl.replace('/bootstrap/exchange', '/actor/validate'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(code ? { code: code } : { grantId: saved.grantId, actorToken: saved.actorToken, projectId: config.projectId })
+      }).then(function (response) {
+        return response.json().then(function (payload) {
+          if (!response.ok || !payload || payload.code !== 0 || !payload.data || !payload.data.context || !payload.data.actorToken) throw new Error('Debug bootstrap exchange failed');
+          var context = payload.data.context;
+          if (context.projectId !== config.projectId) throw new Error('Debug project mismatch');
+          mockAllowed = mockAllowed && Array.isArray(context.scopes) && context.scopes.indexOf('runtime.login') >= 0;
+          mockAvailable = Array.isArray(context.scopes) && context.scopes.indexOf('runtime.login') >= 0;
+          window.__SHAPER_DEBUG_MOCK_AVAILABLE__ = mockAvailable;
+          window.__SHAPER_DEBUG_MOCK_ENABLED__ = mockAllowed;
+
+          var credentials = {
+            grantId: context.grantId,
+            actorToken: payload.data.actorToken,
+            projectId: context.projectId || config.projectId,
+            buildId: context.buildId || null,
+            debugRunId: context.debugRunId || null,
+            expiresAt: context.expiresAt || null,
+            actorId: context.actor && context.actor.actorId,
+            actor: context.actor || null
+          };
+          window.__COLORBOX_DEBUG_AUTH__ = credentials;
+          try { sessionStorage.setItem(storageKey, JSON.stringify(credentials)); } catch (_) {}
+          window.__SHAPER_DEBUG_AUTH_STATE__ = 'ready';
+          installMockAuth();
+          notifyDebugState();
+          try { history.replaceState(history.state, '', location.pathname + location.search); } catch (_) {}
+          return credentials;
+        });
+      }).catch(function (error) {
+        try { sessionStorage.removeItem(storageKey); } catch (_) {}
+        window.__SHAPER_DEBUG_AUTH_STATE__ = 'failed';
+        notifyDebugState();
+        throw error;
+      });
+      // Consume the bootstrap rejection even if the app never calls a login capability.
+      exchangePromise.catch(function () {});
+      var authInstallTimer = window.setInterval(function () {
+        var authReady = installMockAuth();
+        installDebugLogBridge();
+        if (!mockAllowed) observeRealSdk(window.ColorboxAI);
+        if ((authReady || !mockAllowed) && window.WebGuard && window.WebGuard.__colorboxDebugWrapped) window.clearInterval(authInstallTimer);
+      }, 25);
+      window.setTimeout(function () { window.clearInterval(authInstallTimer); }, 10000);
+      // Real login is observed only for the developer assistant's display.
+      function observeRealSdk(sdk) {
+        if (!sdk) return;
+        [sdk.auth, sdk.__auth].forEach(function (auth) {
+          if (!auth || auth.__shaperRealUserObserver || typeof auth.getUserInfo !== 'function') return;
+          auth.__shaperRealUserObserver = true;
+          var original = auth.getUserInfo.bind(auth);
+          auth.getUserInfo = function () {
+            var result = original.apply(auth, arguments);
+            Promise.resolve(result).then(function (payload) {
+              var info = payload && payload.data || payload || {};
+              window.__SHAPER_REAL_USER__ = { displayName: info.nickname || info.nickName || '', userId: info.puid || info.userId || '', isLogin: info.islogin === 1 || info.islogin === '1' || info.isLogin === true };
+              notifyDebugState();
+            }, function () {});
+            return result;
+          };
+        });
+      }
+      function requireMockCredentials() {
+        return exchangePromise.then(function (credentials) {
+          if (!mockAllowed || !credentials.actor) throw new Error('当前链接未授权登录模拟');
+          installMockAuth();
+          return credentials;
+        });
+      }
+      function loginCloud(envId) {
+        window.__SHAPER_DEBUG_CLOUD_STATE__ = { state: 'pending', envId: envId };
+        notifyDebugState();
+        return requireMockCredentials().then(function (credentials) {
+          return originalFetch(config.loginUrl, {
+            method: 'POST',
+            credentials: 'omit',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ grantId: credentials.grantId, actorToken: credentials.actorToken, projectId: credentials.projectId, envId: envId })
+          }).then(function (response) {
+            return response.json().then(function (payload) {
+              var loggedIn = response.ok && payload && payload.code === 0 && payload.data && payload.data.accessToken;
+              window.__SHAPER_DEBUG_CLOUD_STATE__ = {
+                state: loggedIn ? 'ready' : 'failed', envId: envId,
+                userId: loggedIn ? payload.data.customUserId : undefined,
+                error: loggedIn ? undefined : '云服务未完成登录，请检查网络请求的返回内容'
+              };
+              notifyDebugState();
+              return Object.assign({}, payload, { status: response.status });
+            }, function () {
+              window.__SHAPER_DEBUG_CLOUD_STATE__ = { state: 'failed', envId: envId, error: '登录接口返回了非预期内容，请检查网络请求' };
+              notifyDebugState();
+              return { code: 502, message: '登录接口返回了非预期内容', status: response.status };
+            });
+          });
+        }).catch(function (error) {
+          window.__SHAPER_DEBUG_CLOUD_STATE__ = { state: 'failed', envId: envId, error: '调试授权或云服务连接失败，请检查网络请求' };
+          notifyDebugState();
+          throw error;
+        });
+      }
+      window.__SHAPER_DEBUG_AUTH_ADAPTER__ = {
+        projectId: config.projectId,
+        enabled: function () { return mockAllowed; },
+        getUserInfo: function () { return requireMockCredentials().then(function () { return mockUserInfo; }); },
+        getAuthToken: function () { return requireMockCredentials().then(function () { return mockUserInfo.authToken; }); },
+        loginCloud: loginCloud,
+        loginGame: function (appId) {
+          return requireMockCredentials().then(function (credentials) {
+            return originalFetch(config.gameLoginUrl, {
+              method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ grantId: credentials.grantId, actorToken: credentials.actorToken, projectId: credentials.projectId, appId: appId })
+            }).then(function (response) {
+              return response.json().then(function (payload) { return Object.assign({}, payload, { status: response.status }); });
+            });
+          });
+        }
+      };
+    })();
+  </script>
+<script src="sdk/colyseus-0.18.2.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>我的篮球人生｜免费篮球人生模拟游戏</title>
+    <meta name="description" content="免费的篮球人生模拟游戏，打开浏览器就能玩。2000年，你在35个篮球国家和地区之一出生：长大、打职业、争夺冠军，退役后执教、经营球队，直到老去。" />
+    <meta name="theme-color" content="#efeeec" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="我的篮球人生" />
+    <meta property="og:title" content="我的篮球人生｜免费篮球人生模拟游戏" />
+    <meta property="og:description" content="出生由天，人生由你。从第一颗球到退役之后，每个选择都在改写结局：你会成为传奇吗？不用下载，不用注册。" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_TW" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="我的篮球人生｜免费篮球人生模拟游戏" />
+    <meta name="twitter:description" content="出生由天，人生由你。从第一颗球到退役之后，每个选择都在改写结局：你会成为传奇吗？" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <script defer src="assets/platform-config.js"></script>
+    <script defer src="assets/keepsake-memory.js"></script>
+    <script src="assets/save-delta-client.js"></script>
+    <script defer src="assets/release-artwork.js"></script>
+    <script defer src="assets/currency.js"></script>
+    <script defer src="assets/logos/nba-logos.js"></script>
+    <script defer src="assets/game.js"></script>
+    <script defer src="assets/game-part-2.js"></script>
+    <script defer src="assets/bracket.js"></script>
+    <script defer src="assets/game-part-3.js"></script>
+    <script defer src="assets/game-part-4.js"></script>
+    <script defer src="assets/platform-client.js"></script>
+    <link rel="stylesheet" crossorigin href="assets/i18n-fUQa-_Ie.css">
+      <link rel="stylesheet" href="assets/platform-client.css" />
+<script defer src="assets/game-pass-client.js"></script>
+<script defer src="assets/keepsake/renderer.js"></script>
+<script defer src="assets/keepsake/save-adapter.js"></script>
+<script defer src="assets/keepsake/story-selector.js"></script>
+<script defer src="assets/keepsake/book-model.js"></script>
+<script defer src="assets/keepsake/career-engine.js"></script>
+<script defer src="assets/keepsake/keepsake-engine.js"></script>
+<script defer src="assets/keepsake/scene-composer.js"></script>
+<script defer src="assets/keepsake/exporter.js"></script>
+<script defer src="assets/keepsake/book-reader.js"></script>
+<script defer src="assets/keepsake/phone-keepsake.js"></script>
+<script defer src="assets/keepsake/post-draft.js"></script>
+<script defer src="assets/keepsake/film-player.js"></script>
+<script defer src="assets/benefit-example-data.js"></script>
+<script defer src="assets/benefit-example-ui.js"></script>
+<script defer src="assets/game-pass-ui.js"></script>
+<script defer src="assets/mbl-core.js"></script>
+<script defer src="assets/attr-system.js"></script>
+<script defer src="assets/mbl-audio-tune.js"></script>
+<script defer src="assets/mbl-ui-sound.js"></script>
+<script defer src="assets/slot-manager.js"></script>
+<script defer src="assets/life-events.js"></script>
+<script defer src="assets/extra-events.js"></script>
+<script defer src="assets/nav-dock.js"></script>
+<script defer src="assets/confirm-dialog.js"></script>
+<script defer src="assets/attr-points.js"></script>
+<script defer src="assets/badge-panel.js"></script>
+<script defer src="assets/relations-messages.js"></script>
+<script defer src="assets/relations-panel.js"></script>
+<script defer src="assets/schedule-panel.js"></script>
+<script defer src="assets/career-hub.js"></script>
+<script defer src="assets/home-inline.js"></script>
+<script defer src="assets/group-panels.js"></script>
+<script defer src="assets/mbl-float-layer.js"></script>
+<script defer src="assets/birth-customize.js"></script>
+<script defer src="assets/real-rosters.js"></script>
+<script defer src="assets/draft-class.js"></script>
+<script defer src="assets/dynasty-eras.js"></script>
+<script defer src="assets/jersey-pick.js"></script>
+<script defer src="assets/draft-template.js"></script>
+<script defer src="assets/auto-sim.js"></script>
+<script defer src="assets/draft-match.js"></script>
+<script defer src="assets/sim-report.js"></script>
+<script defer src="assets/quick-sim.js"></script>
+<script defer src="assets/match-engine.js"></script>
+<script defer src="assets/broadcast-panel.js"></script>
+<script defer src="assets/team-calendar.js"></script>
+<script defer src="assets/game-history.js"></script>
+<script defer src="assets/playoff-bracket.js"></script>
+<script defer src="assets/intl-mood.js"></script>
+<script defer src="assets/disclaimer.js"></script>
+<script defer src="assets/auth-gate.js"></script>
+<script defer src="assets/auto-save.js"></script>
+<link rel="stylesheet" href="assets/game-pass-ui.css">
+<link rel="stylesheet" href="assets/slot-manager.css">
+<link rel="stylesheet" href="assets/nav-dock.css">
+<link rel="stylesheet" href="assets/badge-panel.css">
+<link rel="stylesheet" href="assets/broadcast-panel.css">
+<link rel="stylesheet" href="assets/relations-panel.css">
+<link rel="stylesheet" href="assets/dynasty-eras.css">
+<link rel="stylesheet" href="assets/schedule-panel.css">
+<link rel="stylesheet" href="assets/career-hub.css">
+<link rel="stylesheet" href="assets/team-calendar.css">
+<link rel="stylesheet" href="assets/game-history.css">
+<link rel="stylesheet" href="assets/playoff-bracket.css">
+<link rel="stylesheet" href="assets/birth-customize.css">
+<link rel="stylesheet" href="assets/confirm-dialog.css">
+<link rel="stylesheet" href="assets/keepsake/book.css">
+<link rel="stylesheet" href="assets/game-help.css">
+<link rel="stylesheet" href="assets/jersey-pick.css">
+<link rel="stylesheet" href="assets/draft-template.css">
+<link rel="stylesheet" href="assets/draft-match.css">
+<link rel="stylesheet" href="assets/sim-report.css">
+<link rel="stylesheet" href="assets/quick-sim.css">
+<link rel="stylesheet" href="assets/disclaimer.css">
+<link rel="stylesheet" href="assets/auth-gate.css">
+<link rel="stylesheet" href="assets/auto-save.css">
+<link rel="stylesheet" href="assets/fade-transition.css">
+<script defer src="assets/release-history.js"></script>
+<script defer src="assets/game-help.js"></script>
+<style id="colorbox-selection-styles">
+    body { user-select: none; -webkit-user-select: none; }
+    input, textarea { user-select: text; -webkit-user-select: text; }
+  </style>
+<script src="sdk/web-guard.min.js"></script>
+<script>
+  (function () {
+    if (window.WebGuard && window.WebGuard.init) {
+      window.__SHAPER_INIT_WEB_GUARD__(window.WebGuard, {
+        env: window.__SHAPER_WEB_GUARD_SESSION__.telemetryEnvironment,
+        pageVisible: window.__SHAPER_WEB_GUARD_SESSION__.visible,
+        context: window.__SHAPER_WEB_GUARD_CONTEXT__,
+        application: "colorbox-activity-fed",
+        ignoreHttpList: ["goblin", "api/v2/user"]
+      });
+    }
+  })();
+</script>
+<script src="sdk/colorbox-sdk.js"></script>
+<script src="sdk/local-shim.js"></script>
+<script>
+(function () {
+  window.__COLORBOX_AI_CONFIG__ = {
+    projectId: "app_ad6bae0e21",
+    cloud: {"controlOrigin":"https://shaper.hupu.com/api/v1/player-cloud","identityUrl":"https://shaper.hupu.com/api/v1/player-cloud/identity"},
+    settings: {"audit":{"cate":"shaper","subcate":"update_publish"},"theme":{"skeletonColor":"#f5f5f5","webviewBackground":"#ffffff","containerBackground":"#ffffff"},"title":"我的篮球人生","shareCover":"","shareTitle":"我的篮球人生","bizCategory":"shaper","dayNightMode":"auto","isFullscreen":false,"trackingCode":"PHBS7947","shareSubtitle":"","disablePageSlide":true},
+    pagePi: "activity_shaper_app_ad6bae0e21",
+    ActivityId: "1268",
+    PageId: "app_ad6bae0e21"
+  };
+  "use strict";
+(() => {
+  // src/iframe-runtime/fallbacks.ts
+  function createLocalFallbackApi() {
+    return {
+      getPostDetail: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      getTopicThreads: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      buildPostSchema: function() {
+        return "";
+      },
+      openPostEditor: function() {
+        return "";
+      }
+    };
+  }
+  function createLocalSecurityFallbackApi() {
+    return {
+      checkAudit: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      }
+    };
+  }
+  function createLocalScoreFallbackApi() {
+    return {
+      getScore: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      addScore: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      }
+    };
+  }
+  function createLocalOssFallbackApi() {
+    return {
+      uploadFile: function() {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      }
+    };
+  }
+  function createLocalAuthFallbackApi() {
+    return {
+      getUserInfo: function() {
+        const info = window.userInfo || window.HupuBridge && window.HupuBridge.nainfo;
+        return Promise.resolve(info || null);
+      },
+      getAuthToken: function() {
+        const info = window.userInfo || window.HupuBridge && window.HupuBridge.nainfo;
+        const token = info && (info.authToken || info.token) || "";
+        return Promise.resolve(token);
+      }
+    };
+  }
+
+  // src/iframe-runtime/storage.ts
+  var MAX_STORAGE_BYTES = 5 * 1024 * 1024;
+  function createColorboxStorageApi(params) {
+    const pId = params.projectId;
+    function resolveScopedKey(key) {
+      return "cb_storage:" + pId + ":" + key;
+    }
+    function isStorageAvailable() {
+      try {
+        const testKey = "__colorbox_storage_test__";
+        window.localStorage.setItem(testKey, "test");
+        window.localStorage.removeItem(testKey);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    const isLocalAvailable = isStorageAvailable();
+    function safeB64Encode(str) {
+      try {
+        const base64 = window.btoa(unescape(encodeURIComponent(str)));
+        return base64;
+      } catch (error) {
+        logError("safeB64Encode failed.", error);
+        throw error;
+      }
+    }
+    function safeB64Decode(str) {
+      try {
+        const decoded = decodeURIComponent(escape(window.atob(str)));
+        return decoded;
+      } catch (error) {
+        logError("safeB64Decode failed.", error);
+        throw error;
+      }
+    }
+    function serializeStorageValue(value) {
+      if (value == null) return "";
+      const text = typeof value === "string" ? value : JSON.stringify(value);
+      try {
+        const encoded = safeB64Encode(text);
+        return "__b64__:" + encoded;
+      } catch (error) {
+        return text;
+      }
+    }
+    function parseStorageValue(value, scopedKey) {
+      if (value == null) return null;
+      if (typeof value !== "string") return value;
+      let text = value;
+      if (text.indexOf("__b64__:") === 0) {
+        text = safeB64Decode(text.slice(8));
+      }
+      if (text.charAt(0) !== "{" && text.charAt(0) !== "[") {
+        return text;
+      }
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === "object") {
+          if (!Array.isArray(parsed) && scopedKey && parsed[scopedKey] != null) {
+            return parseStorageValue(parsed[scopedKey], scopedKey);
+          }
+        }
+        return text;
+      } catch (parseError) {
+        if (text.charAt(0) === "{" && text.charAt(text.length - 1) === "}") {
+          const escapedKey = (scopedKey || "").replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+          const pattern = new RegExp('^\\{\\s*"' + (escapedKey || '[^"]+') + '"\\s*:\\s*"(.*)"\\s*\\}\\s*$');
+          const match = text.match(pattern);
+          if (match) {
+            let rawValue = match[1];
+            rawValue = rawValue.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+            return parseStorageValue(rawValue, scopedKey);
+          }
+        }
+        return text;
+      }
+    }
+    function readLocalStorageValue(scopedKey) {
+      if (!isLocalAvailable) return null;
+      try {
+        return parseStorageValue(window.localStorage.getItem(scopedKey), scopedKey);
+      } catch (e) {
+        return null;
+      }
+    }
+    function writeLocalStorageValue(scopedKey, value) {
+      if (!isLocalAvailable) return false;
+      try {
+        window.localStorage.setItem(scopedKey, serializeStorageValue(value));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    function readLocalStorageAll() {
+      const result = {};
+      if (!isLocalAvailable) return result;
+      try {
+        const prefix = "cb_storage:" + pId + ":";
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.indexOf(prefix) === 0) {
+            const rawKey = k.substring(prefix.length);
+            const val = readLocalStorageValue(k);
+            if (val !== null) {
+              result[rawKey] = val;
+            }
+          }
+        }
+      } catch (e) {
+      }
+      return result;
+    }
+    function calculateStorageSize() {
+      let size = 0;
+      if (!isLocalAvailable) return size;
+      try {
+        const prefix = "cb_storage:" + pId + ":";
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.indexOf(prefix) === 0) {
+            const val = window.localStorage.getItem(k);
+            size += k.length + (val ? val.length : 0);
+          }
+        }
+      } catch (e) {
+      }
+      return size;
+    }
+    function deleteLocalStorageValue(scopedKey) {
+      if (!isLocalAvailable) return false;
+      try {
+        window.localStorage.removeItem(scopedKey);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    function resolveProjectId() {
+      return pId;
+    }
+    function logInfo(stage, detail) {
+      console.log("[ColorboxAI.Storage] " + stage, detail || {});
+    }
+    function logError(stage, error, extra) {
+      console.error("[ColorboxAI.Storage] Error: " + stage, error);
+      try {
+        const isBridgeError = stage.toLowerCase().indexOf("bridge") >= 0;
+        if (isBridgeError && window.WebGuard && typeof window.WebGuard.hupuLog === "function") {
+          window.WebGuard.hupuLog({
+            type: "jsError",
+            message: "[ColorboxAI.Storage] " + stage + ": " + (error && error.message || String(error)),
+            stack: error && error.stack || new Error().stack || "",
+            detail: Object.assign({
+              projectId: pId,
+              stage
+            }, extra || {})
+          });
+        }
+      } catch (e) {
+        console.error("[ColorboxAI.Storage] Failed to report to WebGuard", e);
+      }
+    }
+    function shouldUseBridge() {
+      const ua = navigator.userAgent || "";
+      return /kanqiu/i.test(ua);
+    }
+    function writeBridgeValue(scopedKey, value) {
+      const payload = {
+        method: "hupu.common.setValue",
+        data: {
+          key: scopedKey,
+          value: serializeStorageValue(value)
+        }
+      };
+      return new Promise(function(resolve, reject) {
+        if (window.HupuBridge && typeof window.HupuBridge.send === "function") {
+          window.HupuBridge.send(payload.method, payload.data).then(resolve).catch(reject);
+        } else {
+          reject(new Error("HupuBridge not available for storage set"));
+        }
+      });
+    }
+    function readBridgeValue(scopedKey) {
+      const payload = {
+        method: "hupu.common.getValue",
+        data: { key: scopedKey }
+      };
+      return new Promise(function(resolve, reject) {
+        if (window.HupuBridge && typeof window.HupuBridge.send === "function") {
+          window.HupuBridge.send(payload.method, payload.data).then(function(res) {
+            const val = res && res.value;
+            resolve(parseStorageValue(val, scopedKey));
+          }).catch(reject);
+        } else {
+          reject(new Error("HupuBridge not available for storage get"));
+        }
+      });
+    }
+    function setValue(key, value) {
+      return Promise.resolve().then(function() {
+        if (key == null || typeof key === "object") {
+          const batch = key || {};
+          const keys = Object.keys(batch);
+          if (!keys.length) return { ok: true, size: calculateStorageSize(), bridgeSynced: false };
+          let currentSize2 = calculateStorageSize();
+          let delta2 = 0;
+          const writeTasks = [];
+          keys.forEach(function(k) {
+            const scopedKey2 = resolveScopedKey(k);
+            const val = batch[k];
+            const rawVal2 = JSON.stringify(val);
+            const oldRaw2 = isLocalAvailable ? window.localStorage.getItem(scopedKey2) : null;
+            const keyDelta = scopedKey2.length + rawVal2.length - (oldRaw2 ? scopedKey2.length + oldRaw2.length : 0);
+            delta2 += keyDelta;
+            writeTasks.push({ scopedKey: scopedKey2, val });
+          });
+          if (currentSize2 + delta2 > MAX_STORAGE_BYTES) {
+            throw new Error("Storage quota exceeded (max 5MB limit). Set value failed.");
+          }
+          let ok2 = true;
+          const bridgeKeys = [];
+          writeTasks.forEach(function(task) {
+            const success = writeLocalStorageValue(task.scopedKey, task.val);
+            if (!success) ok2 = false;
+            bridgeKeys.push(task.scopedKey);
+          });
+          if (shouldUseBridge()) {
+            const bridgePayload = {
+              method: "hupu.common.setValue",
+              data: {
+                keys: bridgeKeys,
+                values: keys.map(function(k) {
+                  return serializeStorageValue(batch[k]);
+                })
+              }
+            };
+            return new Promise(function(resolve) {
+              if (window.HupuBridge && typeof window.HupuBridge.send === "function") {
+                window.HupuBridge.send(bridgePayload.method, bridgePayload.data).then(function(res) {
+                  resolve({ ok: ok2, size: calculateStorageSize(), bridgeSynced: true, rawBridgeResult: res });
+                }).catch(function(err) {
+                  logError("Bridge batch write failed", err, { keys: bridgeKeys });
+                  resolve({ ok: ok2, size: calculateStorageSize(), bridgeSynced: false, error: err });
+                });
+              } else {
+                resolve({ ok: ok2, size: calculateStorageSize(), bridgeSynced: false });
+              }
+            }).then(function(result3) {
+              logInfo("\u5199\u5165\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+                projectId: resolveProjectId(),
+                input: batch,
+                payload: bridgePayload,
+                result: result3
+              });
+              return result3;
+            });
+          }
+          const result2 = { ok: ok2, size: calculateStorageSize(), bridgeSynced: false };
+          logInfo("\u5199\u5165\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+            projectId: resolveProjectId(),
+            input: batch,
+            payload: null,
+            result: result2
+          });
+          return result2;
+        }
+        const storageKey = String(key);
+        const scopedKey = resolveScopedKey(storageKey);
+        const rawVal = JSON.stringify(value);
+        const oldRaw = isLocalAvailable ? window.localStorage.getItem(scopedKey) : null;
+        const currentSize = calculateStorageSize();
+        const delta = scopedKey.length + rawVal.length - (oldRaw ? scopedKey.length + oldRaw.length : 0);
+        if (currentSize + delta > MAX_STORAGE_BYTES) {
+          throw new Error("Storage quota exceeded (max 5MB limit). Set value failed.");
+        }
+        let ok = true;
+        if (value === void 0) {
+          ok = deleteLocalStorageValue(scopedKey);
+        } else {
+          ok = writeLocalStorageValue(scopedKey, value);
+        }
+        if (shouldUseBridge()) {
+          const bridgePayload = {
+            method: "hupu.common.setValue",
+            data: {
+              key: scopedKey,
+              value: serializeStorageValue(value)
+            }
+          };
+          return writeBridgeValue(scopedKey, value).then(function(bridgeResult) {
+            return { ok, key: storageKey, size: calculateStorageSize(), bridgeSynced: bridgeResult !== null };
+          }).catch(function(err) {
+            logError("Bridge write failed for key " + storageKey, err, { key: storageKey });
+            return { ok, key: storageKey, size: calculateStorageSize(), bridgeSynced: false, error: err };
+          }).then(function(result2) {
+            logInfo("\u5199\u5165\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+              projectId: resolveProjectId(),
+              input: value,
+              payload: bridgePayload,
+              result: result2
+            });
+            return result2;
+          });
+        }
+        const result = { ok, key: storageKey, size: calculateStorageSize(), bridgeSynced: false };
+        logInfo("\u5199\u5165\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+          projectId: resolveProjectId(),
+          input: value,
+          payload: null,
+          result
+        });
+        return result;
+      }).catch(function(error) {
+        logError("\u5199\u5165\u5B58\u50A8\u6570\u636E\u5931\u8D25", error, { key });
+        return Promise.reject(error);
+      });
+    }
+    function getValue(key) {
+      const hasKey = key != null && key !== "";
+      const storageKey = hasKey ? String(key) : "";
+      return Promise.resolve().then(function() {
+        if (!hasKey) {
+          const allValues = readLocalStorageAll();
+          logInfo("\u8BFB\u53D6\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+            projectId: resolveProjectId(),
+            key: "",
+            scopedKey: "",
+            source: "localStorage",
+            result: allValues
+          });
+          return allValues;
+        }
+        const scopedKey = resolveScopedKey(storageKey);
+        if (!shouldUseBridge()) {
+          const localOnlyValue = readLocalStorageValue(scopedKey);
+          logInfo("\u8BFB\u53D6\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+            projectId: resolveProjectId(),
+            key: storageKey,
+            scopedKey,
+            source: "localStorage",
+            result: localOnlyValue
+          });
+          return localOnlyValue;
+        }
+        return readBridgeValue(scopedKey).catch(function(err) {
+          logError("Bridge read failed for key " + storageKey, err, { key: storageKey });
+          throw err;
+        }).then(function(bridgeValue) {
+          if (bridgeValue != null) {
+            logInfo("\u8BFB\u53D6\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+              projectId: resolveProjectId(),
+              key: storageKey,
+              scopedKey,
+              source: "hupu.common.getValue",
+              result: bridgeValue
+            });
+            return bridgeValue;
+          }
+          const localValue = readLocalStorageValue(scopedKey);
+          logInfo("\u8BFB\u53D6\u5B58\u50A8\u6570\u636E\u6210\u529F", {
+            projectId: resolveProjectId(),
+            key: storageKey,
+            scopedKey,
+            source: "localStorage",
+            result: localValue
+          });
+          return localValue;
+        });
+      }).catch(function(error) {
+        logError("\u8BFB\u53D6\u5B58\u50A8\u6570\u636E\u5931\u8D25", error, { key: storageKey });
+        return hasKey ? null : {};
+      });
+    }
+    return {
+      maxBytes: MAX_STORAGE_BYTES,
+      setValue,
+      getValue,
+      set: setValue,
+      get: getValue
+    };
+  }
+
+  // src/iframe-runtime/index.ts
+  (function() {
+    const config = window.__COLORBOX_AI_CONFIG__ || {
+      projectId: "",
+      settings: {
+        title: "",
+        trackingCode: "",
+        bizCategory: "",
+        shareTitle: "",
+        shareSubtitle: "",
+        shareCover: ""
+      },
+      pagePi: ""
+    };
+    const { settings, projectId, pagePi } = config;
+    const sessionId = "ai-runtime-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+    window.__colorbox_runtime__ = true;
+    window.__colorbox_ai_runtime__ = true;
+    window.globalState = Object.assign({}, window.globalState || {}, {
+      name: settings.title,
+      pageTrackCode: settings.trackingCode,
+      wxShareTitle: settings.shareTitle,
+      wxShareSubTitle: settings.shareSubtitle,
+      wxShareImage: settings.shareCover,
+      bizCode: settings.bizCategory,
+      webViewColor: settings.theme && settings.theme.webviewBackground,
+      containerColor: settings.theme && settings.theme.containerBackground,
+      pi: pagePi
+    });
+    if (settings.title) {
+      document.title = settings.title;
+    }
+    function setupRuntimeIssueGuard() {
+      if (window.__colorbox_ai_runtime_issue_guard__) return;
+      window.__colorbox_ai_runtime_issue_guard__ = true;
+      let lastTick = Date.now();
+      window.setInterval(function() {
+        const now = Date.now();
+        const drift = now - lastTick - 1e3;
+        if (drift > 3e3) {
+          console.error("[ColorboxAI.Runtime] Main thread blocked for " + drift + "ms; possible long task or infinite loop.");
+        }
+        lastTick = now;
+      }, 1e3);
+    }
+    const frameTrackDebugLog = [];
+    function pushFrameTrackDebug(stage, detail) {
+      const entry = { stage, detail: detail || {}, ts: Date.now() };
+      frameTrackDebugLog.push(entry);
+      if (frameTrackDebugLog.length > 200) {
+        frameTrackDebugLog.shift();
+      }
+      try {
+        console.log("[ColorboxAI.Track] " + stage, detail || {});
+      } catch (error) {
+      }
+    }
+    function createTrackTraceId() {
+      return "trk_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
+    }
+    function post(type, payload) {
+      const trackTraceId = payload && payload.trackTraceId;
+      try {
+        if (!window.parent || window.parent === window) {
+          if (type === "events.track") {
+            pushFrameTrackDebug("frame.post.skip", {
+              trackTraceId,
+              reason: "no_parent_or_same_window"
+            });
+          }
+          return;
+        }
+        window.parent.postMessage({
+          protocol: "colorbox-ai-bridge",
+          version: 1,
+          direction: "frame-to-host",
+          sessionId,
+          projectId,
+          type,
+          payload: payload || {},
+          timestamp: Date.now()
+        }, "*");
+        if (type === "events.track") {
+          pushFrameTrackDebug("frame.post.ok", { trackTraceId, projectId });
+        }
+      } catch (error) {
+        if (type === "events.track") {
+          pushFrameTrackDebug("frame.post.error", {
+            trackTraceId,
+            message: error && error.message || String(error)
+          });
+        }
+      }
+    }
+    window.ColorboxAI = window.ColorboxAI || window.ShaperAI || {};
+    window.ShaperAI = window.ColorboxAI;
+    window.ColorboxAI.context = window.ColorboxAI.context || { appId: projectId };
+    window.ColorboxAI.project = window.ColorboxAI.project || {
+      id: projectId,
+      settings,
+      getSettings: function() {
+        return Promise.resolve(settings);
+      }
+    };
+    if (typeof window.ColorboxAI.configure === "function") {
+      window.ColorboxAI.configure({
+        trackingCode: settings.trackingCode,
+        pi: pagePi
+      });
+    }
+    window.__colorbox_ai_track_debug_frame__ = frameTrackDebugLog;
+    window.ColorboxAI.track = function (trackParams) {
+      const trackTraceId = createTrackTraceId();
+      pushFrameTrackDebug("frame.call", {
+        trackTraceId,
+        params: trackParams || {},
+        hasParent: !!(window.parent && window.parent !== window)
+      });
+      try {
+        const customDebugger = window.ColorboxCustomDebugger;
+        if (customDebugger && typeof customDebugger.addLog === "function") {
+          customDebugger.addLog(trackParams || {});
+        }
+      } catch (error) {
+        pushFrameTrackDebug("frame.debug.error", {
+          trackTraceId,
+          message: error && error.message || String(error)
+        });
+      }
+      post("events.track", { trackParams: trackParams || {}, trackTraceId });
+    };
+    window.ColorboxAI.navigateTo = function(url, target) {
+      post("navigation.open", { url, target });
+    };
+    window.ColorboxAI.openUrl = window.ColorboxAI.navigateTo;
+    window.ColorboxAI.bbs = window.ColorboxAI.bbs || createLocalFallbackApi();
+    window.ColorboxAI.security = window.ColorboxAI.security || createLocalSecurityFallbackApi();
+    window.ColorboxAI.score = window.ColorboxAI.score || createLocalScoreFallbackApi();
+    window.ColorboxAI.oss = window.ColorboxAI.oss || createLocalOssFallbackApi();
+    window.ColorboxAI.auth = window.ColorboxAI.auth || createLocalAuthFallbackApi();
+    window.ColorboxAI.storage = window.ColorboxAI.storage || createColorboxStorageApi({ projectId });
+    window.ColorboxAI.runtime = window.ColorboxAI.runtime || {};
+    window.ColorboxAI.runtime.log = function() {
+      post("runtime.log", { args: Array.prototype.slice.call(arguments) });
+    };
+    window.ColorboxAI.hupuLog = function(params) {
+      if (window.WebGuard && typeof window.WebGuard.hupuLog === "function") {
+        window.WebGuard.hupuLog(params);
+      }
+    };
+    window.addEventListener("error", function(event) {
+      if (event.target && event.target !== window && event.target !== document) {
+        return;
+      }
+      const errorMsg = event.message || event.error && event.error.message || "Unknown error";
+      console.error("[ColorboxAI.Runtime] Uncaught error:", errorMsg);
+      post("runtime.error", {
+        message: errorMsg,
+        sourceFile: event.filename || "",
+        line: event.lineno || 0,
+        column: event.colno || 0,
+        stack: event.error && event.error.stack || ""
+      });
+    }, true);
+    window.addEventListener("unhandledrejection", function(event) {
+      const reason = event.reason || {};
+      console.error("[ColorboxAI.Runtime] Unhandled promise rejection:", reason);
+      post("runtime.error", {
+        message: reason.message || String(reason),
+        stack: reason.stack || ""
+      });
+    });
+    setupRuntimeIssueGuard();
+    post("runtime.ready", { href: location.href });
+  })();
+})();
+
+})();
+</script><script>(function () {
+      var emptyBbsConfig = { bbsTagId: "", bbsTagName: "", bbsTopicId: "", bbsTopicName: "" };
+      var pending = {};
+      window.addEventListener("message", function (event) {
+        var data = event && event.data;
+        if (!data || data.protocol !== "colorbox-ai-bridge" || data.direction !== "host-to-frame" || data.type !== "bbsConfig.get.callback") return;
+        var payload = data.payload || {};
+        var waiter = pending[payload.requestId];
+        if (!waiter) return;
+        delete pending[payload.requestId];
+        window.clearTimeout(waiter.timer);
+        var bbsConfig = payload.bbsConfig && typeof payload.bbsConfig === "object" ? payload.bbsConfig : emptyBbsConfig;
+        waiter.resolve({
+          bbsTagId: typeof bbsConfig.bbsTagId === "string" ? bbsConfig.bbsTagId : "",
+          bbsTagName: typeof bbsConfig.bbsTagName === "string" ? bbsConfig.bbsTagName : "",
+          bbsTopicId: typeof bbsConfig.bbsTopicId === "string" ? bbsConfig.bbsTopicId : "",
+          bbsTopicName: typeof bbsConfig.bbsTopicName === "string" ? bbsConfig.bbsTopicName : ""
+        });
+      });
+      function getBbsConfig(key) {
+        return new Promise(function (resolve) {
+          function finish(bbsConfig) {
+            resolve(key == null || key === "" ? bbsConfig : bbsConfig[key]);
+          }
+          if (!window.parent || window.parent === window) {
+            finish(emptyBbsConfig);
+            return;
+          }
+          var requestId = "bbs_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
+          pending[requestId] = {
+            resolve: finish,
+            timer: window.setTimeout(function () {
+              delete pending[requestId];
+              finish(emptyBbsConfig);
+            }, 1000)
+          };
+          window.parent.postMessage({
+            protocol: "colorbox-ai-bridge",
+            version: 1,
+            direction: "frame-to-host",
+            type: "bbsConfig.get",
+            payload: { requestId: requestId },
+            timestamp: Date.now()
+          }, "*");
+        });
+      }
+      window.ColorboxAI = window.ColorboxAI || {};
+      window.ColorboxAI.bbsConfig = window.ColorboxAI.bbsConfig || {};
+      window.ColorboxAI.bbsConfig.get = getBbsConfig;
+    })();</script>
+<script data-shaper-debug-console-runtime>
+    (function () {
+      var params = new URLSearchParams(window.location.search || '');
+      if (params.get('hupu_debug') !== 'true') return;
+      var src = "https://activity-static.hupu.com/shaper/debug-console/0.1.9/hupu-debug-console.js";
+      function init() {
+        try {
+          if (window.__HUPU_DEBUG_READY__) return;
+          if (typeof window.createHupuDebugConsole !== 'function') {
+            console.warn('[HupuDebug] console bundle loaded without createHupuDebugConsole');
+            return;
+          }
+          var debugConsole = window.createHupuDebugConsole({
+            theme: 'light',
+            tool: ['console', 'network', 'info']
+          });
+          debugConsole.init();
+          window.__HUPU_DEBUG_READY__ = true;
+        } catch (error) {
+          console.error('[HupuDebug] failed to initialize debug console', error);
+        }
+      }
+      if (typeof window.createHupuDebugConsole === 'function') {
+        init();
+        return;
+      }
+      if (document.querySelector('script[data-hupu-debug-console], script#hupu-debug-console')) return;
+      var script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.dataset.hupuDebugConsole = 'true';
+      script.onload = init;
+      script.onerror = function () { console.error('[HupuDebug] failed to load debug console bundle'); };
+      (document.head || document.documentElement).appendChild(script);
+    })();
+  </script>
+</head>
+  <body>
+    <!-- What shows until the game starts (it clears this before its first draw), and the page's heading for crawlers. -->
+    <div id="app"><main class="boot"><h1>我的篮球人生</h1><p>出生由天，人生由你。从第一颗球到退役之后，每个选择都在改写结局：你会成为传奇吗？</p></main></div>
+    <noscript>
+      <main style="max-width: 640px; margin: 0 auto; padding: 24px 16px; font-family: system-ui, sans-serif; line-height: 1.7">
+        <p>免费的篮球人生模拟游戏。</p>
+        <h2>一生怎么走</h2>
+        <ol>
+          <li>2000年，你在35个篮球国家和地区之一出生，有自己的家庭、城市和个性。</li>
+          <li>你慢慢长大：校队、教练、朋友和对手，还有人生第一个重大抉择。</li>
+          <li>你转为职业：参加选秀，或加盟本地、海外球队；合同、交易、伤病和冠军。</li>
+          <li>你打出自己的生涯：年度奖项、纪录、国家队和高光时刻。</li>
+          <li>退役后，你可以当主教练、总经理、青训学院创办人、媒体人或球队老板。</li>
+          <li>你和家人一起变老，留下传承，在纪念页上看见自己的一生。</li>
+        </ol>
+        <h2>常见问题</h2>
+        <dl>
+          <dt>要钱吗？</dt>
+          <dd>不用。免费游玩，不用注册，也不用下载。</dd>
+          <dt>需要什么才能玩？</dt>
+          <dd>手机、平板或电脑上的浏览器就可以。</dd>
+          <dt>有哪些语言？</dt>
+          <dd>简体中文、繁體中文和英文（English）。</dd>
+          <dt>每一生都不一样吗？</dt>
+          <dd>是的。国家、家庭、个性和你的选择塑造每一生，没有两次会一模一样。</dd>
+          <dt>可以分享我的人生吗？</dt>
+          <dd>可以。人生结束时，你可以分享它的故事和人生分数。</dd>
+        </dl>
+        <p>这个游戏需要 JavaScript，请开启后再玩。</p>
+        
+      </main>
+    </noscript>
+<template id="mbl-book-template"><section id="book-view" class="view book-view"><div class="view-title"><div><h2>人生记录册</h2><p>高磊 · 84年人生，1084段经历。</p></div></div><div id="book-cover" class="book-cover"></div><div class="book-summary" hidden=""><p>他在低级别联赛打球，钱不多，热爱很多。<br>35岁后，把篮球一点一点教给下一代。</p><div><span><b>316</b>场职业比赛</span><span><b>13</b>个赛季</span><span><b>45</b>项荣誉</span></div></div><div class="record-tabs" role="tablist" aria-label="记录册内容"><button id="overview-tab" role="tab" aria-selected="true" aria-controls="overview-panel" data-tab="overview">人生概览</button><button id="events-tab" role="tab" aria-selected="false" aria-controls="events-panel" data-tab="events">逐年经历</button><button id="seasons-tab" role="tab" aria-selected="false" aria-controls="seasons-panel" data-tab="seasons">职业生涯</button><button id="awards-tab" role="tab" aria-selected="false" aria-controls="awards-panel" data-tab="awards">荣誉簿</button><button id="people-tab" role="tab" aria-selected="false" aria-controls="people-panel" data-tab="people">家人与师友</button><button id="decisions-tab" role="tab" aria-selected="false" aria-controls="decisions-panel" data-tab="decisions">做过的选择</button><button id="years-tab" role="tab" aria-selected="false" aria-controls="years-panel" data-tab="years">逐年数据</button></div><div id="overview-panel" role="tabpanel" aria-labelledby="overview-tab"></div><div id="people-panel" role="tabpanel" aria-labelledby="people-tab" hidden=""></div><div id="decisions-panel" role="tabpanel" aria-labelledby="decisions-tab" hidden=""></div><div id="years-panel" role="tabpanel" aria-labelledby="years-tab" hidden=""></div><div id="events-panel" role="tabpanel" aria-labelledby="events-tab"><div id="decade-nav" class="decade-nav" aria-label="按年代阅读"></div><div class="filters" hidden=""><div><label for="year-filter">年份</label><select id="year-filter"><option value="all">全部年份</option></select></div><div class="search-filter"><label for="memory-search">找一段记忆</label><input id="memory-search" type="search" placeholder="一个人、一个地方、一件小事……"></div><button id="clear-filters" class="quiet-button">查看全部</button></div><div id="category-filter" class="category-filter" aria-label="按内容筛选" hidden=""></div><p id="result-count" class="result-count" role="status" hidden=""></p><div id="events-list" class="events-list"></div><p id="empty-results" hidden="">没有找到这段记忆，换个关键词试试。</p><button id="more-events" class="more-button">再读一些 ↓</button></div><div id="seasons-panel" role="tabpanel" aria-labelledby="seasons-tab" hidden=""><div id="career-overview"></div><div class="book-section-head"><span>赛季曲线</span><small>场均得分 / 每个有记录的职业赛季</small></div><div id="season-chart" class="season-chart" aria-label="13个职业赛季的场均得分"></div><p class="chart-note">场均得分 · 金色为夺冠赛季</p><div class="table-scroll"><table><thead><tr><th>赛季</th><th>球队</th><th>场次</th><th>得分</th><th>篮板</th><th>助攻</th><th>赛季结局</th></tr></thead><tbody id="season-rows"></tbody></table></div></div><div id="awards-panel" role="tabpanel" aria-labelledby="awards-tab" hidden=""><div id="awards-overview"></div><div id="awards-list" class="awards-list"></div></div></section></template>
+</body>
+</html>

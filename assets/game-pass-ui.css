@@ -1,0 +1,142 @@
+.mbl-pass-modal{width:min(470px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;box-sizing:border-box;border:1px solid #b7bea9;border-radius:19px;background:#f5f1e7;color:#263f34;padding:21px;box-shadow:0 15px 70px #071d2d30;font:14px/1.7 system-ui}.mbl-pass-modal::backdrop{background:var(--backdrop);justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.mbl-pass-head h2{margin:0;font:25px/1.4 SimSun,serif}.mbl-pass-head button{border:1px solid #a9b09b;background:transparent;color:inherit;border-radius:20px;padding:5px 13px;font:12px system-ui}.mbl-pass-muted{color:#747f6b;font-size:12px}.mbl-pass-state{font-size:13px;line-height:1.8}.mbl-pass-tiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mbl-pass-tiers button{color:#263f34;border:1px solid #c9cdbb;border-radius:12px;padding:15px;background:#fffdf6;text-align:left}.mbl-pass-tiers span{font:13px system-ui}.mbl-pass-tiers strong{display:block;font:30px Georgia,serif;margin-top:10px}.mbl-pass-tiers [aria-pressed=true]{background:#e7e5d4;border:2px solid #496044;padding:14px}.mbl-pass-ways{display:flex;gap:10px;margin:16px 0}.mbl-pass-ways button{flex:1;color:#263f34;border:1px solid #b8bfac;border-radius:10px;padding:10px;background:transparent;font:12px system-ui}.mbl-pass-ways [aria-pressed=true]{background:#e7e5d4;border-color:#496044}.mbl-pass-buy,.mbl-pass-retry{display:block;width:100%;box-sizing:border-box;margin-top:12px;border-radius:11px;border:0;padding:13px;font:14px system-ui;background:#263f34;color:#faf5e5}.mbl-pass-retry{color:#263f34;background:transparent;border:1px solid #b8bfac}.mbl-pass-message{font-size:12px;color:#886c3b}.mbl-pass-modal button:disabled{opacity:.55;cursor:default}.mbl-pass-modal button:focus-visible{outline:3px solid #a77c37;outline-offset:3px}.mbl-pass-modal [hidden]{display:none!important}.mbl-pass-long{width:min(600px,calc(100% - 20px))}.mbl-pass-long img{display:block;width:100%;height:auto;-webkit-touch-callout:default;user-select:auto}.mbl-keepsake-hub>button{cursor:pointer}
+
+.mbl-pass-book{width:min(1060px,calc(100% - 20px));--serif:SimSun,serif;--ink:#263f34;--muted:#718067;--paper:#f5f1e7;--line:#cbd2bd;--moss:#4c674a;--cream:#ece8d9}.mbl-pass-book img{max-width:100%;height:auto}.mbl-pass-book .view-title h2{font:28px SimSun,serif}.mbl-pass-book .book-view{padding:0}.mbl-pass-book .record-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0}.mbl-pass-book .record-tabs button{white-space:nowrap}.mbl-pass-book .book-cover{margin-top:10px}
+
+.perk-card[data-mbl-ad="pass"] .perk-video{display:none}
+
+#photo-shelf-dialog{--serif:SimSun,serif}#photo-shelf-dialog [hidden]{display:none!important}
+
+.mbl-member-entry{display:block;width:100%;margin:12px 0 2px;padding:12px;border:1px solid #b79a70;border-radius:10px;background:#f7efdd;color:#72502e;font:13px system-ui;cursor:pointer}.mbl-p-poster-action{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mbl-p-poster-action [data-action="keepsake-open"]{margin-left:auto;background:#294438;color:#fff8e8;border-color:#294438;min-height:42px}.mbl-keepsake-hub{width:min(480px,calc(100% - 20px))}.mbl-pass-manage{display:block;margin:12px auto 0;background:none;border:0;border-bottom:1px solid #a7af99;color:#6b765f;padding:4px;font:12px system-ui;cursor:pointer}.mbl-film{margin:18px 0}.mbl-film-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.mbl-film h3{font:19px SimSun,serif;margin:0}.mbl-film select{font:12px system-ui;padding:7px;border:1px solid #c3cbb6;border-radius:8px;color:#294438;background:#fffaf0;max-width:55%}.mbl-film canvas,.mbl-film video{display:block;width:100%;max-height:57dvh;aspect-ratio:9/16;object-fit:contain;background:#e6e7d9;border-radius:12px}.mbl-film-controls,.mbl-film-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}.mbl-film button{border:1px solid #a6b099;border-radius:9px;background:#fdf9ee;color:#294438;font:12px system-ui;padding:9px 14px;cursor:pointer}.mbl-film-controls button{background:#294438;color:#fff8e8;border-color:#294438}.mbl-film-controls span{font:12px Georgia,serif;color:#748168}.mbl-film input[type=range]{display:block;width:100%;margin:8px 0;accent-color:#496047}.mbl-film-actions button:first-child{flex:1}.mbl-film .mbl-pass-muted{margin-bottom:0;font-size:11px;min-height:19px}.mbl-pass-long>.mbl-pass-buy{position:sticky;top:-21px;z-index:1;box-shadow:0 4px 14px #243a3020;margin-bottom:12px}.mbl-pass-book .filters,.mbl-pass-book #category-filter,.mbl-pass-book #result-count{display:none!important}@media(max-width:360px){.mbl-pass-modal{padding:15px}.mbl-p-poster-action{gap:6px}.mbl-p-poster-action [data-action="keepsake-open"]{font-size:12px;padding:10px}.mbl-film canvas,.mbl-film video{max-height:50dvh}}
+
+.mbl-film canvas,.mbl-film video{width:auto;max-width:100%;height:min(57dvh,640px);max-height:none;margin:0 auto}.mbl-film-root:empty{display:none}.mbl-film input[type=range]:focus-visible{outline:3px solid #a77c37;outline-offset:3px}
+
+.mbl-pass-book>.mbl-pass-head h2{margin-right:auto}.mbl-pass-book>.mbl-pass-head button{white-space:nowrap}
+
+.mbl-film>.mbl-pass-muted:empty{display:none}
+
+main.home .topright>.mbl-member-header,main.play .screentools>.mbl-member-quick{display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;flex:none;box-sizing:border-box;width:44px;height:64px;min-height:64px;margin:0;padding:0;border-radius:12px;background:transparent;color:#a5792e;border:0;box-shadow:none}.mbl-member-crown{display:none;width:21px;height:21px}.mbl-member-header>.mbl-member-crown,.mbl-member-quick>.mbl-member-crown{display:block;flex:none;box-sizing:border-box;width:44px;height:44px;padding:8px;border:1px solid #d6bf91;border-radius:50%;background:#fff8e8;box-shadow:0 2px 6px #72502e18}.mbl-member-header>.mbl-member-label,.mbl-member-quick>.mbl-member-label{display:block;color:var(--ink);font:700 12px/16px system-ui;letter-spacing:1px;white-space:nowrap}main.play .screentools>.mbl-member-quick{order:2;cursor:pointer}.mbl-member-entry:focus-visible,.mbl-member-quick:focus-visible{outline:3px solid #a77c37;outline-offset:3px}
+
+.mbl-pass-benefits{margin:16px 0}.mbl-pass-benefits h3{margin:0 0 9px;font:600 14px/1.5 system-ui}.mbl-pass-benefit-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}.mbl-pass-benefit-list>li{padding:11px 13px;border:1px solid #ddd9c8;border-radius:11px;background:#fffdf680}.mbl-pass-benefit-list strong{display:block;margin-bottom:5px;font-size:13px;color:#294438}.mbl-pass-benefit-list p,.mbl-pass-keepsake-list{margin:0;font:12px/1.8 system-ui;color:#596651}.mbl-pass-keepsake-list{display:grid;gap:3px;padding:0;list-style:none}.mbl-pass-keepsake-list b{font-weight:600}.mbl-pass-benefit-note{margin:9px 0 0;font:11px/1.8 system-ui;color:#747f6b}
+
+
+
+/* The embedded book supplies the named container used by its original layouts. */
+.mbl-pass-modal{max-width:calc(100vw - 20px)}
+html:has(.mbl-pass-modal[open]){overflow:hidden}
+.mbl-pass-book{container:product / inline-size;--soft:#718067;width:min(1060px,calc(100vw - 20px))}
+.mbl-pass-book .book-view,.mbl-pass-book .book-view *{box-sizing:border-box}
+.mbl-pass-book .book-view{min-width:0;overflow-wrap:anywhere}
+.mbl-pass-book .book-view :is(figure,p,h3,ol){margin:0}
+.mbl-pass-book .book-view .view-title{padding:0 0 18px}
+.mbl-pass-book .view-title h2{display:none}
+.mbl-pass-book .book-view :is(.book-cover-copy,.book-cover-art,.book-story,.book-facts,.book-year-content,.book-person-head>div){min-width:0}
+.mbl-pass-book .book-cover-art{margin:0}
+.mbl-pass-book .book-cover-art img{width:100%;height:260px;max-width:100%;object-fit:cover}
+.mbl-pass-book .record-tabs{max-width:100%;scroll-padding:12px;overscroll-behavior-x:contain}
+.mbl-pass-book .record-tabs button{flex:none;min-height:44px;border:0;background:transparent;color:inherit;border-bottom:3px solid transparent;cursor:pointer}
+.mbl-pass-book .book-inline-link{border:0;border-bottom:1px solid #c9b193;background:transparent;cursor:pointer}
+.mbl-pass-book .table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.mbl-pass-book .book-table-hint{font-size:11px;line-height:1.8;color:#718067;margin-top:20px}
+.mbl-pass-book .book-table-hint+.table-scroll{margin-top:8px}
+.mbl-pass-book table{border-collapse:collapse;text-align:left}
+.mbl-pass-book th,.mbl-pass-book td{white-space:nowrap}
+.mbl-pass-book .season-chart{display:flex;min-width:0;max-width:100%}
+.mbl-pass-book .season-chart .bar{display:flex;flex-direction:column;align-items:center;justify-content:end;gap:9px;height:auto;background:transparent;overflow:visible;border-radius:0}
+.mbl-pass-book .bar span,.mbl-pass-book .bar small{font:11px/1.3 Georgia;color:#718067;height:auto;flex:none;background:transparent}
+.mbl-pass-book .season-chart .bar i{display:block;width:100%;max-width:44px;flex:none;background:#91a588;border-radius:3px 3px 0 0}
+.mbl-pass-book .bar.champion i{background:#c09c60}
+.mbl-pass-book .awards-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;padding-top:24px}
+.mbl-pass-book .award{display:flex;align-items:center;gap:12px;padding:18px;min-width:0}
+.mbl-pass-book .award img{width:38px;height:42px;flex:none;object-fit:contain}
+.mbl-pass-book .award small{display:block;margin-bottom:8px}
+.mbl-pass-book .book-year-events{padding:0;list-style:none}
+.mbl-pass-book .more-button{display:block;margin:24px auto 0;border:1px solid #b8bfac;border-radius:9px;padding:12px 24px;background:transparent;color:inherit;cursor:pointer}
+.mbl-pass-book .mbl-book-actions{display:flex;align-items:center;gap:8px;flex:none}
+.mbl-pass-book .mbl-book-actions button:first-child{background:#294438;color:#fff8e8;border-color:#294438}
+.mbl-pass-book>.mbl-pass-head{flex-wrap:wrap;position:sticky;top:-21px;z-index:3;background:#f5f1e7;padding:10px 0;border-bottom:1px solid #cbd2bd}
+.mbl-pass-book>.mbl-pass-head h2{font-size:clamp(20px,5vw,25px)}
+.mbl-pass-book .mbl-book-actions button{min-height:36px;padding:7px 12px}
+.mbl-pass-book .mbl-pass-message:empty{display:none}
+@container product (max-width:850px){.mbl-pass-book .awards-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container product (max-width:600px){
+ .mbl-pass-book .book-view{padding:0 0 30px}
+ .mbl-pass-book .book-cover-art img{height:190px}
+ .mbl-pass-book .book-view .record-tabs{gap:20px;padding:0}
+ .mbl-pass-book .career-path{max-width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;overflow:visible}
+ .mbl-pass-book .career-stint{min-width:0}
+ .mbl-pass-book .awards-list{grid-template-columns:1fr}
+ .mbl-pass-book .award{padding:14px}
+ .mbl-pass-book .book-person-head img{flex:none}
+ .mbl-pass-book .book-year-table th:first-child,.mbl-pass-book .book-year-table td:first-child{min-width:98px}
+}
+@media(max-width:400px){
+ .mbl-pass-book{padding:14px}
+ .mbl-pass-book>.mbl-pass-head{gap:8px;top:-14px}
+ .mbl-pass-book .mbl-book-actions{gap:6px}
+ .mbl-pass-book .mbl-book-actions button{padding:7px 10px}
+}
+@container product (max-width:300px){
+ .mbl-pass-book .book-cover-copy{padding:22px 18px}
+ .mbl-pass-book .book-cover-art{padding:0 18px 18px}
+ .mbl-pass-book .book-cover h3{font-size:36px;letter-spacing:2px}
+ .mbl-pass-book .book-section-head{flex-wrap:wrap;gap:4px}
+ .mbl-pass-book .book-section-head>small{max-width:100%;text-align:left}
+ .mbl-pass-book .book-memory-grid,.mbl-pass-book .award-summary{grid-template-columns:1fr}
+ .mbl-pass-book .book-facts{padding:16px}
+ .mbl-pass-book .book-facts dl{gap:16px 10px}
+}
+/* Use the original game's light/dark/auto preference, including system changes. */
+:root{--mbl-m-bg:#faf6eb;--mbl-m-head:#faf6ebf5;--mbl-m-text:#354735;--mbl-m-title:#755523;--mbl-m-label:#876b3e;--mbl-m-muted:#7b796b;--mbl-m-tile:#fffdf6;--mbl-m-selected:linear-gradient(125deg,#f0e4c4,#fbf6e8)}
+:root[data-theme=dark]{--mbl-m-bg:#15171b;--mbl-m-head:#1a1a1bf5;--mbl-m-text:#efe5ca;--mbl-m-title:#f7dc97;--mbl-m-label:#bfa773;--mbl-m-muted:#b5aa92;--mbl-m-tile:#222326;--mbl-m-selected:linear-gradient(125deg,#443923,#29271f)}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){--mbl-m-bg:#15171b;--mbl-m-head:#1a1a1bf5;--mbl-m-text:#efe5ca;--mbl-m-title:#f7dc97;--mbl-m-label:#bfa773;--mbl-m-muted:#b5aa92;--mbl-m-tile:#222326;--mbl-m-selected:linear-gradient(125deg,#443923,#29271f)}}
+/* Membership catalogue: one shared benefit list and three real keepsake previews. */
+.mbl-membership{width:min(460px,calc(100vw - 20px));padding:18px;background:radial-gradient(ellipse at 50% 0,#57451c55,transparent 38%),var(--mbl-m-bg);border:1px solid #9a7a35;color:var(--mbl-m-text);box-shadow:0 18px 80px #0009;scrollbar-width:thin;scrollbar-color:#77623a #1c1d21}
+.mbl-membership>.mbl-pass-head{position:sticky;top:-18px;z-index:5;margin:-2px 0 2px;padding:8px 0;background:var(--mbl-m-head);border:0}
+.mbl-membership>.mbl-pass-head h2{font:600 12px/1.5 system-ui;letter-spacing:.12em;color:var(--mbl-m-label)}
+.mbl-membership>.mbl-pass-head button{min-height:32px;border:1px solid #77623a66;border-radius:50px;color:var(--mbl-m-muted);padding:4px 10px}
+.mbl-member-welcome{text-align:center;padding:0 0 17px}.mbl-pass-emblem{display:block;margin:0 auto 7px;width:30px;height:30px;color:var(--mbl-m-title);filter:drop-shadow(0 0 13px #e3b45855)}
+.mbl-member-welcome .mbl-member-kicker{font:8px/1.5 system-ui;letter-spacing:.18em;color:#9f895d;margin:0 0 7px}
+.mbl-member-welcome h3{font:600 21px/1.5 system-ui;margin:0 0 4px;color:var(--mbl-m-title);letter-spacing:.04em}
+.mbl-member-welcome>p:last-child{font:11px/1.7 system-ui;color:var(--mbl-m-muted);margin:0}
+.mbl-example-heading h3,.mbl-member-benefits>h3{font:600 13px/1.6 system-ui;color:var(--mbl-m-title);margin:0 0 4px}.mbl-example-heading p{font:10px/1.6 system-ui;color:var(--mbl-m-muted);margin:0 0 12px}
+.mbl-example-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mbl-example-card{min-width:0;padding:0 0 10px;border:1px solid #514a3866;border-radius:11px;background:var(--mbl-m-tile);color:var(--mbl-m-text);overflow:hidden;text-align:left;cursor:pointer}
+.mbl-example-card>b{display:block;margin:9px 7px 3px;font:600 11px/1.5 system-ui;white-space:nowrap}.mbl-example-card>small{display:block;margin:0 7px;color:var(--mbl-m-label);font:9px/1.5 system-ui;white-space:nowrap}
+.mbl-example-thumb{position:relative;height:140px;overflow:hidden;isolation:isolate;background:#d6d2be;pointer-events:none}.mbl-example-thumb-film{background:#263d36}.mbl-example-thumb-film>img{width:100%;height:100%;display:block;object-fit:cover;object-position:53% center;opacity:.86}
+.mbl-example-play{position:absolute;display:grid;place-items:center;inset:0;margin:auto;width:33px;height:33px;border:1px solid #f5edcdcc;border-radius:50%;background:#19372b88;color:#fff5de;font:23px/1 system-ui;backdrop-filter:blur(3px)}
+.mbl-example-thumb-book{padding:10px 7px 0;background:#dad3bf;box-sizing:border-box}.mbl-example-book-cover{height:155px;transform:rotate(-4deg);padding:12px 7px 0;border-left:3px solid #988c6b;background:linear-gradient(90deg,#e7dfc9,#fff9e9 12%);box-shadow:1px 3px 7px #4b3e3633;color:#3e543d;text-align:center;overflow:hidden}.mbl-example-book-cover>small{display:block;font:6px/1.7 system-ui;color:#9c8965}.mbl-example-book-cover>strong{display:block;font:19px/1.5 SimSun,serif;letter-spacing:.1em;margin:3px 0}.mbl-example-book-cover>span{font:7px Georgia,serif;display:block;margin-bottom:6px;color:#9d8d72}.mbl-example-book-cover>img{display:block;width:100%;height:80px;object-fit:cover;margin-top:8px}
+.mbl-example-thumb-poster{padding:8px 10px 0;box-sizing:border-box;background:#c8c4b2}.mbl-example-poster-cover{background:#faf4e5;box-shadow:0 2px 8px #45412c33;transform:rotate(4deg);min-height:220px;color:#3a533c;text-align:center}.mbl-example-poster-cover>div:first-child{padding:8px 4px;background:#29483b;color:#f8eccb}.mbl-example-poster-cover small{display:block;font:5px/1.8 system-ui}.mbl-example-poster-cover strong{display:block;font:14px/1.6 SimSun,serif;letter-spacing:.08em}.mbl-example-poster-cover>small{margin:5px 0}.mbl-example-poster-cover>div:last-child{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px}.mbl-example-poster-cover img{width:100%;height:auto;display:block}.mbl-example-poster-cover img:last-child{grid-column:span 2;width:60%;margin:auto}
+.mbl-example-note{margin:8px 0 0;color:var(--mbl-m-muted);font:9px/1.7 system-ui;overflow-wrap:anywhere}
+.mbl-member-benefits{margin-top:18px;padding-top:14px;border-top:1px solid #78613944}.mbl-member-benefits>h3{font-size:11px;color:var(--mbl-m-muted);margin-bottom:10px}
+.mbl-plan-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.mbl-plan-benefit{min-width:0;display:flex;flex-direction:column;align-items:center;padding:8px 2px 7px;gap:3px;border:1px solid #8d9db115;border-radius:8px;background:#bcc5df08;text-align:center;color:#c4d3e9}
+.mbl-plan-benefit svg{width:21px;height:21px;color:#bc9fe8;flex:none}.mbl-plan-benefit[data-icon=shield] svg{color:#87bdd9}.mbl-plan-benefit[data-icon=star] svg{color:#e6c575}.mbl-plan-benefit[data-icon=bolt] svg{color:#ddab95}
+.mbl-plan-benefit b{font:600 10px/1.5 system-ui;white-space:nowrap;color:var(--mbl-m-text)}.mbl-plan-benefit small{font:9px/1.4 system-ui;color:var(--mbl-m-label);white-space:nowrap}.mbl-member-shared-note{margin:9px 0 0;font:10px/1.6 system-ui;color:var(--mbl-m-muted)}
+.mbl-membership .mbl-pass-state{font:11px/1.7 system-ui;color:var(--mbl-m-label);margin:15px 0 9px}.mbl-membership[data-phase=owned] .mbl-pass-state{padding:11px 13px;border:1px solid #9f814244;background:#3c342544;border-radius:10px}
+.mbl-membership .mbl-pass-tiers{display:flex;gap:8px}.mbl-membership .mbl-pass-tier{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:13px 11px;border:1px solid #494641;border-radius:11px;background:var(--mbl-m-tile);color:var(--mbl-m-muted);cursor:pointer}
+.mbl-membership .mbl-pass-tier[aria-pressed=true]{padding:13px 11px;background:var(--mbl-m-selected);border:1px solid #bd994c;box-shadow:inset 0 0 0 1px #cfa85122;color:var(--mbl-m-title)}
+.mbl-membership .mbl-plan-name{font:600 13px/1.4 system-ui;white-space:nowrap}.mbl-membership .mbl-plan-price{display:block;margin:0;font:700 22px/1.2 system-ui;color:inherit;font-variant-numeric:tabular-nums;letter-spacing:-.04em;white-space:nowrap}
+.mbl-membership .mbl-pass-ways{margin:10px 0;gap:8px}.mbl-membership .mbl-pass-ways button{min-width:0;border-radius:25px;padding:8px 3px;border:1px solid #39404c;background:var(--mbl-m-tile);color:var(--mbl-m-muted);min-height:37px;font:600 11px/1.5 system-ui}
+.mbl-membership .mbl-pass-ways button:before{content:'';display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:3px;background:#43b56b}.mbl-membership .mbl-pass-ways [data-pay-way=alipay]:before{background:#3e8ef1}
+.mbl-membership .mbl-pass-ways [aria-pressed=true]{border-color:#cba441;background:var(--mbl-m-selected);color:var(--mbl-m-title)}
+.mbl-membership :is(.mbl-plan-buy,.mbl-member-open-checkout){margin-top:10px;width:100%;min-height:43px;padding:10px;border:1px solid #e9647144;border-radius:30px;text-align:center;background:linear-gradient(100deg,#d83451,#e74657);color:#fff5e7;font:600 13px/1.5 system-ui;letter-spacing:.08em;box-shadow:0 4px 15px #c82d3522;cursor:pointer}
+.mbl-membership .mbl-pass-rules{margin-top:16px;padding:12px 0;border-top:1px solid #6b5b3644;border-bottom:1px solid #6b5b3644;color:var(--mbl-m-muted);font:11px/1.6 system-ui}.mbl-pass-rules>summary{cursor:pointer}.mbl-membership .mbl-pass-benefit-list>li{border-color:#5b554a;background:var(--mbl-m-tile)}.mbl-membership .mbl-pass-benefit-list strong{color:var(--mbl-m-title)}.mbl-membership :is(.mbl-pass-benefit-list p,.mbl-pass-keepsake-list,.mbl-pass-benefit-note){color:var(--mbl-m-muted)}
+.mbl-membership>.mbl-pass-muted{font-size:10px;color:#8f8d83;margin-bottom:0}.mbl-membership .mbl-pass-message{color:var(--mbl-m-label)}.mbl-membership .mbl-pass-message:empty{display:none}.mbl-membership .mbl-pass-retry{color:var(--mbl-m-title);border-color:#856d3d}
+.mbl-benefit-demo{width:min(680px,calc(100vw - 20px));background:#f7f3e9;padding:20px}.mbl-benefit-demo>.mbl-pass-head{position:sticky;top:-20px;z-index:5;background:#f7f3e9;margin:0 0 14px;padding:8px 0;border-bottom:1px solid #ded5c3}.mbl-benefit-demo>.mbl-pass-head h2{font-size:21px}
+.mbl-benefit-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;border-radius:12px;padding:4px;background:#e9e7db}.mbl-benefit-tabs button{margin:0;padding:9px 4px;min-height:38px;border:0;border-radius:9px;color:#7a806e;background:transparent;font:600 11px/1.4 system-ui;cursor:pointer}.mbl-benefit-tabs [aria-selected=true]{color:#2d4c3d;background:#fffdf5;box-shadow:0 2px 5px #30403015}
+.mbl-benefit-description{color:#73806b;font:11px/1.7 system-ui;margin:10px 0}.mbl-benefit-description:empty{display:none}.mbl-example-stage{margin-top:14px;min-width:0}.mbl-example-full-poster{display:block;width:100%;height:auto}.mbl-benefit-demo .mbl-example-note{color:#8d8e7a}.mbl-example-full-book [data-mbl-book-id=book-view]{padding-top:0}.mbl-example-full-book .record-tabs{margin-top:15px}
+.mbl-example-full-book [data-mbl-book-id=more-events]{display:block;margin:24px auto 0;border:1px solid #b8bfac;border-radius:9px;padding:12px 24px;background:transparent;color:inherit;cursor:pointer}
+@media(max-width:360px){.mbl-membership{padding:14px}.mbl-membership>.mbl-pass-head{top:-14px}.mbl-member-welcome{padding-bottom:14px}.mbl-member-welcome h3{font-size:19px}.mbl-example-cards{gap:6px}.mbl-example-thumb{height:126px}.mbl-example-card>b{font-size:10px;margin-left:5px}.mbl-example-card>small{font-size:8px;margin-left:5px}.mbl-example-book-cover{padding-left:3px;padding-right:3px}.mbl-example-book-cover>strong{font-size:16px}.mbl-membership .mbl-pass-tier{padding:12px 9px}.mbl-membership .mbl-pass-tier[aria-pressed=true]{padding:12px 9px}.mbl-membership .mbl-plan-price{font-size:20px}.mbl-benefit-demo{padding:14px}.mbl-benefit-demo>.mbl-pass-head{top:-14px}.mbl-benefit-demo>.mbl-pass-head h2{font-size:19px}}
+
+.mbl-membership .mbl-pass-state:empty{display:none}.mbl-member-checkout{width:min(420px,calc(100vw - 20px))}.mbl-member-checkout>.mbl-pass-head{margin-bottom:16px}.mbl-member-checkout>.mbl-pass-head h2{font-size:17px;letter-spacing:0}.mbl-member-open-checkout{margin-top:18px!important}.mbl-membership .mbl-pass-tier{border-color:#92836b66}.mbl-membership .mbl-pass-benefit-list>li{border-color:#92836b55}
+.mbl-member-notice{display:none}main.home .topright>.mbl-member-header{position:relative}.mbl-member-header>.mbl-member-notice{display:block;position:absolute;left:1px;top:1px;box-sizing:content-box;width:7px;height:7px;border:2px solid var(--card);border-radius:50%;background:#e5484d;pointer-events:none}
+
+/* A loud, clickable speech bubble points directly at the existing crown. */
+main.home .topright:has(>.mbl-member-header){align-items:flex-start}
+.mbl-member-promo{display:none}
+.mbl-member-header>.mbl-member-promo:not([hidden]){display:flex;align-items:center;justify-content:center;position:absolute;z-index:2;right:calc(100% + 12px);top:3px;box-sizing:border-box;min-width:86px;height:38px;padding:5px 12px;border:2px solid #fff1b6;border-radius:14px 14px 6px 14px;background:linear-gradient(135deg,#ffe68b,#ffc74e);color:#793611;font:900 17px/1.2 system-ui;letter-spacing:1px;white-space:nowrap;box-shadow:0 4px 0 #bd621f,0 7px 16px #aa591d33;transform:rotate(-6deg);transform-origin:right center;animation:mbl-member-bob 2.8s ease-in-out 3}
+.mbl-member-promo:before{content:'';position:absolute;right:-7px;top:11px;width:11px;height:11px;box-sizing:border-box;background:#ffcb55;border-top:2px solid #fff1b6;border-right:2px solid #fff1b6;transform:rotate(45deg)}
+.mbl-member-promo:after{content:'✦';position:absolute;left:-13px;top:-12px;color:#e28b20;font:20px/1 system-ui;text-shadow:0 1px #fff4c8;pointer-events:none}
+:root[data-theme=dark] .mbl-member-promo{box-shadow:0 4px 0 #9b4c1b,0 6px 22px #ffc44c33}
+@media(prefers-color-scheme:dark){:root:not([data-theme]) .mbl-member-promo{box-shadow:0 4px 0 #9b4c1b,0 6px 22px #ffc44c33}}
+@keyframes mbl-member-bob{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(-3deg) translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.mbl-member-header>.mbl-member-promo{animation:none}}

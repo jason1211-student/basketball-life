@@ -1,0 +1,46 @@
+/* 关系与好友面板 */
+.mbl-rel-modal{
+  width:min(470px,calc(100% - 24px));
+  max-height:calc(100dvh - 32px);
+  overflow:auto;
+  box-sizing:border-box;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--card);
+  color:var(--ink);
+  padding:21px;
+  font:14px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+.mbl-rel-modal::backdrop{background:var(--backdrop);justify-content:space-between;align-items:center;margin-bottom:14px}
+.mbl-rel-head h2{margin:0;font:25px/1.4 SimSun,serif}
+.mbl-rel-close{border:1px solid var(--line);background:transparent;color:inherit;border-radius:var(--radius);padding:5px 13px;font:12px system-ui;cursor:pointer}
+.mbl-rel-body{display:flex;flex-direction:column;gap:16px}
+.mbl-rel-sec{display:flex;flex-direction:column;gap:10px}
+.mbl-rel-sub{margin:0;font-size:14px;color:var(--muted)}
+.mbl-rel-muted{color:var(--muted);padding:10px 4px;margin:0}
+.mbl-rel-muted.small{font-size:11px;padding:4px 0}
+.mbl-rel-hint{margin:0;font-size:11px;color:var(--faint)}
+
+.mbl-rel-card{border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 13px;background:var(--soft);display:flex;flex-direction:column;gap:7px}
+.mbl-rel-card.is-plain{background:transparent}
+.mbl-rel-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mbl-rel-card-top b{font-size:14px}
+.mbl-rel-tag{font-size:10px;border-radius:var(--radius);padding:2px 9px;background:var(--line);color:var(--muted);white-space:nowrap}
+.mbl-rel-meta{margin:0;font-size:12px;color:var(--muted)}
+
+.mbl-rel-bar{position:relative;height:7px;border-radius:var(--radius-sm);background:var(--line);overflow:hidden}
+.mbl-rel-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm);background:var(--accent)}
+
+.mbl-rel-btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.mbl-rel-btn{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:var(--radius);padding:7px 14px;font:12px system-ui;cursor:pointer}
+.mbl-rel-btn:disabled{border-color:var(--line);color:var(--faint);cursor:default}
+.mbl-rel-btn:not(:disabled):active{transform:scale(.96)}
+.mbl-rel-btn.is-danger{border-color:var(--down);color:var(--down)}
+.mbl-rel-tip{margin:12px 0 0;font-size:12px;color:var(--accent);min-height:18px}
+
+.mbl-sms-contacts{display:flex;flex-wrap:wrap;gap:6px}
+.mbl-sms-contacts [aria-pressed="true"]{background:var(--accent);color:var(--card)}
+.mbl-sms-thread{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;list-style:none;padding:0;margin:4px 0}
+.mbl-sms-bubble{align-self:flex-start;max-width:86%;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--card);overflow-wrap:anywhere}
+.mbl-sms-bubble.is-sent{align-self:flex-end;border-color:var(--accent)}
+.mbl-sms-bubble small{display:block;color:var(--muted);font-size:11px}

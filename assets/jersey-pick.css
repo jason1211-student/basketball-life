@@ -1,0 +1,71 @@
+/* 球衣号码自选盘（单机复刻扩展），颜色全部走全局 token，亮/暗主题自动适配。 */
+.mbl-jpick {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.mbl-jpick-label {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+  opacity: .72;
+}
+
+.mbl-jpick-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  max-height: 196px;
+  overflow-y: auto;
+  padding: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mbl-jpick-num {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  min-height: 34px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+
+.mbl-jpick-num:hover:not(:disabled) {
+  border-color: var(--fill);
+}
+
+.mbl-jpick-num.on {
+  background: var(--fill);
+  border-color: var(--fill);
+  color: var(--accent-ink);
+}
+
+.mbl-jpick-num.taken,
+.mbl-jpick-num:disabled {
+  opacity: .32;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.mbl-jpick-ok {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.mbl-jpick-ok:disabled {
+  opacity: .5;
+}
+
+@media (min-width: 720px) {
+  .mbl-jpick-grid {
+    grid-template-columns: repeat(10, 1fr);
+    max-height: 236px;
+  }
+  .mbl-jpick-num { min-height: 36px; }
+}

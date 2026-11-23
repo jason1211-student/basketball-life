@@ -1,0 +1,113 @@
+/* Platform SDK pass ownership gates paid benefits; ordinary play stays free. */
+(function(){'use strict';
+ const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
+ const PASS_STATE={owned:true,source:'operator_grant',phase:'owned',purchasing:false,message:'',configs:[],payWays:[],payWay:null,selectedCardType:null,pass:{cardType:'operator_grant',endTime:'2999-12-31 23:59:59'},keepsake:true};
+ const _passListeners=[];
+ const client={
+  state:()=>PASS_STATE,
+  subscribe:(fn)=>{_passListeners.push(fn);fn(PASS_STATE);return ()=>{const i=_passListeners.indexOf(fn);if(i>=0)_passListeners.splice(i,1);};},
+  refresh:()=>Promise.resolve(PASS_STATE),
+  invalidate:()=>{},
+  selectTier:()=>true,
+  selectPayWay:()=>true,
+  buy:()=>Promise.resolve(),
+  authorizeBenefit:()=>Promise.resolve(true),
+  visible:()=>Promise.resolve(PASS_STATE)
+ };
+ const entry=make('button','mbl-member-entry'),entryLabel=make('span','mbl-member-label','开通会员'),quickEntry=make('button','mbl-member-quick'),keepsake=make('button','','人生珍藏');entry.type=quickEntry.type=keepsake.type='button';
+ // Stable keys prevent the original renderer from reusing these injected buttons as game controls.
+ entry.dataset.key='mbl-member-entry';quickEntry.dataset.key='mbl-member-quick';
+ const crown=document.createElementNS('http://www.w3.org/2000/svg','svg');crown.setAttribute('viewBox','0 0 24 24');crown.setAttribute('class','mbl-member-crown');crown.setAttribute('aria-hidden','true');crown.setAttribute('focusable','false');crown.setAttribute('fill','none');crown.setAttribute('stroke','currentColor');crown.setAttribute('stroke-width','1.7');crown.setAttribute('stroke-linecap','round');crown.setAttribute('stroke-linejoin','round');
+ const crownShape=document.createElementNS('http://www.w3.org/2000/svg','path');crownShape.setAttribute('d','M3 7l4.5 3.5L12 4l4.5 6.5L21 7l-2 11H5L3 7Z');crownShape.setAttribute('fill','currentColor');crownShape.setAttribute('fill-opacity','.16');const crownBase=document.createElementNS('http://www.w3.org/2000/svg','path');crownBase.setAttribute('d','M6 21h12');crown.append(crownShape,crownBase);const crownNotice=make('span','mbl-member-notice');crownNotice.setAttribute('aria-hidden','true');entry.append(crown,entryLabel,crownNotice);
+ // The promo stays inside the same button so clicking the bubble opens membership too.
+ const entryPromo=make('span','mbl-member-promo','免广告');entryPromo.setAttribute('aria-hidden','true');entry.append(entryPromo);
+ // Home entry sits immediately left of the original theme button.
+ quickEntry.append(crown.cloneNode(true),make('span','mbl-member-label','会员'));
+ quickEntry.setAttribute('aria-label','开通会员或查看会员权益');
+ function updateEntry(owned){const header=entry.classList.contains('mbl-member-header'),label=header?(owned?'会员中心':'会员充值 · 开通享免广告'):(owned?'会员权益 · 生效中':'开通会员 · 免广告与人生珍藏'),visibleLabel=header?'会员':label;if(entryLabel.textContent!==visibleLabel)entryLabel.textContent=visibleLabel;entryPromo.hidden=true;entry.setAttribute('aria-label',label);entry.title=owned?'会员中心 · 查看通行卡权益':'会员充值 · 查看通行卡权益';}
+ const mountEntry=()=>{
+  const header=document.querySelector('main.home .topbar .topright'),target=header||document.querySelector('[data-mbl-perks]');entry.classList.toggle('mbl-member-header',!!header);if(target&&!target.contains(entry)){if(header)header.insertBefore(entry,header.querySelector('.themeb'));else target.append(entry);}updateEntry(client.state().owned);
+  const playing=document.querySelector('main.play .lifebar .screentools');if(playing&&!playing.contains(quickEntry))playing.append(quickEntry);
+ };
+ let mountQueued=false;new MutationObserver(()=>{if(mountQueued)return;mountQueued=true;requestAnimationFrame(()=>{mountQueued=false;mountEntry();});}).observe(document.getElementById('app'),{childList:true,subtree:true});mountEntry();
+ const dialog=make('dialog','mbl-pass-modal mbl-membership'),head=make('div','mbl-pass-head'),title=make('h2','','人生通行卡'),close=make('button','','关闭');close.type='button';head.append(title,close);dialog.setAttribute('aria-labelledby','mbl-membership-title');title.id='mbl-membership-title';
+ const welcome=make('header','mbl-member-welcome'),emblem=crown.cloneNode(true);emblem.setAttribute('class','mbl-pass-emblem');welcome.append(emblem,make('p','mbl-member-kicker','BASKETBALL LIFE / MEMBERSHIP'),make('h3','','留住你的篮球人生'),make('p','','免广告享游戏权益，珍藏每一个重要时刻。'));
+ const intro=make('p','mbl-pass-muted','通行卡有效期内享以下权益，普通游玩继续免费。'),benefits=make('section','mbl-pass-benefits'),benefitTitle=make('h3','','会员权益'),benefitList=make('ul','mbl-pass-benefit-list');benefitTitle.id='mbl-pass-benefits-title';benefits.setAttribute('aria-labelledby',benefitTitle.id);
+ const adBenefit=make('li'),adTitle=make('strong','','游戏权益免广告'),adCopy=make('p','','免看激励视频领取：出生重随、中国出生、六项出生加成（身高、天赋、启蒙、体魄、家境、自律）、随机特训、16倍速与自动模式、主动申请交易。');adBenefit.append(adTitle,adCopy);
+ const keepsakeBenefit=make('li'),keepsakeTitle=make('strong','','解锁人生珍藏'),keepsakeList=make('ul','mbl-pass-keepsake-list');for(const [name,copy] of [['回忆影片','播放人生重要时刻。'],['人生记录册','完整经历、关键选择、逐年状态、职业赛季与荣誉。'],['高清总览长图','查看整段人生，支持长按保存和发帖分享。']]){const item=make('li'),label=make('b','',name+'：');item.append(label,document.createTextNode(copy));keepsakeList.append(item);}keepsakeBenefit.append(keepsakeTitle,keepsakeList);benefitList.append(adBenefit,keepsakeBenefit);
+ const benefitNote=make('p','mbl-pass-benefit-note','原有领取条件与次数限制照常，随机特训每个游戏年一次。影片画面仅从持卡后新开的人生开始记录，旧存档不补录。');benefits.append(benefitTitle,benefitList,benefitNote);
+ const state=make('p','mbl-pass-state'),tiers=make('div','mbl-pass-tiers'),ways=make('div','mbl-pass-ways'),buy=make('button','mbl-pass-buy mbl-plan-buy'),retry=make('button','mbl-pass-retry','重新读取'),message=make('p','mbl-pass-message');state.setAttribute('role','status');message.setAttribute('role','status');ways.setAttribute('role','group');ways.setAttribute('aria-label','支付方式');tiers.setAttribute('role','group');tiers.setAttribute('aria-label','通行卡有效期');
+ const example=window.MBLBenefitPreview.create(),rules=make('details','mbl-pass-rules'),rulesTitle=make('summary','','完整权益与领取规则');rules.append(rulesTitle,benefits);
+ const sharedBenefits=make('section','mbl-member-benefits'),sharedTitle=make('h3','','同时享有免广告权益');sharedBenefits.append(sharedTitle);
+ const openCheckout=make('button','mbl-pass-buy mbl-member-open-checkout','开通会员'),checkout=make('dialog','mbl-pass-modal mbl-membership mbl-member-checkout'),checkoutHead=make('div','mbl-pass-head'),checkoutTitle=make('h2','','选择支付方式'),checkoutClose=make('button','','返回'),checkoutState=make('p','mbl-pass-state'),checkoutMessage=make('p','mbl-pass-message'),checkoutRetry=make('button','mbl-pass-retry','重新读取');checkoutTitle.id='mbl-checkout-title';checkout.setAttribute('aria-labelledby',checkoutTitle.id);checkoutState.setAttribute('role','status');checkoutMessage.setAttribute('role','status');checkoutHead.append(checkoutTitle,checkoutClose);
+ buy.type=retry.type=openCheckout.type=checkoutClose.type=checkoutRetry.type='button';dialog.append(head,welcome,example.element,sharedBenefits,state,tiers,openCheckout,retry,message,rules,intro);checkout.append(checkoutHead,checkoutState,ways,buy,checkoutRetry,checkoutMessage);document.body.append(dialog,checkout);
+ const planBenefits=[['dice','出生加成','免看广告'],['shield','权益领取','免看广告'],['star','随机特训','每游戏年1次'],['bolt','自动模式','16倍速']];
+ const iconPaths={dice:'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4h.01M17 7h.01M12 12h.01M7 17h.01M17 17h.01',shield:'m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Zm-4 9 3 3 5-6',star:'m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.4-5.7-3-5.7 3 1.1-6.4-4.6-4.5 6.4-.9L12 3Z',bolt:'m14 2-9 12h6l-1 8 9-12h-6l1-8Z',book:'M12 6C9 3 5 3 2 4v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-3-1-7-1-10 2Zm0 0v15'};
+ function featureGrid(){const grid=make('div','mbl-plan-benefits');for(const [key,label,copy] of planBenefits){const tile=make('div','mbl-plan-benefit'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),p=document.createElementNS('http://www.w3.org/2000/svg','path');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');p.setAttribute('d',iconPaths[key]);svg.append(p);tile.dataset.icon=key;tile.append(svg,make('b','',label),make('small','',copy));grid.append(tile);}return grid;}
+ sharedBenefits.append(featureGrid(),make('p','mbl-member-shared-note','日卡、周卡权益相同，仅有效期不同。'));
+ let focus=null,lastOwned=false,checkBusy=false,entryError='';
+ close.onclick=()=>{if(!client.state().purchasing)dialog.close();};dialog.addEventListener('cancel',e=>{if(client.state().purchasing)e.preventDefault();});dialog.addEventListener('close',()=>{if(checkout.open)checkout.close();example.deactivate();focus?.focus();});
+ checkoutClose.onclick=()=>{if(!client.state().purchasing)checkout.close();};checkout.addEventListener('cancel',e=>{if(client.state().purchasing)e.preventDefault();});checkout.addEventListener('close',()=>{if(dialog.open)(openCheckout.hidden?close:openCheckout).focus();});openCheckout.onclick=()=>{if(!checkout.open)checkout.showModal();checkoutClose.focus();};
+ entry.onclick=()=>{entryError='';open(entry);};quickEntry.onclick=()=>{entryError='';open(quickEntry);};keepsake.onclick=()=>openKeepsake(keepsake);buy.onclick=()=>client.buy();retry.onclick=checkoutRetry.onclick=()=>client.refresh();
+ function open(trigger){film?.pause();focus=trigger;if(!dialog.open)dialog.showModal();example.activate();close.focus();client.refresh();}
+ client.subscribe(s=>{
+  updateEntry(s.owned);
+  quickEntry.setAttribute('aria-label',s.owned?'会员中心':'开通会员或查看会员权益');quickEntry.title=s.owned?'会员中心':'开通会员';
+  for(const b of document.querySelectorAll('[data-action="keepsake-open"]'))b.textContent=s.owned?'人生珍藏':'开通会员 · 人生珍藏';
+  const sale=s.phase==='purchase',owned=s.phase==='owned';tiers.hidden=ways.hidden=buy.hidden=openCheckout.hidden=!sale;retry.hidden=checkoutRetry.hidden=s.phase!=='error';close.disabled=checkoutClose.disabled=s.purchasing;dialog.dataset.phase=s.phase;
+  state.textContent=s.phase==='loading'?'正在读取通行卡…':owned?(s.pass?(s.source==='operator_grant'?'测试会员':MBLGamePass.cardName(s.pass.cardType))+' · 有效至 '+s.pass.endTime+'（北京时间）':'已持有通行卡，有效期内享有免广告与纪念内容权益。'):s.phase==='error'?'加载失败：'+s.message:'';checkoutState.textContent=sale?'选择有效期与支付方式':state.textContent;
+  message.textContent=checkoutMessage.textContent=s.phase==='error'?'':s.message||entryError;tiers.replaceChildren();ways.replaceChildren();
+  for(const c of s.configs){const card=make('button','mbl-pass-tier'),name=MBLGamePass.cardName(c.cardType),price=make('strong','mbl-plan-price','¥'+MBLGamePass.yuan(c.amount));card.type='button';card.dataset.cardType=String(c.cardType);card.setAttribute('aria-pressed',String(c.cardType===s.selectedCardType));card.disabled=s.purchasing;card.append(make('span','mbl-plan-name',name),price);card.onclick=()=>{client.selectTier(c.cardType);tiers.querySelector('[data-card-type="'+c.cardType+'"]')?.focus();};tiers.append(card);}
+  for(const way of s.payWays){const b=make('button','',way==='wechat'?'微信支付':'支付宝');b.type='button';b.dataset.payWay=way;b.setAttribute('aria-pressed',String(way===s.payWay));b.disabled=s.purchasing;b.onclick=()=>{client.selectPayWay(way);ways.children[s.payWays.indexOf(way)]?.focus();};ways.append(b);}
+  const selected=s.configs.find(c=>c.cardType===s.selectedCardType);buy.disabled=s.purchasing||!selected;buy.textContent=s.purchasing?'支付确认中…':selected?'¥'+MBLGamePass.yuan(selected.amount)+' · 开通'+MBLGamePass.cardName(selected.cardType):'请选择通行卡';
+  openCheckout.disabled=s.purchasing||!selected;openCheckout.textContent=selected?'开通'+MBLGamePass.cardName(selected.cardType):'开通会员';if(sale&&selected)checkoutState.textContent=MBLGamePass.cardName(selected.cardType)+' · ¥'+MBLGamePass.yuan(selected.amount)+' · 有效期内享全部会员权益';
+  if(owned&&!s.purchasing&&checkout.open)checkout.close();
+  if(lastOwned!==s.owned){lastOwned=s.owned;window.dispatchEvent(new Event('mbl:pass-changed'));}
+  if(!s.owned&&['purchase','error'].includes(s.phase)&&hub?.open){if(bookDialog?.open)bookDialog.close();if(document.getElementById('photo-shelf-dialog')?.open)document.getElementById('photo-shelf-dialog').close();if(longDialog?.open)longDialog.close();hub.close();}
+ });
+ // No ownership is written to storage. Recheck on user benefit requests and return to page.
+ async function authorize(kind){return client.authorizeBenefit(kind);}
+ window.addEventListener('mbl:pass-account-change',()=>client.invalidate());
+ window.addEventListener('mbl:account-ready',()=>{client.invalidate();client.refresh();});
+ let D=null,key=0,sceneUrls=[],building=false,film=null;
+ const hub=make('dialog','mbl-pass-modal mbl-keepsake-hub'),hubHead=make('div','mbl-pass-head'),hubTitle=make('h2','','人生珍藏'),hubClose=make('button','','关闭'),note=make('p','mbl-pass-muted'),filmRoot=make('div','mbl-film-root'),record=make('button','mbl-pass-retry','阅读完整人生记录册'),long=make('button','mbl-pass-retry','查看高清长图'),manage=make('button','mbl-pass-manage','会员权益'),hubStatus=make('p','mbl-pass-message');hubClose.type=record.type=long.type=manage.type='button';hubStatus.setAttribute('role','status');hubHead.append(hubTitle,hubClose);hub.append(hubHead,note,filmRoot,long,record,hubStatus,manage);document.body.append(hub);hubClose.onclick=()=>hub.close();manage.onclick=()=>open(manage);hub.onclose=()=>{film?.destroy();film=null;KeepsakeExport.clearImages();for(const url of sceneUrls)URL.revokeObjectURL(url);sceneUrls=[];D=null;focus?.focus();};
+ const longDialog=make('dialog','mbl-pass-modal mbl-pass-long'),longHead=make('div','mbl-pass-head'),longTitle=make('h2','','人生纪念长图'),longClose=make('button','','关闭'),longImg=make('img'),longStatus=make('p','mbl-pass-muted'),longPost=make('button','mbl-pass-buy','发帖分享'),postStatus=make('p','mbl-pass-message');longImg.alt='当前人生纪念长图，可长按保存';longClose.type=longPost.type='button';postStatus.setAttribute('role','status');longClose.onclick=()=>longDialog.close();longDialog.addEventListener('close',()=>{if(hub.open)long.focus();});longHead.append(longTitle,longClose);longDialog.append(longHead,longStatus,longPost,postStatus,longImg);document.body.append(longDialog);
+ let longURL='',longToken=0,longBlob=null,longSource=null,posting=false;longDialog.onclose=()=>{longToken++;if(longURL)URL.revokeObjectURL(longURL);longURL='';longBlob=longSource=null;longImg.removeAttribute('src');longPost.disabled=true;};
+ async function makeLong(){if(!D||building||film?.busy()||!await authorize('keepsake')){if(!client.state().owned)open(long);return;}film?.pause();building=true;const job=++longToken,source=D;longStatus.textContent='正在生成高清长图…';longPost.disabled=true;postStatus.textContent='';longImg.removeAttribute('src');if(longURL)URL.revokeObjectURL(longURL);longURL='';longBlob=null;longSource=null;longDialog.showModal();longClose.focus();try{const built=await PhoneKeepsake.create(source,t=>{if(job===longToken)longStatus.textContent=t;});let blob;try{blob=await KeepsakeExport.blobOf(built.canvas);}finally{built.canvas.width=built.canvas.height=1;}if(job!==longToken||!longDialog.open||D!==source)return;longBlob=blob;longSource=source;longURL=URL.createObjectURL(blob);longImg.src=longURL;longImg.alt=source.name+'的人生总览长图';longStatus.textContent=built.meta.width+' × '+built.meta.height+' 像素 · 可放大查看，长按保存到相册。';longPost.disabled=blob.size>10*1024*1024;if(longPost.disabled)postStatus.textContent='图片超过10MB，可先长按保存。';}catch(e){if(job===longToken)longStatus.textContent=e.message;}finally{building=false;}}
+ long.onclick=()=>makeLong();
+ async function sendDraft(draft,source,status,current){if(posting)throw Error('正在打开发帖编辑器，请稍候。');posting=true;try{if(!await authorize('keepsake'))throw Error('请先开通会员。');await window.MBLPlatform.postKeepsake({...draft,seed:source.source.seed,current:()=>D===source&&current()});if(D===source&&current())status.textContent='编辑器已打开，请在虎扑内确认发布。';}finally{posting=false;}}
+ async function sendImage(){if(posting||!longBlob||!longSource)return;longPost.disabled=true;const source=longSource,blob=longBlob,job=longToken;postStatus.textContent='正在上传长图…';try{await sendDraft({...KeepsakePost.image(source),blob},source,postStatus,()=>longDialog.open&&job===longToken);}catch(e){if(job===longToken)postStatus.textContent=e.message||'暂未打开发帖编辑器，请重试。';}finally{if(job===longToken)longPost.disabled=false;}}
+ longPost.onclick=sendImage;
+ const bookDialog=make('dialog','mbl-pass-modal mbl-pass-book'),bookHead=make('div','mbl-pass-head'),bookTitle=make('h2','','人生记录册'),bookActions=make('div','mbl-book-actions'),bookPost=make('button','','发帖分享'),bookPostStatus=make('p','mbl-pass-message'),bookClose=make('button','','关闭');bookClose.type=bookPost.type='button';bookPostStatus.setAttribute('role','status');bookClose.onclick=()=>bookDialog.close();bookDialog.addEventListener('close',()=>{if(hub.open)record.focus();});bookActions.append(bookPost,bookClose);bookHead.append(bookTitle,bookActions);bookDialog.append(bookHead,bookPostStatus,document.getElementById('mbl-book-template').content.cloneNode(true));document.body.append(bookDialog);
+ let eventLimit=60;
+ function showTab(name){for(const tab of bookDialog.querySelectorAll('[data-tab]')){const on=tab.dataset.tab===name;tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;document.getElementById(tab.dataset.tab+'-panel').hidden=!on;}}
+ function events(reset=true){if(reset)eventLimit=60;BookReader.events(D,eventLimit);}
+ async function shareRecord(){if(!D||!bookDialog.open||posting||building||film?.busy())return;const source=D,current=()=>bookDialog.open;bookPost.disabled=true;bookPostStatus.textContent='正在准备完整记录册正文…';try{const draft=KeepsakePost.record(source);await sendDraft(draft,source,bookPostStatus,current);}catch(e){if(D===source&&current())bookPostStatus.textContent=e.message||'记录册尚未发送，请重试。';}finally{bookPost.disabled=false;}}
+ bookPost.onclick=shareRecord;
+ const year=document.getElementById('year-filter'),search=document.getElementById('memory-search');
+ for(const tab of bookDialog.querySelectorAll('[data-tab]')){tab.onclick=()=>showTab(tab.dataset.tab);tab.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const tabs=[...bookDialog.querySelectorAll('[data-tab]')],i=tabs.indexOf(tab),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();}};}
+ year.onchange=()=>{BookReader.reset(D,true);events();};search.oninput=()=>events();document.getElementById('more-events').onclick=()=>{eventLimit+=60;events(false);};document.getElementById('clear-filters').onclick=()=>{year.value='all';search.value='';BookReader.reset(D);events();};
+ record.onclick=async()=>{if(building||film?.busy()||!D)return;film?.pause();if(!await authorize('keepsake')){open(record);return;}try{
+  year.replaceChildren(make('option','','全部年份'));year.firstChild.value='all';for(const y of [...new Set(D.events.map(e=>e.year))].sort((a,b)=>a-b)){const option=make('option','',String(y));option.value=String(y);year.append(option);}search.value='';
+  bookPostStatus.textContent='';const subtitle=bookDialog.querySelector('.view-title p');if(subtitle)subtitle.textContent=D.name+' · '+D.age+'年人生，'+D.events.length+'段经历。';
+  BookReader.render(D,{openYear:y=>{year.value=String(y);search.value='';BookReader.reset(D);showTab('events');events();},openPerson:p=>{year.value='all';search.value=p.name;BookReader.reset(D);BookReader.person(p);showTab('events');events();},openAlbum:()=>{bookDialog.close();filmRoot.scrollIntoView({block:'start'});},refresh:()=>events()});
+  showTab('overview');events();bookDialog.showModal();bookClose.focus();
+ }catch(e){hubStatus.textContent=e.message;}};
+ async function openKeepsake(trigger){
+  if(checkBusy||building||film?.busy())return;checkBusy=true;focus=trigger;keepsake.disabled=true;const loadingLabel=trigger===keepsake||trigger?.dataset.action==='keepsake-open',oldLabel=trigger?.textContent;if(trigger)trigger.disabled=true;if(loadingLabel)trigger.textContent='正在读取这份人生…';
+  try{
+   if(!await authorize('keepsake')){open(trigger);return;}
+   const snap=window.MBLHost?.snapshot();let current=null;try{current=JSON.parse(snap?.entries?.['mbl.current']||'null');}catch{}let chosen=snap?.selectedSummary||snap?.currentSummary||current;
+   if(!snap||!chosen)throw Error('请先开始一段人生，或在生涯记录中选中要珍藏的人生。');
+   if(chosen.ended&&window.MBLHost.loadSummary)chosen=await window.MBLHost.loadSummary(chosen.seed);
+   const photoMemory=chosen.story?.memories||(current?.seed===chosen.seed?current.mblKeepsake:null),photoEnabled=photoMemory?.fromBirth===true&&photoMemory.memberAtBirth===true;
+
+   const career=CareerEngine.loadCareer({summary:chosen.ended?chosen:null,life:chosen.ended?null:current,selectedSeed:chosen.seed},{formatter:svgExports.formatText}),files=new Map();
+   const built=SceneComposer.compose(career,svgExports,(name,svg)=>{const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));files.set(name,url);sceneUrls.push(url);});
+   const rewrite=value=>{if(typeof value==='string')return files.get(value)||value;if(Array.isArray(value))return value.map(rewrite);if(value&&typeof value==='object')for(const k of Object.keys(value))value[k]=rewrite(value[k]);return value;};
+   D=rewrite(built.data);key++;note.textContent=D.name+' · '+(D.difficulty==='hard'?'困难模式':'普通模式')+' · '+D.born+'—'+D.ended+' · '+D.events.length+'条经历 · '+D.chapter.length+'段入选回忆';hubStatus.textContent=photoEnabled?'已留存 '+D.source.annualStates+' 个年龄的人物状态。':'本人生未开启画面采集。会员新开人生时开启，现有存档不补采。';film?.destroy();film=null;filmRoot.replaceChildren();if(!hub.open)hub.showModal();if(photoEnabled){const source=D;film=KeepsakeFilm.create({root:filmRoot,D:source,authorize:()=>authorize('keepsake'),alive:()=>hub.open&&D===source});}hubClose.focus();
+  }catch(e){entryError=e.message;open(trigger);message.textContent=e.message;}finally{checkBusy=false;keepsake.disabled=false;if(trigger)trigger.disabled=false;if(loadingLabel)trigger.textContent=oldLabel;}
+ }
+ window.MBLPassAccess={authorize:()=>Promise.resolve(true),active:()=>true,isOpen:()=>[dialog,checkout,hub,longDialog,bookDialog,document.getElementById('photo-shelf-dialog')].some(d=>d?.open)||example.isOpen(),open,openKeepsake,state:()=>({owned:true,source:'operator_grant',phase:'owned',purchasing:false,message:'',configs:[],payWays:[],pass:{cardType:'operator_grant',endTime:'2999-12-31 23:59:59'},keepsake:true})};
+ client.refresh();
+})();

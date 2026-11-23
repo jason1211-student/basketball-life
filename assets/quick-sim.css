@@ -1,0 +1,46 @@
+/* 全自动模拟入口、下拉菜单与忙碌遮罩，颜色走 token。 */
+.mbl-qs-wrap { position: relative; margin-top: 10px; }
+.mbl-qs-btn {
+  appearance: none; width: 100%;
+  border: 1px solid var(--fill); background: transparent;
+  color: var(--ink); border-radius: var(--radius-md);
+  padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.mbl-qs-btn:hover { background: var(--fill); color: var(--accent-ink); }
+
+.mbl-qs-menu {
+  display: none; position: absolute; left: 0; right: 0; bottom: calc(100% + 8px);
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-md); padding: 6px; z-index: 40;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.mbl-qs-menu.open { display: grid; gap: 4px; }
+.mbl-qs-opt {
+  appearance: none; border: 0; background: transparent; color: var(--ink);
+  border-radius: var(--radius-sm); padding: 9px 12px;
+  font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.mbl-qs-opt:hover { background: var(--bg); }
+
+/* 出生界面：直接进入 NBA */
+.mbl-qs-birth { margin-top: 14px; }
+.mbl-qs-birth-btn {
+  appearance: none; width: 100%;
+  border: 1px solid var(--fill); background: var(--fill);
+  color: var(--accent-ink); border-radius: var(--radius-md);
+  padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.mbl-qs-birth-btn:hover { opacity: .92; }
+
+.mbl-qs-busy {
+  position: fixed; inset: 0; z-index: 90;
+  background: #231c16;  /* 不透明，盖住模拟期间的高频重绘，杜绝闪屏 */
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.mbl-qs-busy p { color: #fff; margin: 0; font-size: 14px; font-weight: 600; }
+.mbl-qs-spinner {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.35); border-top-color: #fff;
+  animation: mblqsspin 0.9s linear infinite;
+}
+@keyframes mblqsspin { to { transform: rotate(360deg); } }

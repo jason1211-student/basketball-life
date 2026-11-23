@@ -1,0 +1,182 @@
+/* team-calendar.css：球队作战日历（2K 式），全部走全局 token，圆角/阴影与全站统一。 */
+.mbl-tcal {
+  margin: 12px 14px 8px;
+  font-family: var(--sans);
+  color: var(--ink);
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* 顶部：球队 + 战绩/排名/场次 + 进度 */
+.mbl-tcal-head {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.mbl-tcal-tm { display: flex; align-items: center; gap: 10px; }
+.mbl-tcal-tm .team-badge { width: 44px; height: 44px; }
+.mbl-tcal-tmtext { display: flex; flex-direction: column; gap: 2px; }
+.mbl-tcal-tmtext b { font-family: var(--display); font-size: 18px; letter-spacing: .2px; }
+.mbl-tcal-tmtext span { color: var(--muted); font-size: 12px; }
+.mbl-tcal-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mbl-tcal-chip {
+  background: var(--soft); border-radius: 12px; padding: 8px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.mbl-tcal-chip b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.mbl-tcal-chip span { font-size: 11px; color: var(--muted); }
+.mbl-tcal-prog { height: 6px; border-radius: 999px; background: var(--soft); overflow: hidden; }
+.mbl-tcal-prog span {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--fill), var(--accent));
+  border-radius: 999px;
+}
+
+/* 操作区：场间事务 / 下一场 */
+.mbl-tcal-action { display: flex; flex-direction: column; gap: 10px; }
+.mbl-tcal-inter {
+  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+  border: 1px dashed var(--fill); background: var(--accent-soft);
+  border-radius: var(--radius); padding: 12px 14px;
+  font-family: var(--sans); color: var(--ink); cursor: pointer;
+}
+.mbl-ti-ico { font-size: 20px; flex: none; }
+.mbl-ti-text { display: flex; flex-direction: column; gap: 2px; }
+.mbl-ti-text b { font-size: 14.5px; }
+.mbl-ti-text span { font-size: 12px; color: var(--muted); }
+
+.mbl-tcal-next {
+  background: var(--card); border: 1px solid var(--accent);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;
+}
+.mbl-tcal-nginfo { display: flex; align-items: center; gap: 10px; }
+.mbl-tcal-nginfo .team-badge { width: 40px; height: 40px; }
+.mbl-tcal-ngtext { display: flex; flex-direction: column; gap: 2px; }
+.mbl-tcal-ngtext b { font-size: 15px; }
+.mbl-tcal-ngtext span { font-size: 12px; color: var(--muted); }
+.mbl-tcal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mbl-tc-btn {
+  border: none; border-radius: 12px; padding: 11px 8px;
+  font-family: var(--display); font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.mbl-tc-btn.live { background: var(--accent); color: var(--accent-ink); }
+.mbl-tc-btn.sim { background: var(--soft); color: var(--ink); border: 1px solid var(--line); }
+.mbl-tc-btn:active { transform: scale(.98); }
+
+.mbl-tcal.is-busy { opacity: .55; pointer-events: none; }
+
+/* ===== 月历网格（2K 式）===== */
+.mbl-tcal-gridwrap {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 10px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+/* 月份切换 */
+.mbl-cal-mon { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mbl-cal-mon b { font-family: var(--display); font-size: 16px; }
+.mbl-cal-arrow {
+  width: 34px; height: 32px; border: 1px solid var(--line); background: var(--soft);
+  border-radius: 10px; color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer;
+}
+.mbl-cal-arrow:disabled { opacity: .4; cursor: default; }
+.mbl-cal-arrow:not(:disabled):active { transform: scale(.94); }
+
+/* 周列头 */
+.mbl-cal-week {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  text-align: center; font-size: 11px; color: var(--muted);
+}
+/* 日期格子 */
+.mbl-cal-cells { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.mbl-gc {
+  position: relative; min-height: 54px; border-radius: 10px; padding: 3px 2px 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 1px solid transparent;
+}
+.mbl-gc-d {
+  align-self: flex-start; margin-left: 3px;
+  font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.mbl-gc-badge { display: flex; }
+.mbl-gc-badge .team-badge { width: 26px; height: 26px; }
+.mbl-gc-badge img { width: 26px; height: 26px; }
+.mbl-gc-hm { font-size: 10px; font-weight: 700; color: var(--muted); }
+.mbl-gc-sc { font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.mbl-gc-sc.w { color: var(--up); }
+.mbl-gc-sc.l { color: var(--danger, #d9534f); }
+
+/* 主客配色：用柔和底色 + 同色描边，避免在浅色卡片上太突兀 */
+.mbl-gc.is-game { cursor: pointer; }
+.mbl-gc.home { background: var(--accent-soft); border-color: rgba(191, 91, 36, .35); }
+.mbl-gc.away { background: var(--soft); border-color: var(--line); }
+.mbl-gc.is-played { opacity: .72; }
+.mbl-gc.is-next {
+  border-color: var(--accent); border-width: 2px;
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.mbl-gc.is-next .mbl-gc-d { color: var(--accent); font-weight: 700; }
+
+/* 休息日 / 空白 */
+.mbl-gc.is-rest .mbl-gc-rest { font-size: 15px; line-height: 1; opacity: .8; }
+.mbl-gc.is-off .mbl-gc-d { color: var(--faint); }
+.mbl-gc.is-blank { min-height: 0; }
+
+/* 图例 */
+.mbl-cal-legend {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  font-size: 11.5px; color: var(--muted); padding-top: 2px;
+}
+.mbl-cal-legend .lg-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 4px; }
+.mbl-cal-legend .lg-dot.home { background: var(--accent); }
+.mbl-cal-legend .lg-dot.away { background: var(--line); }
+
+/* ===== 赛前预览弹窗（未打比赛）===== */
+.mbl-tc-preview {
+  width: min(560px, calc(100% - 20px));
+  border: none; border-radius: var(--radius);
+  padding: 0; background: var(--card); color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.mbl-tc-preview::backdrop { background: rgba(20, 16, 10, .55); }
+.mbl-tcp-dhead {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.mbl-tcp-dhead b { font-size: 15px; font-family: var(--display); }
+.mbl-tcp-x {
+  border: 1px solid var(--line); background: var(--soft); color: var(--ink);
+  border-radius: 10px; padding: 7px 12px; font-family: var(--sans); cursor: pointer;
+}
+.mbl-tcp-body {
+  padding: 12px 14px 16px; max-height: 78vh; overflow: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.mbl-tcp-team { display: flex; flex-direction: column; gap: 8px; }
+.mbl-tcp-thead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.mbl-tcp-thead b { font-family: var(--display); font-size: 14.5px; }
+.mbl-tcp-thead span { font-size: 11.5px; color: var(--muted); }
+.mbl-tcp-team.is-opp .mbl-tcp-thead b { color: var(--danger, #d9534f); }
+
+/* 四列网格：位置 / 球员 / 总评 / 得分-篮板-助攻 */
+.mbl-tcp-colhead, .mbl-tcp-row {
+  display: grid; grid-template-columns: 38px minmax(0, 1fr) 34px auto;
+  gap: 6px; align-items: center;
+}
+.mbl-tcp-colhead { font-size: 11px; color: var(--muted); padding: 0 6px; }
+.mbl-tcp-plist {
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 4px 6px; display: flex; flex-direction: column;
+}
+.mbl-tcp-row { padding: 6px; font-size: 12.5px; border-radius: 8px; }
+.mbl-tcp-row + .mbl-tcp-row { border-top: 1px solid var(--line); }
+.mbl-tcp-pos { font-size: 11px; color: var(--muted); }
+.mbl-tcp-pname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mbl-tcp-ovr { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mbl-tcp-avg { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.mbl-tcp-note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+.mbl-appointments{padding:10px 0}
+.mbl-gc-appointment{position:absolute;right:4px;bottom:2px;font-size:10px;font-weight:700;color:var(--accent)}

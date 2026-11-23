@@ -1,0 +1,13 @@
+/* 选秀接入球探报告卡片，复用 dt- 组件样式，仅补 dm- 专属；颜色走 token。 */
+.mbl-draft-match { margin-top: 12px; }
+
+.dm-kicker {
+  font-size: 12px; font-weight: 700; letter-spacing: .4px;
+  color: var(--t-butter-ink); background: var(--t-butter);
+  border-radius: 999px; padding: 4px 12px; display: inline-block;
+}
+.mbl-draft-match .dt-row { margin-top: 10px; }
+.dm-seg { justify-content: flex-end; }
+
+.dm-summary { margin: 12px 0 4px; font-size: 13.5px; font-weight: 700; }
+.dm-tip { margin: 0; font-size: 12.5px; opacity: .72; }

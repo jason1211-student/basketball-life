@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1280" viewBox="0 0 1080 1280"><svg x="180" y="140" width="300" height="355" viewBox="0 0 200 224" preserveAspectRatio="xMidYMid meet">
+  <clipPath id="p39-jc12"><path d="M58 8 H82 Q100 24 118 8 H142 C146 40 158 62 178 70 L172 214 Q100 222 28 214 L22 70 C42 62 54 40 58 8 Z"/></clipPath>
+  <path d="M58 8 H82 Q100 24 118 8 H142 C146 40 158 62 178 70 L172 214 Q100 222 28 214 L22 70 C42 62 54 40 58 8 Z" fill="#0e7c86" stroke="rgba(0,0,0,0.18)" stroke-width="2"/>
+  <path d="M82 8 Q100 24 118 8" fill="none" stroke="#f4f1ea" stroke-width="7" stroke-linecap="round"/>
+  <path d="M142 8 C146 40 158 62 178 70" fill="none" stroke="#f4f1ea" stroke-width="8" stroke-linecap="round"/>
+  <path d="M58 8 C54 40 42 62 22 70" fill="none" stroke="#f4f1ea" stroke-width="8" stroke-linecap="round"/>
+  <path d="M30 206 Q100 214 170 206" fill="none" stroke="#f4f1ea" stroke-width="4" opacity="0.7"/>
+  <text x="100" y="66" text-anchor="middle" font-size="19" font-weight="800" letter-spacing="1.5" fill="#ffffff" textLength="40" lengthAdjust="spacingAndGlyphs">何海涛</text>
+  <text x="100" y="160" text-anchor="middle" font-size="86" font-weight="900" fill="#ffffff" stroke="#f4f1ea" stroke-width="5" paint-order="stroke" letter-spacing="-2">32</text>
+  <g clip-path="url(#p39-jc12)"><path class="shine" d="M40 20 L70 20 L20 200 L-10 200 Z" fill="#fff" opacity="0"/></g>
+</svg><rect x="130" y="1030" width="310" height="40" fill="#8a6a44"/></svg>

@@ -1,0 +1,159 @@
+/* 底部主导航（重构版） */
+.mbl-has-dock { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+
+.mbl-dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: stretch;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -6px 18px -12px rgba(120, 80, 40, .35);
+}
+.mbl-dock-btn {
+  flex: 1 1 0;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 4px 8px;
+  color: var(--muted);
+  font: 12px/1.2 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  cursor: pointer;
+}
+.mbl-dock-icon {
+  width: 23px; height: 23px;
+  border-radius: var(--radius-md);
+  background: currentColor;
+  opacity: .28;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.mbl-dock-btn.is-active { color: var(--accent); }
+.mbl-dock-btn.is-active .mbl-dock-icon { opacity: .9; }
+.mbl-dock-btn:focus-visible { outline: 3px solid #a77c37; outline-offset: -3px; }
+
+/* 五个标签的图标（内联 SVG 路径做 mask） */
+.mbl-dock-btn[data-tab="home"] .mbl-dock-icon { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 11.5 12 4l9 7.5M5.5 10v9h13v-9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 11.5 12 4l9 7.5M5.5 10v9h13v-9'/%3E%3C/svg%3E"); }
+.mbl-dock-btn[data-tab="ball"] .mbl-dock-icon { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='1.8' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2c3 3.5 3 16.5 0 20M2.5 12h19M4.5 5c4.5 3 10.5 3 15 0M4.5 19c4.5-3 10.5-3 15 0'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='1.8' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2c3 3.5 3 16.5 0 20M2.5 12h19M4.5 5c4.5 3 10.5 3 15 0M4.5 19c4.5-3 10.5-3 15 0'/%3E%3C/svg%3E"); }
+.mbl-dock-btn[data-tab="team"] .mbl-dock-icon { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='black'%3E%3Ccircle cx='8' cy='8' r='3'/%3E%3Ccircle cx='16' cy='8' r='3'/%3E%3Cpath d='M2.5 20c0-3.2 2.5-5 5.5-5s5.5 1.8 5.5 5zM11.5 15c.8-.6 2-1 3-1 2.5 0 4.5 1.8 4.5 5h-4.5'/%3E%3C/g%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='black'%3E%3Ccircle cx='8' cy='8' r='3'/%3E%3Ccircle cx='16' cy='8' r='3'/%3E%3Cpath d='M2.5 20c0-3.2 2.5-5 5.5-5s5.5 1.8 5.5 5zM11.5 15c.8-.6 2-1 3-1 2.5 0 4.5 1.8 4.5 5h-4.5'/%3E%3C/g%3E%3C/svg%3E"); }
+.mbl-dock-btn[data-tab="journey"] .mbl-dock-icon { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 21V3h2v4h9l-2.2 4L17 15H8v6z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 21V3h2v4h9l-2.2 4L17 15H8v6z'/%3E%3C/svg%3E"); }
+.mbl-dock-btn[data-tab="people"] .mbl-dock-icon { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 21s-7.5-4.7-9.5-9.3C1 7.5 3.6 4.5 6.8 4.5c2 0 3.7 1.2 5.2 3 1.5-1.8 3.2-3 5.2-3 3.2 0 5.8 3 4.3 7.2C19.5 16.3 12 21 12 21z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 21s-7.5-4.7-9.5-9.3C1 7.5 3.6 4.5 6.8 4.5c2 0 3.7 1.2 5.2 3 1.5-1.8 3.2-3 5.2-3 3.2 0 5.8 3 4.3 7.2C19.5 16.3 12 21 12 21z'/%3E%3C/svg%3E"); }
+
+/* ===== 视图容器与五个视图（点标签切换，非弹窗） ===== */
+.mbl-views { width: 100%; }
+.mbl-view { width: 100%; }
+.mbl-view[hidden] { display: none; }
+.mbl-view .card { margin-bottom: 12px; }
+.mbl-group-badges { margin-bottom: 12px; }
+.mbl-group-empty { color: var(--muted); text-align: center; padding: 28px 12px; font-size: 13.5px; }
+
+/* ===== 球队阵容名单 ===== */
+.mbl-roster-list {
+  list-style: none; margin: 6px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.mbl-roster-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--soft);
+  cursor: pointer;
+}
+.mbl-roster-row:active { background: var(--accent-soft); }
+.mbl-roster-row.is-me { border-color: var(--accent); background: var(--accent-soft); }
+.mbl-roster-name { flex: 1; font-weight: 600; font-size: 13.5px; min-width: 0; }
+.mbl-roster-pos { color: var(--muted); font-size: 12px; min-width: 44px; }
+.mbl-roster-age { color: var(--muted); font-size: 12px; min-width: 34px; text-align: right; }
+.mbl-roster-ovr { color: var(--accent); font-size: 15px; min-width: 28px; text-align: right; }
+
+/* 内核 dash 的卡片已重新分配到主界面内联与四个视图，整体隐藏，避免重复展示 */
+main.play .dash { display: none !important; }
+
+/* ===== 顶部「更多」菜单：内核默认右对齐到小按钮、向左展开，窄屏会溢出到屏幕外。
+   改为从按钮左缘向右展开，并限制最大宽度，手机/电脑均不溢出。 ===== */
+.more .menu {
+  left: 0;
+  right: auto;
+  top: calc(100% + 6px);
+  width: 220px;
+  min-width: 0;
+  max-width: calc(100vw - 24px);
+  /* 矮屏：菜单不超出底部导航，超高时内部滚动，避免最后一项被截断 */
+  max-height: calc(100dvh - 270px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* 菜单展开时收起右侧悬浮的抉择提示与圆形按钮，避免互相遮挡、文字被压 */
+body.mbl-menu-open .pending-pill,
+body.mbl-menu-open .focusfab,
+body.mbl-menu-open .spendfab {
+  display: none;
+}
+
+/* ===== 悬浮按钮（重心 / 花钱）：内核为带文字的胶囊，会盖住身份卡等右侧字段。
+   收为纯图标圆形，缩小遮挡面积，常驻显示（不再随滚动淡出，避免分段滑动时反复闪烁）。 ===== */
+.focusfab, .spendfab {
+  width: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+.focusfab span, .spendfab span { display: none; }
+.spendfab { bottom: calc(58px + env(safe-area-inset-bottom, 0px) + 10px); }
+.focusfab { bottom: calc(58px + env(safe-area-inset-bottom, 0px) + 62px); }
+
+/* 手机端给底部 dock 右侧预留宿主悬浮按钮（如「豆包 AI 生成」）的空间，
+   按钮整体左移，避免最右标签被宿主按钮盖住；dock 背景仍全宽。 */
+@media (max-width: 600px) {
+  .mbl-dock { padding-right: max(env(safe-area-inset-right, 0px), 84px); }
+}
+
+/* ===== 折叠式快捷操作（speed-dial）：取代原三个独立圆钮 ===== */
+.totop, .focusfab, .spendfab { display: none !important; }
+
+.mbl-fab-dial {
+  position: fixed; right: 16px;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 7;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.mbl-fab-toggle {
+  width: 46px; height: 46px; border: 0; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink);
+  box-shadow: var(--shadow); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .22s ease;
+}
+.mbl-fab-toggle svg { width: 22px; height: 22px; }
+.mbl-fab-dial.is-open .mbl-fab-toggle { transform: rotate(90deg); }
+
+.mbl-fab-items {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+}
+.mbl-fab-item {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 12px; border-radius: 19px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  font-family: var(--sans); font-size: 13px; font-weight: 700;
+  box-shadow: var(--shadow); cursor: pointer;
+  opacity: 0; transform: translateY(6px) scale(.9);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.mbl-fab-dial.is-open .mbl-fab-item {
+  opacity: 1; transform: none; pointer-events: auto;
+}
+.mbl-fab-ico { width: 18px; height: 18px; color: var(--accent); flex: none; }
+body.mbl-menu-open .mbl-fab-dial { display: none; }

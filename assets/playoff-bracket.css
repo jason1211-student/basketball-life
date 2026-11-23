@@ -1,0 +1,189 @@
+/* playoff-bracket.css：2K 式季后赛对阵图（左右对称树），走全局 token；手机端横向滑动。 */
+.mbl-pb {
+  margin: 12px 14px 8px;
+  min-inline-size: 0;
+  font-family: var(--sans); color: var(--ink);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.mbl-pb-head { display: flex; align-items: baseline; gap: 8px; padding: 0 2px; }
+.mbl-pb-head b { font-family: var(--display); font-size: 18px; }
+.mbl-pb-head span { color: var(--muted); font-size: 12px; }
+
+/* 操作区 */
+.mbl-pb-action {
+  background: var(--card); border: 1px solid var(--accent);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;
+}
+.mbl-pb-current { display: grid; gap: 8px; min-inline-size: 0; }
+.mbl-pb-curtext { display: flex; flex-direction: column; gap: 3px; }
+.mbl-pb-curtext b { font-size: 15px; }
+.mbl-pb-curtext span { font-size: 12px; color: var(--muted); }
+.mbl-pb-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mbl-pb-btn {
+  border: none; border-radius: 12px; padding: 11px 8px;
+  font-family: var(--display); font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.mbl-pb-btn.live { background: var(--accent); color: var(--accent-ink); }
+.mbl-pb-btn.sim { background: var(--soft); color: var(--ink); border: 1px solid var(--line); }
+.mbl-pb-btn:active { transform: scale(.98); }
+
+/* 场间门控卡 */
+.mbl-pb-gate {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  width: 100%; border: 1px solid var(--line); background: var(--soft);
+  border-radius: 12px; padding: 10px 12px; cursor: pointer;
+}
+.mbl-pb-gate-ico { font-size: 18px; }
+.mbl-pb-gate-text { display: flex; flex-direction: column; gap: 2px; }
+.mbl-pb-gate-text b { font-size: 14px; }
+.mbl-pb-gate-text span { font-size: 11.5px; color: var(--muted); }
+.mbl-pb-gate:active { transform: scale(.99); }
+
+/* 夺冠横幅 */
+.mbl-pb-done { display: flex; flex-direction: column; gap: 3px; }
+.mbl-pb-done b { font-size: 15px; }
+.mbl-pb-done span { font-size: 12px; color: var(--muted); }
+
+/* ===== 横向滚动容器 ===== */
+.mbl-pb-scroll {
+  min-inline-size: 0; max-inline-size: 100%; box-sizing: border-box;
+  overflow-x: auto; overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+  padding: 6px 4px 12px; -webkit-overflow-scrolling: touch;
+}
+.mbl-pb2 {
+  display: flex; align-items: stretch; gap: 26px;
+  inline-size: max-content; min-inline-size: 100%;
+}
+.mbl-pb2-tree { flex: 0 0 auto; display: flex; flex-direction: row; gap: 26px; height: var(--H); }
+.mbl-pb2-col {
+  flex: 0 0 auto; display: flex; flex-direction: column;
+  justify-content: space-around; position: relative;
+}
+
+/* 对阵卡 / 球队行 */
+.mbl-pb2-match {
+  position: relative; flex: 0 0 auto; width: 156px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 3px;
+}
+.mbl-pb2-slot {
+  display: flex; align-items: center; gap: 6px;
+  min-height: 30px; padding: 4px 5px; border-radius: 8px;
+}
+.mbl-pb2-slot + .mbl-pb2-slot { border-top: 1px solid var(--line); }
+.mbl-pb2-slot .team-badge { width: 22px; height: 22px; }
+.mbl-pb2-seed {
+  flex: 0 0 16px; width: 16px; height: 16px; line-height: 16px;
+  font-style: normal; font-size: 10.5px; font-weight: 800;
+  text-align: center; border-radius: 4px; font-variant-numeric: tabular-nums;
+}
+.mbl-pb2-seed.top { background: #f0b429; color: #3a2c05; }
+.mbl-pb2-seed.low { background: #d9534f; color: #fff; }
+.mbl-pb2-name {
+  flex: 1; font-size: 12.5px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.mbl-pb2-w {
+  flex: 0 0 16px; text-align: center; font-size: 13px; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: var(--muted);
+}
+.mbl-pb2-slot.winner { background: var(--accent-soft); }
+.mbl-pb2-slot.winner .mbl-pb2-name { color: var(--ink); font-weight: 700; }
+.mbl-pb2-slot.winner .mbl-pb2-w { color: var(--accent); }
+.mbl-pb2-slot.mine { box-shadow: inset 0 0 0 1px var(--accent); }
+.mbl-pb2-slot.tbd, .mbl-pb2-slot.bye { color: var(--faint); }
+.mbl-pb2-slot.tbd .mbl-pb2-name, .mbl-pb2-slot.bye .mbl-pb2-name { color: var(--faint); }
+
+/* ===== 连接线（左树：feeders 在左） ===== */
+.mbl-pb2-col[data-round="0"] .mbl-pb2-match::after {
+  content: ''; position: absolute; right: -13px; top: 50%;
+  width: 13px; height: 2px; background: var(--line);
+}
+.mbl-pb2-col:not([data-round="0"]) .mbl-pb2-match::after {
+  content: ''; position: absolute; left: -13px; top: 50%;
+  width: 13px; height: 2px; background: var(--line);
+}
+.mbl-pb2-col[data-round="1"] .mbl-pb2-match::before {
+  content: ''; position: absolute; left: -13px; top: calc(50% - var(--d0) / 2);
+  width: 2px; height: var(--d0); background: var(--line);
+}
+.mbl-pb2-col[data-round="2"] .mbl-pb2-match::before {
+  content: ''; position: absolute; left: -13px; top: calc(50% - var(--d0));
+  width: 2px; height: calc(var(--d0) * 2); background: var(--line);
+}
+.mbl-pb2-col[data-round="3"] .mbl-pb2-match::before {
+  content: ''; position: absolute; left: -13px; top: calc(50% - var(--d0) * 2);
+  width: 2px; height: calc(var(--d0) * 4); background: var(--line);
+}
+
+/* 右树镜像：水平方向翻转，竖线几何不变 */
+.mirror .mbl-pb2-col[data-round="0"] .mbl-pb2-match::after { left: -13px; right: auto; }
+.mirror .mbl-pb2-col:not([data-round="0"]) .mbl-pb2-match::after { right: -13px; left: auto; }
+.mirror .mbl-pb2-col[data-round="1"] .mbl-pb2-match::before { right: -13px; left: auto; }
+.mirror .mbl-pb2-col[data-round="2"] .mbl-pb2-match::before { right: -13px; left: auto; }
+
+/* ===== 中央总决赛 ===== */
+.mbl-pb2-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px; flex: 0 0 auto; height: var(--H);
+}
+.mbl-pb2-logo {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--display); font-weight: 800; letter-spacing: 1.5px;
+  font-size: 13px; color: var(--ink);
+}
+.mbl-pb2-lball {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #e8803c; position: relative; font-style: normal;
+}
+.mbl-pb2-match.is-final::before, .mbl-pb2-match.is-final::after {
+  content: ''; position: absolute; top: 50%;
+  width: 26px; height: 2px; background: var(--line);
+}
+.mbl-pb2-match.is-final::before { left: -26px; }
+.mbl-pb2-match.is-final::after { right: -26px; }
+
+/* 底部信息条 */
+.mbl-pb2-info {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--muted);
+}
+.mbl-pb2-infico { font-style: normal; color: var(--accent); font-weight: 700; }
+.mbl-pb2-info span { line-height: 1.4; }
+
+/* 老存档降级 */
+.mbl-pb-fallback {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.mbl-pb-fbnote { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.mbl-pb-fbrow { display: flex; align-items: center; justify-content: space-between; font-size: 13.5px; }
+.mbl-pb-fbrow b { font-variant-numeric: tabular-nums; }
+.mbl-pb-fbrow b.w { color: var(--up); }
+.mbl-pb-fbrow b.l { color: var(--danger, #d9534f); }
+.mbl-pb.is-busy { opacity: .55; pointer-events: none; }
+
+.mbl-pb-series-score, .mbl-pb-game-score { font-variant-numeric: tabular-nums; }
+.mbl-pb-game-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 6px;
+  margin: 0; padding: 0; list-style: none;
+}
+.mbl-pb-game {
+  display: grid; gap: 3px; padding: 6px 8px; border-radius: 8px;
+  background: var(--soft); border: 1px solid var(--line);
+}
+.mbl-pb-game-label { font-size: 11px; color: var(--muted); }
+.mbl-pb-game-score { font-size: 13px; }
+.mbl-pb-nav { display: flex; gap: 6px; margin-inline-start: auto; }
+.mbl-pb-nav[hidden] { display: none; }
+.mbl-pb-nav-btn {
+  min-inline-size: 36px; min-block-size: 36px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--soft); color: var(--ink);
+  font: inherit; cursor: pointer;
+}
+.mbl-pb-nav-btn:disabled { opacity: .45; cursor: default; }

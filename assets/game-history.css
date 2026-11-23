@@ -1,0 +1,82 @@
+/* game-history.css：球队视图历史比赛 + 详情弹窗，全部走全局 token，与全站统一。 */
+.mbl-ghistory {
+  margin: 14px 14px 10px;
+  font-family: var(--sans);
+  color: var(--ink);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mbl-gh-title { margin: 0; }
+
+.mbl-gh-ghead {
+  font-size: 12.5px; color: var(--muted);
+  padding: 2px 2px 0; font-variant-numeric: tabular-nums;
+}
+.mbl-gh-list {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 4px 8px; display: flex; flex-direction: column;
+}
+.mbl-gh-row {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  padding: 8px 4px; border: none; background: none;
+  font-family: var(--sans); color: var(--ink); text-align: left; cursor: pointer;
+  border-radius: 10px;
+}
+.mbl-gh-row + .mbl-gh-row { border-top: 1px solid var(--line); }
+.mbl-gh-row:active { background: var(--soft); }
+.mbl-gh-row .no {
+  flex: 0 0 26px; font-size: 12px; color: var(--muted);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.mbl-gh-row .hm { flex: 0 0 22px; font-size: 11px; font-weight: 700; color: var(--muted); }
+.mbl-gh-row .nm { flex: 1; font-size: 13.5px; }
+.mbl-gh-row .sc {
+  flex: 0 0 auto; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.mbl-gh-row .sc.w { color: var(--up); }
+.mbl-gh-row .sc.l { color: var(--danger, #d9534f); }
+.mbl-gh-row .go { flex: 0 0 auto; font-size: 11px; color: var(--accent); }
+
+/* 详情弹窗 */
+.mbl-gh-dialog {
+  width: min(560px, calc(100% - 20px));
+  border: none; border-radius: var(--radius);
+  padding: 0; background: var(--card); color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.mbl-gh-dialog::backdrop { background: rgba(20, 16, 10, .55); }
+.mbl-gh-dhead {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.mbl-gh-dhead b { font-size: 15px; font-family: var(--display); }
+.mbl-gh-x {
+  border: 1px solid var(--line); background: var(--soft); color: var(--ink);
+  border-radius: 10px; padding: 7px 12px; font-family: var(--sans); cursor: pointer;
+}
+.mbl-gh-body { padding: 12px 14px 16px; max-height: 76vh; overflow: auto; }
+
+.mbl-gh-box { display: flex; flex-direction: column; gap: 14px; }
+.mbl-gh-sec { display: flex; flex-direction: column; gap: 8px; }
+.mbl-gh-shead { display: flex; align-items: center; justify-content: space-between; }
+.mbl-gh-tname { font-family: var(--display); font-weight: 700; font-size: 14.5px; }
+.mbl-gh-tscore { font-weight: 700; font-variant-numeric: tabular-nums; }
+.mbl-gh-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.mbl-gh-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.mbl-gh-table th, .mbl-gh-table td {
+  padding: 7px 8px; text-align: center; white-space: nowrap;
+}
+.mbl-gh-table th {
+  background: var(--soft); color: var(--muted); font-weight: 600;
+  position: sticky; top: 0;
+}
+.mbl-gh-table td.is-name, .mbl-gh-table th:first-child { text-align: left; }
+.mbl-gh-table tbody tr + tr td { border-top: 1px solid var(--line); }
+.mbl-gh-table tr.is-me td { background: var(--accent-soft); font-weight: 700; }
+.mbl-gh-table tr.is-total td { font-weight: 700; background: var(--soft); }
+
+.mbl-gh-fb { display: flex; flex-direction: column; gap: 8px; }
+.mbl-gh-fbstats { font-size: 13px; font-variant-numeric: tabular-nums; }

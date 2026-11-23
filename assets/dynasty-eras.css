@@ -1,0 +1,118 @@
+/* 王朝时刻：时代横幅 + 时间轴 + 节点弹窗 */
+:root{--mbl-era:var(--t-peach-ink)}
+
+/* ===== 顶部时代横幅（固定、醒目） ===== */
+.mbl-era-banner{
+  position:fixed;top:0;left:0;right:0;z-index:400;
+  display:flex;align-items:center;gap:10px;
+  width:100%;box-sizing:border-box;
+  padding:9px 14px;
+  border:0;border-bottom:3px solid var(--era-color,var(--mbl-era));
+  background:var(--card);color:var(--ink);
+  font:13px/1.35 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  box-shadow:0 2px 14px rgba(40,28,16,.14);cursor:pointer;text-align:left;
+}
+body.mbl-has-era{padding-top:52px}
+.mbl-era-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;
+  background:var(--era-color,var(--mbl-era));box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.mbl-era-main{display:flex;flex-direction:column;gap:1px;flex:1 1 auto;min-width:0}
+.mbl-era-name{font-size:14px;font-weight:700}
+.mbl-era-meta{font-size:11px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbl-era-arrow{flex:0 0 auto;font-size:11px;color:var(--era-color,var(--mbl-era));font-weight:600}
+.mbl-era-banner:active{opacity:.82}
+
+/* ===== 王朝时间轴 ===== */
+.mbl-era-tl{
+  width:min(480px,calc(100% - 24px));max-height:calc(100dvh - 32px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--card);color:var(--ink);padding:0;
+  font:14px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+/* display 只在 open 时生效：写在基类会覆盖 UA 的 dialog:not([open]){display:none}，
+   导致未打开的时间轴挂在页面底部可见 */
+.mbl-era-tl[open]{display:flex;flex-direction:column;overflow:hidden}
+/* 遮罩恢复为半透明深色，让用户清楚看到面板边界，点遮罩即可关闭 */
+.mbl-era-tl::backdrop{background:var(--backdrop)}
+/* 头部样式（此前被误写进 ::backdrop）：flex 布局、吸顶、卡片背景与顶部圆角 */
+.mbl-era-tl-head{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2;
+  background:var(--card);border-radius:var(--radius) var(--radius) 0 0;touch-action:none}
+.mbl-era-tl-head h2{margin:0;font:20px/1.4 SimSun,serif}
+.mbl-era-tl-close{border:1px solid var(--line);background:var(--soft);color:var(--ink);
+  border-radius:999px;padding:8px 16px;min-height:38px;font:13px system-ui;font-weight:600;cursor:pointer}
+.mbl-era-tl-close:active{background:var(--accent-soft)}
+.mbl-era-tl-body{flex:1 1 auto;min-height:0;padding:16px 20px 22px;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+
+.mbl-era-block{position:relative;padding:0 0 6px 16px;margin-bottom:14px;
+  border-left:2px solid var(--line)}
+.mbl-era-block.is-current{border-left-color:var(--accent)}
+.mbl-era-block-head{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+.mbl-era-block-dot{width:12px;height:12px;border-radius:50%;margin-left:-23px;flex:0 0 auto;
+  border:2px solid var(--card)}
+.mbl-era-block-titles{display:flex;flex-direction:column}
+.mbl-era-block-titles b{font-size:15px}
+.mbl-era-block-titles small{font-size:11px;color:var(--muted)}
+.mbl-era-block-desc{margin:4px 0 8px;font-size:12px;color:var(--muted)}
+.mbl-era-block.is-current .mbl-era-block-titles b{color:var(--accent)}
+
+.mbl-era-ev{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;margin-bottom:6px;
+  border:1px solid var(--line);border-radius:var(--radius-md);background:var(--soft)}
+.mbl-era-ev.is-major{border-color:var(--accent)}
+.mbl-era-ev:not(.is-past){opacity:.55}
+.mbl-era-ev-year{flex:0 0 42px;font-weight:700;font-size:13px;color:var(--accent)}
+.mbl-era-ev-mid{flex:1 1 auto;display:flex;flex-direction:column;gap:1px;min-width:0}
+.mbl-era-ev-mid b{font-size:13px}
+.mbl-era-ev-mid small{font-size:11px;color:var(--muted)}
+.mbl-era-ev-kind{flex:0 0 auto;font-size:10px;color:var(--faint);
+  border:1px solid var(--line);border-radius:var(--radius);padding:2px 8px;white-space:nowrap}
+.mbl-era-ev.is-major .mbl-era-ev-kind{color:var(--accent);border-color:var(--accent)}
+
+/* 自然演算事件：虚线、灰蓝，区别于真实历史 */
+.mbl-era-ev.is-forecast{border-style:dashed;border-color:#9aa4b1;background:transparent}
+.mbl-era-ev.is-forecast .mbl-era-ev-year{color:#7d8794}
+.mbl-era-ev.is-forecast .mbl-era-ev-mid b{color:#5f6b78}
+.mbl-era-ev.is-forecast .mbl-era-ev-mid small{color:#8a939e}
+.mbl-era-ev.is-forecast .mbl-era-ev-kind{color:#fff;background:#7d8794;border-color:#7d8794}
+.mbl-era-block#forecast{border-left-color:#b8c0ca}
+
+/* 玩家自己夺冠的演算年份：实线、主题色高亮 */
+.mbl-era-ev.is-forecast.is-won{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+.mbl-era-ev.is-forecast.is-won .mbl-era-ev-year{color:var(--accent)}
+.mbl-era-ev.is-forecast.is-won .mbl-era-ev-mid b{color:var(--accent)}
+.mbl-era-ev.is-forecast.is-won .mbl-era-ev-kind{color:#fff;background:var(--accent);border-color:var(--accent)}
+
+/* 玩家改变历史：金色高亮 */
+.mbl-era-ev.is-altered{border-style:solid;border-color:#c79a3a;background:linear-gradient(135deg,#fbf3dd,#f6e7c2);box-shadow:0 0 0 1px rgba(199,154,58,.25),0 6px 18px rgba(199,154,58,.18)}
+.mbl-era-ev.is-altered .mbl-era-ev-year{color:#a87f24;font-weight:700}
+.mbl-era-ev.is-altered .mbl-era-ev-mid b{color:#8a671c}
+.mbl-era-ev.is-altered .mbl-era-ev-mid small{color:#9a7c33}
+.mbl-era-ev.is-altered .mbl-era-ev-kind{color:#fff;background:#c79a3a;border-color:#c79a3a;font-weight:700}
+
+/* ===== 重大节点弹窗 ===== */
+.mbl-era-pop{
+  width:min(430px,calc(100% - 30px));border:0;padding:0;
+  background:transparent;color:var(--ink);
+  font:14px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+.mbl-era-pop[open]{display:block}
+.mbl-era-pop::backdrop{background:var(--backdrop)}
+/* 卡片样式落在实际内容容器上，不再覆盖全屏遮罩 */
+.mbl-era-pop-card{
+  display:block;background:var(--card);border-radius:var(--radius);
+  padding:22px 22px 20px;
+  border-top:5px solid var(--era-color,var(--mbl-era));
+  box-shadow:0 18px 50px rgba(0,0,0,.32);
+}
+.mbl-era-pop-year{font-size:12px;font-weight:700;color:var(--era-color,var(--mbl-era));
+  letter-spacing:.5px;margin-bottom:6px}
+.mbl-era-pop-title{margin:0 0 8px;font:23px/1.35 SimSun,serif}
+.mbl-era-pop-text{margin:0 0 18px;font-size:14px;color:var(--ink)}
+.mbl-era-pop-ok{width:100%;border:0;border-radius:var(--radius-md);padding:12px;cursor:pointer;
+  background:var(--era-color,var(--mbl-era));color:#fff;font:15px system-ui;font-weight:600}
+.mbl-era-pop-ok:active{opacity:.85}
+
+@media (max-width:380px){
+  .mbl-era-arrow{display:none}
+  .mbl-era-pop-title{font-size:21px}
+}

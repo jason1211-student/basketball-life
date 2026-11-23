@@ -1,0 +1,104 @@
+/* 出生背景自定义：全部复用全局 token，不写硬编码色值 */
+.mbl-birth-custom {
+  margin: 18px 0;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.bc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.bc-head h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+.bc-tip {
+  margin: 6px 0 14px;
+  font-size: .78rem;
+  color: var(--faint);
+}
+.bc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.bc-row.hidden { display: none; }
+.bc-label {
+  flex: 0 0 64px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.bc-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: .9rem;
+  color: var(--ink);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 6px);
+  outline: none;
+  cursor: pointer;
+  transition: border-color .18s, box-shadow .18s;
+}
+.bc-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.bc-seg {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 4px);
+}
+.bc-opt {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 8px 6px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) - 8px);
+  cursor: pointer;
+  transition: background .18s, color .18s, box-shadow .18s;
+}
+.bc-opt:hover { color: var(--ink); }
+.bc-opt .bc-opt-icon { font-size: .95rem; line-height: 1; }
+.bc-opt.on {
+  color: var(--accent-ink);
+  background: var(--accent);
+  box-shadow: 0 4px 12px -6px var(--accent);
+}
+.bc-seg5 .bc-opt { padding: 8px 2px; font-size: .74rem; }
+.bc-seg5 .bc-opt .bc-opt-icon { display: none; }
+
+@media (max-width: 600px) {
+  .mbl-birth-custom { padding: 16px; margin: 14px 0; }
+  .bc-row { flex-wrap: wrap; gap: 8px; }
+  .bc-label { flex: 1 1 100%; }
+  .bc-select, .bc-seg { flex: 1 1 100%; }
+  .bc-opt { padding: 9px 4px; }
+}

@@ -1,0 +1,67 @@
+/* 模拟报告弹窗，颜色走 token，亮/暗自适应，风格对齐 confirm-dialog。 */
+.mbl-sim-report {
+  border: 1px solid var(--line);
+  background: var(--card); color: var(--ink);
+  border-radius: var(--radius);
+  padding: 18px; width: min(92vw, 440px);
+}
+.mbl-sim-report::backdrop { background: var(--backdrop); }
+
+.msr-head { display: flex; align-items: center; justify-content: space-between; }
+.msr-head h2 { margin: 0; font-size: 18px; }
+.msr-close {
+  appearance: none; border: 1px solid var(--line); background: var(--bg);
+  color: var(--ink); border-radius: 999px; padding: 5px 14px;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+
+.msr-body { margin-top: 10px; display: grid; gap: 10px; max-height: 74vh; overflow: auto; }
+.msr-range { margin: 0; font-size: 13.5px; font-weight: 700; }
+.msr-line { margin: 0; font-size: 13.5px; }
+
+.msr-stats { display: flex; gap: 10px; }
+.msr-stat {
+  flex: 1; text-align: center; background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 6px;
+  display: grid; gap: 2px;
+}
+.msr-num { font-size: 22px; }
+.msr-label { font-size: 12px; opacity: .75; }
+
+.msr-sub { margin: 4px 0 0; font-size: 14px; }
+.msr-tops { display: flex; gap: 8px; }
+.msr-top {
+  flex: 1; text-align: center; background: var(--bg);
+  border-radius: var(--radius-md); padding: 8px 4px; display: grid; gap: 2px;
+}
+.msr-top b { font-size: 16px; }
+.msr-top span { font-size: 12px; opacity: .78; }
+
+.msr-list { margin: 0; padding-left: 18px; display: grid; gap: 5px; }
+.msr-list li { font-size: 13px; line-height: 1.4; }
+
+/* 身体档案：四项小卡，窄屏自动折行 */
+.msr-profile {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.msr-pf-item {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-md); padding: 8px 4px;
+  display: grid; gap: 3px; text-align: center;
+}
+.msr-pf-label { font-size: 11.5px; opacity: .7; }
+.msr-pf-val { font-size: 14px; }
+
+/* 最近赛季卡 */
+.msr-seasons { display: grid; gap: 8px; }
+.msr-season {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-md); padding: 9px 11px; display: grid; gap: 3px;
+}
+.msr-season p { margin: 0; font-size: 12.5px; line-height: 1.4; }
+.msr-season-head { font-weight: 700; }
+.msr-season-rec { opacity: .78; }
+
+@media (max-width: 380px) {
+  .msr-profile { grid-template-columns: repeat(2, 1fr); }
+}

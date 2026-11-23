@@ -1,0 +1,169 @@
+/* career-hub.css：2K 式内联日历 hub，全部走全局 token，圆角/阴影与全站统一。 */
+.mbl-hub {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 12px 14px 4px;
+  padding: 14px;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+.mbl-hub-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+}
+.mbl-hub-date { display: flex; flex-direction: column; gap: 2px; }
+.mbl-hub-date b { font-family: var(--display); font-size: 20px; letter-spacing: .2px; }
+.mbl-hub-date span { color: var(--muted); font-size: 12px; }
+
+.mbl-hub-tabs, .mbl-hub-filter { display: inline-flex; gap: 4px; }
+.mbl-hub-filter { margin-top: 12px; }
+.mbl-hub-tabs button, .mbl-hub-filter button {
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.mbl-hub-tabs button.on, .mbl-hub-filter button.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mbl-hub-progress {
+  position: relative;
+  margin-top: 12px; height: 6px; border-radius: 999px;
+  background: var(--soft); overflow: visible;
+}
+.mbl-hub-progress span {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--fill), var(--accent));
+  border-radius: 999px;
+}
+/* 进度条事件标记层：不拦截点击 */
+#mbl-hub-mks { position: absolute; inset: 0; background: none; pointer-events: none; }
+.mbl-hub-mk {
+  position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; border: 1.5px solid #9a4a1c; background: var(--fill);
+  display: grid; place-items: center; padding: 0; box-sizing: border-box;
+}
+.mbl-hub-mk svg { width: 0; height: 0; }
+.mbl-hub-mk.season {
+  width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 5px;
+  border-color: var(--t-butter-ink); background: var(--t-butter); color: var(--t-butter-ink);
+}
+.mbl-hub-mk.season svg { width: 13px; height: 13px; }
+
+/* 事件流 */
+.mbl-flow { margin-top: 12px; }
+.mbl-flow-label {
+  font-size: 11.5px; letter-spacing: 1px; color: var(--faint);
+  margin: 10px 0 6px; text-transform: uppercase;
+}
+.mbl-flow-done { position: relative; padding-left: 4px; }
+.mbl-flow-up { position: relative; padding-left: 4px; }
+.mbl-flow-empty { color: var(--faint); font-size: 13px; }
+
+.mbl-node {
+  width: 100%;
+  display: flex; align-items: center; gap: 9px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 14px;
+  padding: 9px 10px;
+  font-family: var(--sans);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+button.mbl-node:hover { background: var(--soft); }
+.mbl-node-date {
+  flex: 0 0 42px; font-size: 12px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.mbl-node-ico { flex: 0 0 22px; text-align: center; font-size: 15px; }
+.mbl-node-text { flex: 1 1 auto; font-size: 14px; line-height: 1.35; }
+.mbl-node-tag {
+  flex: 0 0 auto; font-size: 11px; color: var(--accent);
+  background: var(--accent-soft); border-radius: 999px; padding: 3px 8px;
+}
+.mbl-node.done { color: var(--faint); cursor: default; }
+.mbl-node.done .mbl-node-ico { color: var(--up); }
+.mbl-node.done:hover { background: transparent; }
+.mbl-node.done.milestone .mbl-node-text { color: var(--muted); font-weight: 600; }
+.mbl-node.current {
+  background: var(--accent-soft);
+  border-color: var(--fill);
+}
+.mbl-node.current .mbl-node-text { font-weight: 700; }
+.mbl-node.key .mbl-node-ico { filter: drop-shadow(0 1px 2px rgba(191, 91, 36, .35)); }
+.mbl-node.selected { border-color: var(--accent); background: var(--soft); }
+
+/* 月历 */
+.mbl-month-grid {
+  margin-top: 12px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.mbl-month-cell {
+  background: var(--soft); border-radius: 14px; padding: 8px; min-height: 78px;
+}
+.mbl-month-name { font-size: 12px; color: var(--muted); font-weight: 700; }
+.mbl-month-items { margin-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+.mbl-month-node {
+  display: flex; align-items: center; gap: 5px;
+  border: 1px solid var(--line); background: var(--card);
+  border-radius: 10px; padding: 5px 7px;
+  font-size: 12px; color: var(--ink); font-family: var(--sans);
+  cursor: pointer; text-align: left;
+}
+.mbl-month-node.key { border-color: var(--fill); }
+.mbl-month-node.selected { border-color: var(--accent); background: var(--accent-soft); }
+
+/* 详情卡 */
+.mbl-detail {
+  margin-top: 12px; border: 1px solid var(--line);
+  background: var(--soft); border-radius: 16px; padding: 12px;
+}
+.mbl-detail:empty { display: none; }
+.mbl-detail-kicker { font-size: 11.5px; color: var(--accent); letter-spacing: .5px; }
+.mbl-detail-title { font-family: var(--display); font-size: 17px; margin: 4px 0 8px; }
+.mbl-detail-text { font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+.mbl-detail-src { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.mbl-detail-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.mbl-detail-opt {
+  font-size: 12px; border: 1px solid var(--line); background: var(--card);
+  border-radius: 999px; padding: 4px 10px; color: var(--muted);
+}
+.mbl-detail-jump {
+  margin-top: 11px; width: 100%;
+  border: 1px solid var(--accent); background: var(--card); color: var(--accent);
+  border-radius: 12px; padding: 10px; font-family: var(--sans);
+  font-size: 13.5px; cursor: pointer;
+}
+.mbl-detail-jump:hover { background: var(--accent-soft); }
+
+/* 主 CTA */
+.mbl-hub-cta { margin-top: 12px; }
+.mbl-cta-next {
+  width: 100%; border: none; border-radius: 14px;
+  background: var(--accent); color: var(--accent-ink);
+  font-family: var(--display); font-size: 15px; font-weight: 700;
+  padding: 13px; cursor: pointer;
+  box-shadow: 0 10px 22px -12px rgba(191, 91, 36, .7);
+  transition: transform .1s, filter .15s;
+}
+.mbl-cta-next:active { transform: scale(.99); }
+.mbl-cta-next:disabled {
+  background: var(--soft); color: var(--faint); box-shadow: none; cursor: default;
+}
+
+/* 旧界面折叠：hub 接管后隐藏 header 内的年份进度条（数据逻辑保留） */
+main.play:has(#mbl-hub) header.lifebar .clock { display: none; }
+/* hub 已提供主 CTA，隐藏旧控制条里重复的“下一个”，保留暂停与更多菜单 */
+main.play:has(#mbl-hub) header.lifebar .controls .next { display: none; }

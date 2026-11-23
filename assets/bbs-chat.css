@@ -1,0 +1,83 @@
+/* Current game's paper cards, ink and orange accent; no reference-activity styling. */
+#mbl-chat{font:inherit;color:var(--ink)}
+#mbl-chat [hidden]{display:none!important}
+#mbl-chat button,#mbl-chat textarea{font:inherit}
+#mbl-chat button:focus-visible,#mbl-chat textarea:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+#mbl-chat svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#mbl-chat .parallel-chat__entry-dock{position:fixed;z-index:220;right:12px;bottom:26px}
+#mbl-chat .parallel-chat__entry{display:flex;align-items:center;justify-content:center;gap:8px;width:48px;min-width:48px;min-height:48px;margin:0;padding:11px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--accent);box-shadow:var(--shadow);font-weight:750;cursor:pointer}
+#mbl-chat .parallel-chat__entry-icon{display:flex}
+#mbl-chat .parallel-chat__entry i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+#mbl-chat .parallel-chat__hide-confirm,#mbl-chat .parallel-chat__channels,#mbl-chat .parallel-chat__handle{display:none!important}
+#mbl-chat.parallel-chat--suppressed .parallel-chat__entry-dock,#mbl-chat.parallel-chat--open .parallel-chat__entry-dock,#mbl-chat.parallel-chat--dismissed .parallel-chat__entry-dock{visibility:hidden;pointer-events:none}
+#mbl-chat .parallel-chat__backdrop{position:fixed;inset:0;z-index:10070;background:rgba(35,28,22,.45);backdrop-filter:blur(3px)}
+#mbl-chat .parallel-chat__drawer{position:fixed;z-index:10071;left:50%;bottom:calc(12px + var(--mbl-chat-keyboard,0px));transform:translateX(-50%);display:flex;flex-direction:column;width:min(560px,calc(100% - 24px));height:min(680px,var(--mbl-chat-height,calc(100dvh - 24px)));max-height:var(--mbl-chat-height,calc(100dvh - 24px));margin:0;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius,18px);background:var(--card);color:var(--ink);box-shadow:0 20px 70px rgba(45,30,20,.25)}
+#mbl-chat .parallel-chat__header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 15px;border-bottom:1px solid var(--line)}
+#mbl-chat .parallel-chat__header h2{margin:0;font-family:var(--display);font-size:21px;font-weight:800;letter-spacing:0}
+#mbl-chat .parallel-chat__header p{margin:3px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+#mbl-chat .parallel-chat__header-actions{display:flex;gap:7px;flex:none}
+#mbl-chat .parallel-chat__header-actions button{display:grid;place-items:center;flex:none;min-width:40px;min-height:40px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--soft);color:var(--ink);cursor:pointer}
+#mbl-chat .parallel-chat__rooms,#mbl-chat .parallel-chat__room-content{display:flex;flex:1;min-height:0;flex-direction:column}
+#mbl-chat .parallel-chat__timeline{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 20px 20px;scrollbar-width:thin}
+#mbl-chat .parallel-chat__earlier{display:block;margin:0 auto 15px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--soft);color:var(--muted);font-size:12px;cursor:pointer}
+#mbl-chat .parallel-chat__messages{display:flex;flex-direction:column;gap:18px}
+#mbl-chat .parallel-chat__message{display:flex;align-items:flex-start;gap:10px;margin:0;padding:0;min-width:0;border:0;background:none;box-shadow:none}
+#mbl-chat .parallel-chat__avatar{display:grid;place-items:center;flex:none;width:34px;height:34px;margin:0;border-radius:50%;background:var(--soft);color:var(--muted);object-fit:cover;font-weight:750;font-size:14px}
+#mbl-chat .parallel-chat__message-body{min-width:0;max-width:calc(100% - 44px);flex:1}
+#mbl-chat .parallel-chat__message-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;margin-bottom:5px;color:var(--muted);font-size:11px;line-height:1.45}
+#mbl-chat .parallel-chat__message-meta strong{max-width:75%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}
+#mbl-chat .parallel-chat__message-meta time{color:var(--faint);font-variant-numeric:tabular-nums}
+#mbl-chat .parallel-chat__message-body>p{display:table;max-width:100%;margin:0;padding:10px 13px;border:1px solid var(--line);border-radius:3px 14px 14px;background:var(--soft);color:var(--ink);font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+#mbl-chat .parallel-chat__message--self .parallel-chat__message-body>p{background:var(--accent-soft);border-color:var(--accent-soft)}
+#mbl-chat .parallel-chat__message-status{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+#mbl-chat .parallel-chat__message-status button{border:0;background:none;color:var(--accent);padding:3px;font-size:inherit;cursor:pointer}
+#mbl-chat .parallel-chat__empty{display:flex;min-height:220px;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);text-align:center;font-size:12px}
+#mbl-chat .parallel-chat__empty svg{width:40px;height:40px;color:var(--accent);opacity:.65}
+#mbl-chat .parallel-chat__empty strong{color:var(--ink);font-size:15px;font-weight:650}
+#mbl-chat .parallel-chat__composer{padding:0 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card)}
+#mbl-chat .parallel-chat__feedback{margin:8px 0;min-height:18px;color:var(--muted);font-size:12px;line-height:1.5}
+#mbl-chat .parallel-chat__feedback[data-tone=error]{color:var(--down)}
+#mbl-chat .parallel-chat__input-row{display:flex;align-items:flex-end;gap:9px}
+#mbl-chat textarea{display:block;flex:1;min-width:0;min-height:44px;max-height:96px;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--soft);color:var(--ink);font-size:14px;line-height:1.5;resize:none;box-shadow:none}
+#mbl-chat textarea::placeholder{color:var(--faint)}
+#mbl-chat button[data-chat-action=send]{display:grid;place-items:center;flex:none;width:44px;height:44px;margin:0;padding:10px;border:0;border-radius:var(--radius-md);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+#mbl-chat button:disabled,#mbl-chat textarea:disabled{opacity:.5;cursor:default}
+#mbl-chat .parallel-chat__composer-meta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;color:var(--muted);font-size:10px;line-height:1.5;text-align:left}
+#mbl-chat .parallel-chat__composer-meta b{font-weight:500;white-space:nowrap}
+#mbl-chat .parallel-chat__new{position:absolute;left:50%;bottom:155px;transform:translateX(-50%);border:1px solid var(--line);border-radius:999px;padding:7px 13px;background:var(--card);color:var(--accent);box-shadow:var(--shadow);font-size:12px;cursor:pointer}
+body.parallel-chat-lock{overflow:hidden}
+#mbl-chat .parallel-chat__entry{position:relative}#mbl-chat .parallel-chat__entry i{position:absolute;left:1px;top:1px;box-sizing:content-box;width:8px;height:8px;border:2px solid var(--card);border-radius:50%;background:#e5484d;pointer-events:none}
+#mbl-chat .parallel-chat__header h2{position:relative}#mbl-chat .mbl-chat-header-unread{position:absolute;left:-9px;top:0;width:7px;height:7px;border-radius:50%;background:#e5484d;pointer-events:none}
+#mbl-chat .mbl-chat-read-status{margin:0;padding:8px 16px;color:var(--down);font-size:11px;line-height:1.6;background:var(--soft);border-bottom:1px solid var(--line)}
+@media(max-width:420px){#mbl-chat .parallel-chat__header{padding:16px}#mbl-chat .parallel-chat__timeline{padding:12px 14px 18px}#mbl-chat .parallel-chat__drawer{width:calc(100% - 16px);bottom:calc(8px + var(--mbl-chat-keyboard,0px))}#mbl-chat .parallel-chat__header h2{font-size:19px}}
+/* Authorized, account-scoped local UI preferences; no gameplay data is stored here. */
+#mbl-chat .parallel-chat__entry-dock{transition:left .22s ease-out,top .22s ease-out}
+#mbl-chat .parallel-chat__entry-dock.is-dragging{transition:none}
+#mbl-chat .parallel-chat__entry{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+#mbl-chat .is-dragging .parallel-chat__entry{cursor:grabbing}
+#mbl-chat .parallel-chat__entry-dismiss{position:absolute;left:auto;right:calc(100% + 8px);top:0;min-height:44px;padding:9px 14px;white-space:nowrap;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:13px;cursor:pointer}
+#mbl-chat .parallel-chat__entry-dock[data-side=left] .parallel-chat__entry-dismiss{left:calc(100% + 8px);right:auto}
+#mbl-chat .mbl-chat-menu{position:absolute;right:14px;top:78px;z-index:4;padding:5px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);box-shadow:var(--shadow)}
+#mbl-chat .mbl-chat-menu button{display:block;min-height:44px;padding:9px 13px;border:0;border-radius:var(--radius-md);background:var(--card);color:var(--ink);font-size:13px;cursor:pointer}
+#mbl-chat .mbl-chat-menu button:hover{background:var(--soft)}
+#mbl-chat .mbl-chat-toast{position:fixed;z-index:10090;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;justify-content:space-between;gap:14px;width:max-content;max-width:calc(100% - 28px);padding:11px 14px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:12px;line-height:1.6}
+#mbl-chat .mbl-chat-toast button{border:0;background:none;color:var(--accent);padding:5px 2px;min-width:36px;white-space:nowrap;cursor:pointer}
+.mbl-chat-settings-button{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;min-width:44px;margin:0;padding:0;border:0;background:none;color:var(--ink);font:inherit;cursor:pointer}
+.mbl-chat-settings-button svg{display:block;width:40px;height:40px;padding:9px;border:1px solid var(--line);border-radius:50%;background:var(--card);color:var(--accent);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mbl-chat-settings-button>span{font-size:11px;line-height:1.3}
+.mbl-chat-settings{width:min(380px,calc(100% - 28px));max-height:calc(100dvh - 40px);padding:16px 20px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink);box-shadow:0 20px 70px rgba(45,30,20,.25);font:inherit}
+.mbl-chat-settings[hidden]{display:none!important}
+.mbl-chat-settings::backdrop{background:var(--backdrop);backdrop-filter:blur(3px)}
+.mbl-chat-settings header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.mbl-chat-settings h2{margin:0;font-family:var(--display);font-size:21px;color:var(--ink)}
+.mbl-chat-settings header button{min-height:44px;padding:7px 11px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--soft);color:var(--ink);font:inherit;cursor:pointer}
+.mbl-chat-setting-row{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:92px;cursor:pointer}
+.mbl-chat-setting-row strong{display:block;font-size:14px;font-weight:600}
+.mbl-chat-setting-row small{display:block;margin-top:5px;color:var(--muted);font-size:12px;line-height:1.5}
+.mbl-chat-setting-row input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:46px;height:28px;margin:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--line);cursor:pointer;transition:background .16s}
+.mbl-chat-setting-row input:checked{border-color:var(--accent);background:var(--accent)}
+.mbl-chat-setting-row input::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--card);transition:transform .16s}
+.mbl-chat-setting-row input:checked::after{transform:translateX(18px)}
+.mbl-chat-setting-note{margin:0;padding:10px 12px;border-radius:var(--radius-md);background:var(--soft);color:var(--muted);font-size:12px;line-height:1.6}
+.mbl-chat-settings button:focus-visible,.mbl-chat-settings input:focus-visible,.mbl-chat-settings-button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){#mbl-chat .parallel-chat__entry-dock,.mbl-chat-setting-row input,.mbl-chat-setting-row input::after{transition:none}}

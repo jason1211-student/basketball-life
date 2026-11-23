@@ -1,0 +1,1 @@
+window.MBLPlatformConfig=Object.freeze({"appId":"app_ad6bae0e21","envId":"app-ad6bae0e21-d4g2ezrcp81764248","apiBase":"https://app-ad6bae0e21-d4g2ezrcp81764248-1252166086.ap-shanghai.app.tcloudbase.com" ,"releaseEnabled":true});

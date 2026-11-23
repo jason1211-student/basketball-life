@@ -1,0 +1,8 @@
+/* 手动操作的衔接淡入：仅在非自动模拟时，由 mn() 给 main 加类触发。 */
+@keyframes mbl-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+main.mbl-fade-in {
+  animation: mbl-fade-in .22s ease-out both;
+}

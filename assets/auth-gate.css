@@ -1,0 +1,51 @@
+/* 首屏登录门：打开游戏先选「登录账户 / 离线游玩」，复用游戏配色变量，手机优先 */
+#mbl-auth-gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;box-sizing:border-box;
+  background:var(--backdrop,rgba(40,28,18,.55));
+  font:14px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+#mbl-auth-gate[hidden]{display:none !important}
+.mbl-gate-card{
+  width:min(420px,100%);box-sizing:border-box;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--card);color:var(--ink);
+  padding:26px 22px;box-shadow:var(--shadow,0 16px 34px -18px rgba(120,70,30,.5));
+}
+.mbl-gate-brand{text-align:center;margin-bottom:6px}
+.mbl-gate-brand h1{margin:0;font:26px/1.4 SimSun,serif;color:var(--ink)}
+.mbl-gate-brand p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.mbl-gate-view{display:flex;flex-direction:column;gap:13px;margin-top:18px}
+.mbl-gate-view[hidden]{display:none !important}
+.mbl-gate-choice{
+  border:1px solid var(--line);border-radius:var(--radius-md);
+  background:var(--soft);color:var(--ink);
+  padding:15px;font:15px system-ui;cursor:pointer;text-align:center;
+}
+.mbl-gate-choice:hover{border-color:var(--accent)}
+.mbl-gate-choice.is-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mbl-gate-field{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.mbl-gate-field input{
+  box-sizing:border-box;width:100%;padding:11px 12px;font:14px system-ui;
+  border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);color:var(--ink);
+}
+.mbl-gate-field input:focus-visible{outline:3px solid #a77c37;outline-offset:1px;border-color:var(--accent)}
+.mbl-gate-primary{
+  border:0;border-radius:var(--radius-md);padding:13px;font:15px system-ui;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);
+}
+.mbl-gate-back{
+  border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);color:var(--ink);
+  font:12px system-ui;padding:9px;cursor:pointer;
+}
+.mbl-gate-back:hover{background:var(--soft)}
+.mbl-gate-msg{font-size:12px;color:var(--muted);min-height:18px;margin:0;text-align:center}
+.mbl-gate-msg.is-err{color:var(--down)}
+.mbl-gate-switch{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.mbl-gate-switch button{
+  border:0;background:transparent;color:var(--accent);font:12px system-ui;cursor:pointer;padding:0;
+  text-decoration:underline;
+}
+#mbl-auth-gate button:disabled{opacity:.55;cursor:default}
+#mbl-auth-gate button:focus-visible{outline:3px solid #a77c37;outline-offset:2px}

@@ -1,0 +1,41 @@
+/* 自定义选秀模板面板，颜色走全局 token，亮/暗自适应；风格对齐 birth-customize。 */
+.mbl-draft-template { margin-top: 14px; }
+
+.dt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dt-head h2 { margin: 0; font-size: 17px; }
+
+.dt-switch {
+  appearance: none; border: 1px solid var(--line); background: var(--bg);
+  color: var(--ink); border-radius: 999px; padding: 5px 14px;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.dt-switch.on { background: var(--fill); border-color: var(--fill); color: var(--accent-ink); }
+
+.dt-tip { margin: 8px 0 4px; font-size: 12.5px; opacity: .72; }
+
+.dt-body { display: grid; gap: 12px; margin-top: 6px; }
+.dt-body.disabled { opacity: .4; pointer-events: none; }
+
+.dt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dt-label { font-size: 13.5px; font-weight: 600; }
+
+.dt-seg { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.dt-opt {
+  appearance: none; border: 1px solid var(--line); background: var(--bg);
+  color: var(--ink); border-radius: var(--radius-sm);
+  padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.dt-opt.on { background: var(--fill); border-color: var(--fill); color: var(--accent-ink); }
+
+.dt-tweak { display: flex; align-items: center; gap: 10px; }
+.dt-tweak-btn {
+  appearance: none; width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  font-size: 17px; font-weight: 700; cursor: pointer; line-height: 1;
+}
+.dt-tweak-btn:hover { border-color: var(--fill); }
+.dt-tweak-val { min-width: 34px; text-align: center; font-size: 14px; font-weight: 700; }
+
+@media (min-width: 720px) {
+  .dt-opt { padding: 7px 16px; }
+}

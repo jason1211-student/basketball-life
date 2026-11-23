@@ -1,0 +1,12 @@
+/* 自动保存提示：轻量 toast，不挡操作；复用游戏配色 */
+.mbl-autosave-toast{
+  position:fixed;left:50%;bottom:84px;transform:translateX(-50%);
+  z-index:9000;max-width:calc(100% - 40px);box-sizing:border-box;
+  background:var(--ink,#2a2118);color:var(--card,#f7f1e6);
+  font:12px/1.5 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:9px 16px;border-radius:999px;
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.5);
+  text-align:center;
+}
+.mbl-autosave-toast[hidden]{display:none !important}
+.mbl-autosave-state{font-size:11px;color:var(--faint,var(--muted))}
