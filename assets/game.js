@@ -244,7 +244,7 @@ function cte(e,o){let n=e.ball,s=zt(e.country),r=s.country.height.male,i=n.heigh
 function P0(e,o=zS,n=2.1){let s=rf;if(e>=s[0])return o[0]+(e-s[0])*n;for(let r=1;r<=4;r++)if(e>=s[r])return o[r]+(e-s[r])*(o[r-1]-o[r])/Math.max(.5,s[r-1]-s[r]);return o[4]-25*Math.log(1+(s[4]-e)/25)}
 function ej(e){let o=Math.max(0,e.status.reputation-Number(e.flags.boughtRep??0));return re((o-60)/20,0,zAe)}
 function qS(e){return re(Math.round(P0(X$(e),zS,aj)+ej(e)),1,99)}
-function L0(e){return re(Math.round(P0(cte(e,jie(e.ball)),zS,aj)+ej(e)),1,99)}
+function L0(e){let v=re(Math.round(P0(cte(e,jie(e.ball)),zS,aj)+ej(e)),1,99);return Number.isFinite(v)?v:50}
 function tj(e){let o=e.flags,n=o.bestRating!==void 0?{v:Number(o.bestRating),age:Number(o.bestRatingAge)}:null,s=o.bestOvr!==void 0?{v:re(Math.round(P0(X$(e)-Dr(e.ball)+Number(o.bestOvr),zS,aj)+ej(e)),1,99),age:Number(o.bestOvrAge)}:null;return n?!s||s.age>=n.age?n:s.v>n.v?s:n:s}
 function qAe(e){return e>ZN?ZN+(e-ZN)/3:e}
 function KAe(e){return 2*e+2*Math.max(0,e-3)}
@@ -1565,7 +1565,7 @@ function X0(e){let o=e.ball.skills,n=o.mid*.6+o.three*.4,s=kn(e.ball),r=s==="big
 function $ie(e,o=kn(e)){return MBLAttrSys.overall(e.skills,o)}
 function Dr(e){return Math.round(jie(e))}
 function jie(e){let o=$ie(e),n=Hie(e),s=n==="guard"?188:n==="wing"?199:208;return re(o+(e.height-s)*.15,0,99)}
-function ar(e){let o=e.ball,n=o.pro;if(!n)return Dr(o)+o.form*.4;let s=Xl(e,n);return Pt(n.leagueId).mean+rn[n.tier].edge+re(s*1.5,-6,6)+o.form*Zje}
+function ar(e){let o=e.ball,n=o.pro;if(!n){let v=Dr(o)+o.form*.4;return Number.isFinite(v)?v:60}let s=Xl(e,n);let v=Pt(n.leagueId).mean+rn[n.tier].edge+re(s*1.5,-6,6)+o.form*Zje;return Number.isFinite(v)?v:Pt(n.leagueId).mean}
 function Qje(e){let o=e.ball.pro;if(!o)return 1;let n=Xl(e,o),s=YI(e),r=s?s.share>=.75&&s.played>=.6?1.08:s.share<.3?.92:1:1;return(n>0&&!o.twoWay?1-Math.min(.4,n*.1):1)*((o.adapt??0)>0?.5:1)*r*Xje(e)}
 function YI(e){let o=e.ball.season;return!e.ball.pro||!o||o.staff||o.year!==Ee+e.age?null:{share:Wr(e),played:o.games.filter(n=>n.pts!==void 0).length/Math.max(1,o.total)}}
 function Xje(e){let o=e.ball.season;if(!e.ball.pro||!o||o.staff)return 1;let n=o.roster.find(y=>y.me)?.ovr??ar(e),s=o.roster.filter(y=>!y.me).slice(0,5);if(!s.length)return 1;let r=s.reduce((y,w)=>y+w.ovr,0)/s.length,i=Math.min(.04,s.filter(y=>y.real&&y.ovr>=75).length*.02),c=Ah(e.ball)||yy(e.ball)?.03+(QC(e)?xCe:0):0;return 1+re((r-n)/50,0,.06)+i+c}

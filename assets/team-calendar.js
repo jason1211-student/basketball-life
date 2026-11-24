@@ -356,6 +356,7 @@
       return;
     }
     box.style.display = '';
+    box.dataset.key = [s.year, s.games.length, s.phase].join(':');
     var ng = pi(s);
     // 板块顺序：球队 → 日历 → 直播（下一场操作）→ 人生记录 → 插画
     box.replaceChildren(
@@ -392,6 +393,16 @@
   }
 
   C.onDom(onDomChange, 'play');
+  C.onHeartbeat(function () {
+    if (!window.de || de.screen !== 'play') return;
+    var h = home();
+    if (!h) return;
+    if (!h.contains(box)) h.prepend(box);
+    var s = season();
+    if (!s) { if (box.style.display !== 'none') { box.style.display = 'none'; box.replaceChildren(); } return; }
+    var key = [s.year, s.games.length, s.phase].join(':');
+    if (box.dataset.key !== key) render();
+  }, 1200);
   mount();
   window.MBLTeamCalendar = { refresh: render, mount: mount, simOne: advanceOneGame };
 })();

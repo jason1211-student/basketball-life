@@ -119,7 +119,8 @@
     });
     var s = 0;
     KEYS.forEach(function (k) { s += num(r[k]) * (w[k] / sum); });
-    return Math.round(clamp(s, 0, 99));
+    var out = Math.round(clamp(s, 0, 99));
+    return Number.isFinite(out) ? out : 0;
   }
 
   // ===== 徽章（31 个，四档）=====
