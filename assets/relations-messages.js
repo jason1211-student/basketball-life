@@ -67,6 +67,13 @@
 
   let activeLife;
   let activeContact = '';
+  let filterMode = 'all', searchText = '';
+  const threadScroll = new Map();
+
+  function ensureOwner(life) {
+    if (activeLife === life) return;
+    activeLife = life; activeContact = ''; filterMode = 'all'; searchText = ''; threadScroll.clear();
+  }
 
   function nameKey(person) {
     return person.name?.en || C.hans(person.name);
@@ -74,9 +81,9 @@
 
   function contacts(life) {
     const family = typeof window.S_ === 'function' ? window.S_(life) : [];
-    const relatives = family.filter(({ p, kin }) => p.alive && (kin !== 'child' || p.age >= 8))
+    const relatives = family.filter(({ p, kin }) => p.alive && personalities[kin] && (kin !== 'child' || p.age >= 8))
       .map(({ p, kin }) => ({ id: JSON.stringify([kin, nameKey(p)]), role: kin, person: p }));
-    const friends = (life.ball.friends || []).filter(person => !person.gone && !person.rival)
+    const friends = (life.ball?.friends || []).filter(person => !person.gone && !person.rival)
       .map(person => ({ id: JSON.stringify(['friend', nameKey(person), person.metAge ?? null]), role: person.club || person.pro ? 'teammate' : 'friend', person }));
     return relatives.concat(friends);
   }
@@ -324,26 +331,36 @@
   }
 
   function render(life, refresh) {
-    if (activeLife !== life) {
-      activeLife = life;
-      activeContact = '';
-    }
+    ensureOwner(life);
     const section = make('section', 'mbl-rel-sec mbl-sms');
     const roster = contacts(life);
-    const state = life.alive ? observe(life) : life.flags.mblMessages || { threads: {} };
+    const state = life.alive ? observe(life) : life.flags?.mblMessages || { threads: {} };
     const unread = roster.reduce((total, contact) => total + (state.threads[contact.id]?.unread || 0), 0);
-    section.append(make('h3', 'mbl-rel-sub', unread ? '短信 · ' + unread + ' 条未读' : '短信'));
+    const selected = roster.find(contact => contact.id === activeContact);
+    if (selected) {
+      section.classList.add('arena-conversation');
+      const top = make('div','arena-chat-nav');
+      const back = button('‹ 通讯录',()=>{activeContact='';refresh();});back.classList.add('arena-chat-back');
+      top.append(back,make('span','', '私人对话'));section.append(top,renderThread(life,state,selected,refresh));
+      return section;
+    }
+    activeContact='';
+    section.append(make('h3', 'arena-phone-title', '通讯录'),make('p','mbl-rel-meta',`${roster.length} 位联系人 · ${unread} 条未读`));
     if (!roster.length) {
       section.append(make('p', 'mbl-rel-muted', '有了家人或朋友联系人，就能在这里收发消息。'));
       return section;
     }
 
-    const list = make('div', 'mbl-sms-contacts');
-    const selected = roster.find(contact => contact.id === activeContact);
-    for (const contact of roster) {
+    const filters=make('div','arena-contact-filters');
+    const search=make('input','arena-contact-search');search.type='search';search.placeholder='搜索姓名或关系';search.value=searchText;search.setAttribute('aria-label','搜索联系人');
+    const list=make('div','mbl-sms-contacts arena-contact-list');
+    const empty=make('p','mbl-rel-muted','没有符合条件的联系人。');empty.hidden=true;
+    const rows=[];
+    for (const contact of orderedContacts(roster,state.threads)) {
       const count = state.threads[contact.id]?.unread || 0;
       const label = C.hans(contact.person.name) || personalities[contact.role].label;
-      const item = button(label + (count ? ' · ' + count : ''), () => {
+      const profile=personalities[contact.role]; const last=state.threads[contact.id]?.messages?.at(-1);
+      const item = button('', () => {
         activeContact = contact.id;
         const thread = state.threads[contact.id];
         if (thread?.unread) {
@@ -352,12 +369,39 @@
         }
         refresh();
       });
-      item.setAttribute('aria-pressed', String(contact === selected));
+      item.className='arena-contact-row';
+      const avatar=make('span','arena-contact-avatar',label.slice(0,1));
+      const copy=make('span','arena-contact-copy');
+      copy.append(make('b','',label),make('small','',profile.label+' · '+(last?.text||'还没有聊天记录')));
+      const meta=make('span','arena-contact-meta');meta.append(make('small','',last?.age!=null?last.age+' 岁':''));
+      if(count)meta.append(make('b','arena-unread',String(count)));
+      else meta.append(make('span','arena-contact-chevron','›'));
+      item.append(avatar,copy,meta);
+      rows.push({item,count,needle:(label+' '+profile.label).toLowerCase()});
       list.append(item);
     }
-    section.append(list);
-    if (selected) section.append(renderThread(life, state, selected, refresh));
+    const filterButtons=[];
+    function filter(){const term=searchText.trim().toLowerCase();let shown=0;for(const row of rows){row.item.hidden=!(row.needle.includes(term)&&(filterMode==='all'||row.count>0));if(!row.item.hidden)shown++;}empty.hidden=shown>0;for(const [mode,b] of filterButtons)b.setAttribute('aria-pressed',String(mode===filterMode));}
+    for(const [mode,label] of [['all','全部'],['unread','未读']]){const b=make('button','arena-contact-filter',label);b.type='button';b.onclick=()=>{filterMode=mode;filter();};filters.append(b);filterButtons.push([mode,b]);}
+    search.addEventListener('input',()=>{searchText=search.value;filter();});filter();
+    section.append(search,filters,list,empty);
     return section;
+  }
+
+  function orderedContacts(roster,threads){
+    return roster.slice().sort((a,b)=>{
+      const at=threads[a.id],bt=threads[b.id];
+      return Number(!!bt?.unread)-Number(!!at?.unread) || (bt?.messages?.at(-1)?.age??-1)-(at?.messages?.at(-1)?.age??-1) || Number(!!bt?.messages?.length)-Number(!!at?.messages?.length);
+    });
+  }
+  function summary(life){
+    const roster=contacts(life),threads=life.flags?.mblMessages?.threads||{};
+    return {contacts:roster.length,unread:roster.reduce((n,c)=>n+Math.max(0,Number(threads[c.id]?.unread)||0),0),appointments:roster.filter(c=>threads[c.id]?.promise&&!threads[c.id].promise.outcome).length};
+  }
+  function restoreThreadScroll(root){
+    const node=root.querySelector('.mbl-sms-thread');if(!node)return;
+    const saved=threadScroll.get(node.dataset.mblScrollKey);
+    node.scrollTop=!saved||saved.bottom?node.scrollHeight:saved.top;
   }
 
   function save() {
@@ -368,9 +412,12 @@
   function renderThread(life, state, contact, refresh) {
     const profile = personalities[contact.role];
     const thread = state.threads[contact.id] || { messages: [] };
-    const card = make('div', 'mbl-rel-card');
-    card.append(make('b', '', profile.label + ' · ' + profile.trait));
-    card.append(make('p', 'mbl-rel-meta', '亲密度 ' + score(contact) + ' / 100'));
+    const card = make('div', 'mbl-rel-card arena-chat-card');
+    const label=C.hans(contact.person.name)||profile.label;
+    const hero=make('div','arena-chat-profile');const copy=make('div');copy.append(make('b','',label),make('p','mbl-rel-meta',profile.label+' · '+profile.trait));
+    hero.append(make('span','arena-contact-avatar',label.slice(0,1)),copy,make('strong','arena-bond-score',score(contact)+'/100'));
+    const bond=make('div','arena-bond-track');const fill=make('span');fill.style.width=score(contact)+'%';bond.append(fill);
+    card.append(hero,make('p','mbl-rel-meta','亲密度'),bond);
     if (thread.lastChange) {
       const { delta, reason } = thread.lastChange;
       card.append(make('p', 'mbl-rel-meta', (delta > 0 ? '+' : '') + delta + ' · ' + reason));
@@ -378,6 +425,7 @@
     const messages = make('ol', 'mbl-sms-thread');
     messages.dataset.mblScrollKey = 'sms:' + contact.id;
     messages.setAttribute('data-mbl-follow-bottom', '');
+    messages.addEventListener('scroll',()=>{if(messages.isConnected)threadScroll.set(messages.dataset.mblScrollKey,{top:messages.scrollTop,bottom:messages.scrollHeight-messages.clientHeight-messages.scrollTop<8});});
     for (const entry of thread.messages) {
       const bubble = make('li', 'mbl-sms-bubble' + (entry.fromPlayer ? ' is-sent' : ''));
       bubble.append(make('small', '', (entry.fromPlayer ? '你' : C.hans(contact.person.name) || profile.label) + ' · ' + entry.age + ' 岁'));
@@ -385,6 +433,7 @@
       messages.append(bubble);
     }
     if (thread.messages.length) card.append(messages);
+    else card.append(make('p','arena-chat-empty','还没有消息。主动聊聊近况吧。'));
     if (!life.alive) return card;
 
     function send(text, response, delta, reason, update) {
@@ -430,12 +479,13 @@
       }
     } else if (thread.helloAge !== life.age) {
       actions.append(button('发条消息问候', () => send('最近怎么样？想起来还没问问你。', profile.hello, 1, '主动问候', current => { current.helloAge = life.age; })));
+      if(life.ball?.started)actions.append(button('分享训练近况',()=>send('今天的训练很有收获，想和你分享一下。',warmReplies[contact.role]||profile.hello,1,'分享日常',current=>{current.helloAge=life.age;})));
     }
     if (thread.promise) {
       card.append(make('p', 'mbl-rel-meta', '已加入生涯日历 · ' + deadlineLabel(thread.promise.deadline)));
       appendAppointmentActions(actions, life, contact, thread, refresh);
     }
-    if (actions.childElementCount) card.append(actions);
+    if (actions.childElementCount) {card.append(make('h4','arena-chat-action-heading','选择你的回复'),actions);}
     if (thread.housing && thread.housing.status !== 'moved') {
       const choices = housingChoices(life, state, contact, thread, refresh);
       if (choices) card.append(choices);
@@ -518,7 +568,7 @@
   }
 
   function selectConversation(id) {
-    activeLife = C.life();
+    ensureOwner(C.life());
     activeContact = id;
     const thread = activeLife?.flags?.mblMessages?.threads[id];
     if (thread?.unread) {
@@ -538,5 +588,5 @@
     });
   });
 
-  window.MBLRelationsMessages = { render, renderAppointments, gameAppointmentIndex, selectConversation, plannedTravel };
+  window.MBLRelationsMessages = { render, renderAppointments, gameAppointmentIndex, selectConversation, plannedTravel, summary, orderedContacts, restoreThreadScroll, viewKey:()=>activeContact?'chat:'+activeContact:'contacts' };
 })();

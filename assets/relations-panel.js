@@ -43,15 +43,22 @@
   }
   function save(life) { var s = window.Nt; if (s && typeof s.saveLife === 'function') s.saveLife(life); }
 
-  var dialog = make('dialog', 'mbl-rel-modal');
+  var dialog = make('dialog', 'mbl-rel-modal arena-phone');
   dialog.setAttribute('aria-labelledby', 'mbl-rel-title');
   var head = make('div', 'mbl-rel-head');
-  var title = make('h2', '', '关系与好友'); title.id = 'mbl-rel-title';
+  var title = make('h2', '', '私人通讯中心'); title.id = 'mbl-rel-title';
   var closeBtn = make('button', 'mbl-rel-close', '关闭'); closeBtn.type = 'button';
   head.append(title, closeBtn);
   var body = make('div', 'mbl-rel-body');
+  body.dataset.mblScrollKey='phone:body';
+  var nav=make('nav','arena-phone-nav');nav.setAttribute('aria-label','通讯中心分类');
+  var section='messages', owner=null, currentView='', sectionScroll=new Map(), buttons={};
+  [['messages','短信'],['relationships','关系'],['appointments','约定']].forEach(function(pair){
+    var b=make('button','arena-phone-tab',pair[1]);b.type='button';b.onclick=function(){showSection(pair[0]);};nav.append(b);buttons[pair[0]]=b;
+  });
   var tip = make('p', 'mbl-rel-tip', '');
-  dialog.append(head, body, tip);
+  tip.setAttribute('role','status');
+  dialog.append(head, nav, body, tip);
   document.body.append(dialog);
 
   var tipTimer = null;
@@ -276,7 +283,17 @@
   }
 
   function render() {
-    return window.MBLInteraction.preserveScroll(dialog, renderContents);
+    var life=L();
+    if(owner!==life){owner=life;sectionScroll.clear();currentView='';}
+    if(currentView&&dialog.open)sectionScroll.set(currentView,body.scrollTop);
+    var result=window.MBLInteraction.preserveScroll(dialog, renderContents);
+    var next=section==='messages'?'messages:'+ (window.MBLRelationsMessages?.viewKey()||'contacts'):section;
+    if(next!==currentView){body.scrollTop=sectionScroll.get(next)||0;if(section==='messages'&&dialog.open)window.MBLRelationsMessages?.restoreThreadScroll(body);}
+    currentView=next;
+    var unread=life?window.MBLRelationsMessages?.summary(life).unread||0:0;
+    buttons.messages.textContent=unread?'短信 · '+unread:'短信';
+    Object.keys(buttons).forEach(function(key){buttons[key].setAttribute('aria-pressed',String(key===section));});
+    return result;
   }
 
   function renderContents() {
@@ -286,7 +303,14 @@
       body.append(make('p', 'mbl-rel-muted', '开始一段人生后，这里会显示你的关系网。'));
       return;
     }
-    if (window.MBLRelationsMessages) body.append(window.MBLRelationsMessages.render(life, render));
+    if(section==='messages'){
+      if(window.MBLRelationsMessages)body.append(window.MBLRelationsMessages.render(life,render));
+      return;
+    }
+    if(section==='appointments'){
+      var appointments=window.MBLRelationsMessages?.renderAppointments(life,render,function(id){window.MBLRelationsMessages.selectConversation(id);showSection('messages');});
+      body.append(appointments||make('p','mbl-rel-muted','暂无私人约定。可以从短信中安排通话或见面。'));return;
+    }
     body.append(renderRomance(life));
     var fam = renderFamily(life); if (fam) body.append(fam);
     body.append(renderFriends(life));
@@ -294,11 +318,13 @@
     var past = renderPast(life); if (past) body.append(past);
   }
 
-  closeBtn.onclick = function () { dialog.close(); };
+  closeBtn.onclick = close;
+  dialog.addEventListener('cancel',function(e){e.preventDefault();close();});
 
-  function open() { render(); if (!dialog.open) dialog.showModal(); }
-  function close() { if (dialog.open) dialog.close(); }
+  function showSection(key){if(!buttons[key])return;section=key;render();}
+  function open(key) { if(buttons[key])section=key;else section='messages';render(); if (!dialog.open) {dialog.showModal();body.scrollTop=sectionScroll.get(currentView)||0;if(section==='messages')window.MBLRelationsMessages?.restoreThreadScroll(body);} }
+  function close() { if (dialog.open) {if(currentView)sectionScroll.set(currentView,body.scrollTop);dialog.close();} }
 
-  window.MBLRelationsPanel = { open: open, close: close, refresh: render };
+  window.MBLRelationsPanel = { open: open, close: close, refresh: render, showSection:showSection };
   if (window.MBLDockPanels) window.MBLDockPanels.relations = { open: open, close: close };
 })();

@@ -372,7 +372,7 @@
     lastRenderKey = renderKey(l, s);
     var appointments = window.MBLRelationsMessages?.renderAppointments(l, render, function (id) {
       window.MBLRelationsMessages.selectConversation(id);
-      window.MBLRelationsPanel?.open();
+      window.MBLRelationsPanel?.open('messages');
     });
     if (!s) {
       box.style.display = appointments ? '' : 'none';

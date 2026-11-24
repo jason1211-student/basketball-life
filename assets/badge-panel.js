@@ -134,10 +134,11 @@
       btn.addEventListener('click', function () {
         if (Date.now() - trainLock < 450) return;   // 防连点重复扣点
         trainLock = Date.now();
-        container.querySelectorAll('.mbl-train-btn').forEach(function (b) { b.disabled = true; });
+        var previous = Array.from(container.querySelectorAll('.mbl-train-btn'), function (b) { return [b, b.disabled]; });
+        previous.forEach(function (entry) { entry[0].disabled = true; });
         var result = MBLAttrPoints.apply(btn.getAttribute('data-train'));
         if (result && result.ok) { rerender(); return; }
-        container.querySelectorAll('.mbl-train-btn').forEach(function (b) { b.disabled = false; });
+        previous.forEach(function (entry) { entry[0].disabled = entry[1]; });
         var msg = container.querySelector('.mbl-train-msg');
         if (msg) msg.textContent = (result && result.reason) || '训练没有完成';
       });
@@ -201,13 +202,29 @@
       return;
     }
     var pos = posOf(b), canEdit = editable(b);
+    if (window.MBLArenaSports) {
+      var panels = MBLArenaSports.tabs(container, 'ball', [['overview','能力画像'],['training','专项训练'],['badges','徽章库']]);
+      panels.overview.innerHTML = buildOvr(b, pos);
+      panels.overview.append(MBLArenaSports.radar(b, S.CATEGORIES));
+      var attrs = el('section','arena-attrs card'); attrs.innerHTML = buildAttrs(b, canEdit); panels.overview.append(attrs);
+      panels.training.innerHTML = buildTraining(b, canEdit) || '<p class="mbl-badge-muted">当前阶段不能进行专项训练。</p>';
+      panels.badges.innerHTML = buildBadges(b) + '<p class="mbl-badge-foot">铜 / 银 / 金 / 名人堂 · 按实际能力解锁</p>';
+      if (canEdit) bindTraining(panels.training, function () {
+        var pos = window.MBLInteraction.position(); renderInto(container); window.MBLInteraction.restore(pos);
+      });
+      return;
+    }
     container.innerHTML = buildOvr(b, pos) + buildTraining(b, canEdit) +
       buildAttrs(b, canEdit) + buildBadges(b);
     if (canEdit) bindTraining(container, function () { renderInto(container); });
   }
 
+  var dialogState = '';
   C.onHeartbeat(function () {
-    if (dialog && dialog.open) render();
+    if (!dialog || !dialog.open) { dialogState = ''; return; }
+    var b = ball();
+    var sig = JSON.stringify([b?.skills, b?.potential, b?.started, b?.retiredFromPlaying, editable(b), window.MBLAttrPoints?.points()]);
+    if (dialogState !== sig) { dialogState = sig; render(); }
   });
 
   window.MBLBadgePanel = {

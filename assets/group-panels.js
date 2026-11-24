@@ -73,16 +73,39 @@
   }
 
   function renderTeam(l, c) {
-    addHtml(c, f$(l));
-    if (!fHasInlineRoster(l)) renderRoster(l, c);
+    if (window.MBLArenaSports) {
+      var panels = MBLArenaSports.tabs(c, 'team', [['overview','赛季概览'],['roster','阵容与合同'],['history','比赛记录']]);
+      panels.overview.append(MBLArenaSports.teamOverview(l));
+      panels.history.dataset.arenaHistory = '';
+      addHtml(panels.roster, f$(l));
+      if (!fHasInlineRoster(l)) renderRoster(l, panels.roster);
+    } else {
+      addHtml(c, f$(l));
+      if (!fHasInlineRoster(l)) renderRoster(l, c);
+    }
   }
   function renderJourney(l, c) {
+    if(window.MBLArenaLegacy&&window.MBLArenaSports){
+      var panels=MBLArenaSports.tabs(c,'journey',[['overview','生涯总览'],['honors','荣誉室'],['seasons','赛季档案'],['timeline','人生轨迹']]);
+      panels.overview.append(MBLArenaLegacy.overview(l));addHtml(panels.overview,EX(l));addHtml(panels.overview,PX(l));
+      panels.honors.append(MBLArenaLegacy.honors(l));if(!addHtml(panels.honors,TX(l)))panels.honors.append(el('p','mbl-group-empty','还未获得荣誉，每一步努力都将被记录。'));
+      panels.seasons.append(MBLArenaLegacy.seasons(l));
+      addHtml(panels.timeline,AX(l));panels.timeline.append(MBLArenaLegacy.timeline(l));
+      return;
+    }
     addHtml(c, EX(l));
     addHtml(c, TX(l));
     addHtml(c, AX(l));
     addHtml(c, PX(l));
   }
   function renderPeople(l, c) {
+    if(window.MBLRelationsMessages){
+      var info=MBLRelationsMessages.summary(l),card=el('section','arena-social-hub');
+      card.append(el('span','arena-eyebrow','OFF COURT / CONNECTIONS'),el('h3','','私人生活'));
+      var grid=el('div','arena-social-grid');
+      [['messages','通讯录与短信',info.unread+' 条未读'],['relationships','人物关系',info.contacts+' 位联系人'],['appointments','私人约定',info.appointments+' 项待办']].forEach(function(item){var b=el('button','arena-social-entry');b.type='button';b.append(el('b','',item[1]),el('span','',item[2]));b.onclick=function(){window.MBLRelationsPanel?.open(item[0]);};grid.append(b);});
+      card.append(grid);c.append(card);
+    }
     addHtml(c, DX(l));
     addHtml(c, zX(l));
     addHtml(c, WX(l));
@@ -103,6 +126,7 @@
     var cfg = RENDERERS[id];
     cfg.fn(l, container);
     if (!container.children.length) container.append(el('p', 'mbl-group-empty', cfg.empty));
+    window.MBLArena?.decorateView(id, container);
   }
 
   window.MBLGroupPanels = { renderGroup: renderGroup, ids: Object.keys(RENDERERS) };

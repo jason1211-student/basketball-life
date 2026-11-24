@@ -55,6 +55,7 @@
       (function () { var b = el('button', 'mbl-gh-x', '关闭'); b.type = 'button'; b.onclick = closeDialog; return b; })()
     );
     var body = el('div', 'mbl-gh-body');
+    if (window.MBLArenaMatch) body.append(MBLArenaMatch.report(g));
     if (g.box) body.append(renderBox(g.box));
     else body.append(renderFallback(g));
     if ([1, 2].includes(g.matchRecord?.version)) {
@@ -160,6 +161,7 @@
 
   function renderBox(box) {
     var wrap = el('div', 'mbl-gh-box');
+    if (window.MBLArenaMatch) wrap.append(MBLArenaMatch.comparison(box));
     wrap.append(teamTable(box.home), teamTable(box.away));
     return wrap;
   }
@@ -234,7 +236,8 @@
     }
     var tv = teamView();
     if (!tv) return;
-    if (!tv.contains(section)) tv.append(section);
+    var host = tv.querySelector('[data-arena-history]') || tv;
+    if (section.parentNode !== host) host.append(section);
     render();
   }
 

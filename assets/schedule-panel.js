@@ -180,7 +180,7 @@
     var appointments = window.MBLRelationsMessages?.renderAppointments(l, render, function (id) {
       close();
       window.MBLRelationsMessages.selectConversation(id);
-      window.MBLRelationsPanel?.open();
+      window.MBLRelationsPanel?.open('messages');
     });
     if (appointments) calendar.append(appointments);
 

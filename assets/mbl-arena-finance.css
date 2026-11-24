@@ -1,0 +1,44 @@
+/* ARENA / private wealth dashboard and spending center. */
+.mbl-arena .modal.moneysheet,.mbl-arena .modal.spend {width:min(680px,calc(100% - 16px));max-width:680px;max-height:calc(100dvh - 20px);box-sizing:border-box;overflow:auto;overscroll-behavior:contain;overflow-anchor:none;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:16px;}
+.mbl-arena .modal.moneysheet .modal-top,.mbl-arena .modal.spend .modal-top {border-bottom:1px solid var(--line);padding-bottom:10px;}
+.mbl-arena .modal.moneysheet .kick,.mbl-arena .modal.spend .kick {font-weight:850;color:var(--ink);}
+.mbl-arena .arena-finance-hero {isolation:isolate;position:relative;background:linear-gradient(120deg,#202b3b,#303c4d 70%,#573825);color:#f4f1e9;border-left:4px solid #ff8847;padding:16px 14px;margin:12px 0;}
+.mbl-arena .arena-finance-hero::before {content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(120deg,transparent 72%,#ff884715 72% 80%,transparent 80%);pointer-events:none;}
+.mbl-arena .arena-finance-hero .arena-eyebrow {color:#ffb384;}
+.mbl-arena .arena-finance-hero h3 {font:850 clamp(22px,6vw,30px)/1.2 var(--sans);margin:7px 0 14px;}
+.mbl-arena .arena-fin-balance {display:flex;flex-direction:column;gap:4px;padding:5px 0 16px;}
+.mbl-arena .arena-fin-balance small {color:#c4cedc;font-size:12px;}
+.mbl-arena .arena-fin-balance strong {font:900 clamp(30px,9vw,52px)/1.15 var(--display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;letter-spacing:-.045em;color:#fff;}
+.mbl-arena .arena-fin-metrics {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+.mbl-arena .arena-fin-metric {display:flex;flex-direction:column;gap:3px;min-width:0;padding:9px;background:var(--card);border:1px solid var(--line);}
+.mbl-arena .arena-finance-hero .arena-fin-metric {background:#1c2634;border-color:#475469;color:#fff;}
+.mbl-arena .arena-fin-metric span {font-size:11px;color:var(--muted);}
+.mbl-arena .arena-finance-hero .arena-fin-metric span {color:#bfcbdc;}
+.mbl-arena .arena-fin-metric b {font:850 clamp(16px,4.5vw,24px)/1.2 var(--display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.mbl-arena .arena-fin-metric.is-negative b {color:var(--down);}
+.mbl-arena .arena-fin-action {width:100%;min-height:44px;margin-top:12px;border:0;border-radius:4px;background:#ff8847;color:#19130e;font:850 14px var(--sans);}
+.mbl-arena .arena-fin-notes {margin-top:10px;display:grid;gap:4px;color:#c3cedd;font-size:11px;}
+.mbl-arena .arena-fin-notes p {margin:0;}
+.mbl-arena .arena-fin-book {padding:14px;background:var(--card);border:1px solid var(--line);margin-bottom:12px;}
+.mbl-arena .arena-fin-book h3 {font:850 16px/1.3 var(--sans);margin:0 0 10px;}
+.mbl-arena .arena-fin-book-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+.mbl-arena .moneysheet .plantabs {display:flex;gap:4px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:5px;}
+.mbl-arena .moneysheet .plantabs button {flex:1;min-width:0;min-height:42px;padding:4px;border-radius:3px;white-space:normal;font-weight:750;}
+.mbl-arena .moneysheet .plantabs button.on {background:var(--accent);color:var(--accent-ink);}
+.mbl-arena .moneysheet .worthbox,.mbl-arena .moneysheet .flow,.mbl-arena .moneysheet .runway,.mbl-arena .moneysheet .livingsec,.mbl-arena .moneysheet .budget {border:1px solid var(--line);background:var(--card);padding:13px;border-radius:5px;}
+.mbl-arena .modal.spend .spend-categories {display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:5px;}
+.mbl-arena .modal.spend .spend-categories .chip {min-height:37px;border-radius:4px;}
+.mbl-arena .modal.spend .spendgroup {font:850 17px/1.3 var(--sans);border-bottom:1px solid var(--line);padding:10px 0 7px;margin:16px 0 7px;color:var(--ink);}
+.mbl-arena .modal.spend .spenditem {background:var(--card);border:1px solid var(--line);border-radius:5px;padding:8px;min-width:0;}
+.mbl-arena .modal.spend .spenditem .choice {min-width:0;min-height:45px;box-shadow:none;border:0;background:transparent;text-align:left;}
+.mbl-arena .modal.spend .spenditem .ct {font-weight:800;}
+.mbl-arena .modal.spend .spenditem .price {font-weight:800;color:var(--accent);overflow-wrap:anywhere;}
+.mbl-arena .modal.spend .spenditem .chip {min-height:38px;border-radius:4px;}
+.mbl-arena .modal.spend .spenditem.queued {border-left:4px solid var(--accent);}
+.mbl-arena .modal.spend .spend-estimate,.mbl-arena .moneysheet .spend-estimate {padding:12px;background:var(--card);border:1px solid var(--line);border-radius:5px;}
+.mbl-arena .mbl-bill {background:var(--card);border-radius:5px;padding:13px;}
+.mbl-arena .mbl-bill-rows {grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+.mbl-arena .mbl-bill-rows b {overflow-wrap:anywhere;}
+.mbl-arena .mbl-bill-pay {min-height:44px;border-radius:4px;color:var(--accent-ink);font-weight:800;}
+.mbl-arena .mbl-bill-pay:disabled {color:var(--muted);}
+@media(max-width:500px){.mbl-arena .modal.moneysheet,.mbl-arena .modal.spend{width:100%;max-width:100%;max-height:calc(100dvh - 8px);padding:12px;border-radius:6px;}.mbl-arena .arena-finance-hero{padding:13px 10px;}.mbl-arena .arena-fin-metric{padding:7px;}}

@@ -1,0 +1,84 @@
+/* ARENA / visual identity, hierarchy and responsive native game shell. */
+:root.mbl-visual.mbl-arena {
+  --arena-orange:#ff8847;--arena-dark:#10131a;--arena-panel:#1b202a;--arena-line:#343c49;
+  --arena-paper:#f4f1e9;--arena-muted:#a9b1bd;
+  --radius:10px;--radius-md:8px;--radius-sm:5px;
+  --display:"Arial Narrow","Bahnschrift","Segoe UI",system-ui,sans-serif;
+}
+:root.mbl-visual.mbl-arena:not([data-theme="light"]) {
+  --bg:#10131a;--card:#1b202a;--soft:#242c38;--ink:#f4f1e9;--line:#343c49;
+  --muted:#b3bdcb;--faint:#a1aab8;--accent:#ff9a62;--accent-ink:#20140e;
+  --accent-soft:#392b26;--fill:#fa925b;--up:#86dfa8;--down:#ff9b9b;
+  --shadow:none;--bg-seam:transparent;
+}
+.mbl-arena body {background:var(--bg);}
+.mbl-arena main.play,.mbl-arena main.home,.mbl-arena main.birth {width:100%;max-width:850px;box-sizing:border-box;margin-inline:auto;padding-inline:18px;}
+.mbl-arena main.play {gap:18px;}
+.mbl-arena .arena-monogram {display:inline-grid;place-items:center;background:var(--arena-orange);color:#17130e;font:900 12px/1 var(--display);letter-spacing:-.05em;min-width:38px;height:28px;padding:0 7px;transform:skew(-8deg);}
+.mbl-arena .arena-brandline,.mbl-arena .arena-landing-label {display:flex;align-items:center;gap:10px;min-width:0;color:var(--muted);font:800 11px/1.3 var(--display);letter-spacing:.12em;}
+.mbl-arena .arena-brandtext {flex:1;min-width:0;}
+.mbl-arena .arena-edition {font:650 11px/1.2 var(--sans);letter-spacing:0;color:var(--muted);}
+/* Title screen: a distinctive editorial sports cover with a court motif. */
+.mbl-arena main.home .intro {isolation:isolate;overflow:hidden;min-height:380px;padding:36px 28px;border:0;border-radius:0;background:linear-gradient(120deg,#151922 5%,#1c2431 60%,#3e2922);color:#f4f1e9;position:relative;}
+.mbl-arena main.home .intro::before {z-index:-1;inset:auto -102px -130px auto;width:390px;height:390px;opacity:.33;border:2px solid #ff8847;border-radius:0;transform:rotate(-18deg);background:repeating-linear-gradient(90deg,transparent 0 39px,#ff884714 40px 42px),radial-gradient(circle at center,transparent 0 90px,#ff884777 91px 93px,transparent 94px);}
+.mbl-arena main.home .intro::after {content:"";position:absolute;z-index:-1;inset:0 0 0 auto;width:30%;background:repeating-linear-gradient(128deg,transparent 0 10px,#ff884719 11px 12px);pointer-events:none;}
+.mbl-arena main.home .introtext {width:100%;max-width:530px;align-items:flex-start;text-align:left;}
+.mbl-arena main.home .bigtitle {color:#f4f1e9;font-size:clamp(38px,8vw,72px);line-height:1.05;text-align:left;letter-spacing:-.07em;font-weight:900;margin:20px 0 10px;}
+.mbl-arena main.home .intro .lead {color:#d1d6df;text-align:left;max-width:30ch;}
+.mbl-arena main.home .actionbar {background:none;width:100%;max-width:470px;margin-top:24px;}
+.mbl-arena main.home .actionbar .primary {background:var(--arena-orange);color:#17130e;border:0;font-weight:850;min-height:52px;}
+.mbl-arena main.home .actionbar .ghost {background:#242c38;border-color:#657080;color:#f4f1e9;}
+.mbl-arena main.home .mbl-live {color:#cbd4e1;}
+/* Career identity: make the existing real player data the cover of the dashboard. */
+.mbl-arena .lifebar {position:relative;top:auto;z-index:auto;gap:12px;backdrop-filter:none;-webkit-backdrop-filter:none;border:0;background:transparent;padding:16px 0 0;}
+.mbl-arena .lifebar .who {position:relative;isolation:isolate;min-height:112px;padding:20px 16px;background:linear-gradient(110deg,#1e2632,#293649 65%,#443025);border:0;border-left:5px solid var(--arena-orange);border-radius:0;color:#f4f1e9;overflow:visible;}
+.mbl-arena .lifebar .who::before {content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(128deg,transparent 58%,#ff884716 58% 66%,transparent 66% 71%,#ff884720 71% 76%,transparent 76%);pointer-events:none;}
+.mbl-arena .whoname b {color:#fff;font-size:clamp(21px,5.5vw,36px);font-weight:900;letter-spacing:-.05em;}
+.mbl-arena .agebig {color:var(--arena-orange);font-family:var(--display);font-size:clamp(29px,7vw,45px);line-height:1;font-weight:900;}
+.mbl-arena .agebig small,.mbl-arena .metaline {color:#c0c9d6;}
+.mbl-arena .lifebar .ministats {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+.mbl-arena .lifebar .ms {background:var(--card);border:1px solid var(--line);padding:9px 5px;min-width:0;border-radius:5px;}
+.mbl-arena .lifebar .ms b {font:850 clamp(16px,4.5vw,25px)/1.05 var(--display);font-variant-numeric:tabular-nums;}
+.mbl-arena .lifebar .controls .next {background:var(--accent);color:var(--accent-ink);border-color:transparent;min-height:44px;font-weight:850;}
+.mbl-arena .lifebar .controls .icon {width:44px;height:44px;}
+.mbl-arena .arena-action-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+.mbl-arena .arena-action {position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:11px 8px;min-width:0;min-height:64px;background:var(--card);border:1px solid var(--line);border-radius:5px;color:var(--ink);}
+.mbl-arena .arena-action b {font-size:14px;}
+.mbl-arena .arena-action small {font-size:10px;color:var(--muted);white-space:normal;}
+.mbl-arena .arena-arrow {position:absolute;right:6px;top:6px;color:var(--accent);font-size:12px;}
+.mbl-arena .arena-action:active {background:var(--accent-soft);}
+.mbl-arena .arena-action:disabled {opacity:.5;}
+/* Page architecture: titles, consistent cards, no floating action stack. */
+.mbl-arena .arena-section-heading {position:relative;padding:14px 0 12px;margin:0 0 12px;border-bottom:1px solid var(--line);}
+.mbl-arena .arena-eyebrow {display:block;font:800 11px/1.2 var(--display);letter-spacing:.12em;color:var(--accent);}
+.mbl-arena .arena-section-heading h2 {font:850 clamp(24px,5vw,34px)/1.2 var(--display);letter-spacing:-.04em;margin:5px 0;color:var(--ink);}
+.mbl-arena .arena-section-heading p {font-size:12px;color:var(--muted);margin:0;}
+.mbl-arena .mbl-view .card,.mbl-arena .mbl-hub,.mbl-arena .mbl-tcal-head,.mbl-arena .mbl-tcal-gridwrap {margin:0 0 12px;border-radius:8px;box-shadow:none;}
+.mbl-arena .mbl-hub {border-left:3px solid var(--accent);padding:18px 14px;}
+.mbl-arena .mbl-hub-date b {font-size:30px;line-height:1.15;}
+.mbl-arena .mbl-hub .mbl-cta-next {min-height:48px;}
+.mbl-arena .mbl-dock {padding-right:env(safe-area-inset-right,0px);padding-left:env(safe-area-inset-left,0px);background:var(--card);box-shadow:none;}
+.mbl-arena .mbl-dock-btn {position:relative;min-height:58px;border-top:0;border-radius:0;justify-content:center;gap:5px;}
+.mbl-arena .mbl-dock-btn.is-active {background:var(--accent-soft);color:var(--accent);}
+.mbl-arena .mbl-dock-btn.is-active::before {content:"";position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--accent);}
+.mbl-arena .mbl-fab-dial {display:none!important;}
+.mbl-arena main.play button.totop {display:none;}
+.mbl-arena .mbl-dock-btn .mbl-dock-icon {opacity:1;}
+.mbl-arena .arena-top-icon {display:grid;place-items:center;width:23px;height:23px;font:800 22px/1 var(--display);}
+.mbl-arena .mbl-broadcast .mbc-scoreboard {border-top:4px solid var(--arena-orange);}
+.mbl-arena button:focus-visible {outline:2px solid var(--accent);outline-offset:2px;}
+@media(max-width:600px) {
+  .mbl-arena main.play,.mbl-arena main.home,.mbl-arena main.birth {padding-inline:10px;}
+  .mbl-arena main.home .intro {padding:24px 16px;min-height:340px;}
+  .mbl-arena .lifebar .who {padding:15px 10px;min-height:92px;}
+  .mbl-arena .arena-action-grid {gap:5px;}
+  .mbl-arena .arena-action {padding:9px 6px;}
+  .mbl-arena .arena-arrow {display:none;}
+}
+@media(min-width:1150px) {
+  .mbl-arena body.mbl-has-dock {padding-bottom:0;}
+  .mbl-arena main.play {max-width:820px;margin-left:calc(50% - 290px);margin-right:auto;}
+  .mbl-arena .mbl-dock {top:30px;bottom:auto;left:calc(50% - 485px);right:auto;width:165px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:8px;gap:3px;}
+  .mbl-arena .mbl-dock-btn {flex:0 0 auto;min-height:52px;flex-direction:row;justify-content:flex-start;padding:10px 13px;gap:12px;font-size:14px;border-radius:5px;}
+  .mbl-arena .mbl-dock-btn.is-active::before {left:0;right:auto;top:9px;bottom:9px;width:3px;height:auto;}
+}

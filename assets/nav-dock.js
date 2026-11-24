@@ -106,6 +106,13 @@
     buttons[t.id].onclick = function () { showView(t.id); };
   });
 
+  var topButton = h('button', 'mbl-dock-btn arena-nav-top');
+  topButton.type = 'button';
+  topButton.setAttribute('aria-label', '回到当前页面顶部');
+  topButton.append(h('span', 'arena-top-icon', '↑'), h('span', 'mbl-dock-label', '回顶'));
+  topButton.onclick = function () { window.scrollTo({ top: 0, behavior: 'instant' }); };
+  dock.append(topButton);
+
   function mount() {
     if (C.screen() !== 'play') {
       dock.remove();

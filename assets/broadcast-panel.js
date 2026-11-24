@@ -225,6 +225,7 @@
   var runScore = { home: 0, away: 0 }, ctx = null;
   var boxView = null, tabMode = 'live', lastMu = null;
   var liveSnap = null, liveProg = 0, clutchShown = false;
+  var periodStrip, leadBar, leadLabel, followBtn, feedTools, fastForward = false;
 
   function ensureDialog() {
     if (dialog) return dialog;
@@ -233,7 +234,7 @@
     var sb = el('div', 'mbc-scoreboard');
     var titleRow = el('div', 'mbc-title-row');
     var titleBox = el('span', 'mbc-title-box');
-    titleBox.append(el('span', 'mbc-title', '比赛直播'));
+    titleBox.append(el('span', 'arena-broadcast-mark', 'MBL'), el('span', 'mbc-title', '比赛直播'));
     var liveBadge = el('span', 'mbc-live-badge is-live');
     liveBadge.append(el('i', 'mbc-live-dot'), el('span', 'mbc-live-txt', 'LIVE'));
     titleBox.append(liveBadge);
@@ -242,6 +243,10 @@
     var teams = el('div', 'mbc-teams');
     teams.append(teamBlock('home'), teamBlock('away'));
     metaEl = el('div', 'mbc-meta');
+    leadBar = el('div', 'arena-lead-bar');
+    leadLabel = el('div', 'arena-lead-label', '比赛尚未开始');
+    periodStrip = el('div', 'arena-period-strip');
+    periodStrip.setAttribute('aria-label', '已结束各节比分');
     var tabs = el('div', 'mbc-tabs');
     var liveTab = el('button', 'mbc-tab is-active', '直播');
     liveTab.type = 'button';
@@ -250,11 +255,17 @@
     liveTab.onclick = function () { switchTab('live'); };
     boxTab.onclick = function () { switchTab('box'); };
     tabs.append(liveTab, boxTab);
-    sb.append(titleRow, teams, metaEl, tabs);
+    sb.append(titleRow, teams, metaEl, leadBar, leadLabel, periodStrip, tabs);
     feed = el('div', 'mbc-feed');
-  feed.addEventListener('scroll', function () {
-    autoFollow = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
-  });
+    feedTools = el('div','arena-feedtools');
+    followBtn = el('button','arena-follow','跟随直播'); followBtn.type='button';
+    followBtn.onclick=function(){autoFollow=true;feed.scrollTop=feed.scrollHeight;syncFollow();};
+    feedTools.append(el('span','','比赛实况'),followBtn);
+    feed.addEventListener('scroll', function () {
+      if(feed.hidden)return;
+      autoFollow = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+      syncFollow();
+    });
     boxView = el('div', 'mbc-boxview');
     boxView.hidden = true;
     var controls = el('div', 'mbc-controls');
@@ -270,11 +281,12 @@
     var skipBtn = el('button', 'mbc-btn', '跳到结尾');
     skipBtn.type = 'button'; skipBtn.onclick = skipAll;
     controls.append(playBtn, speedBtn, skipBtn);
-    wrap.append(sb, feed, boxView, controls);
+    wrap.append(sb, feedTools, feed, boxView, controls);
     dialog.append(wrap);
-    dialog._playBtn = playBtn; dialog._speedBtn = speedBtn;
+    dialog._playBtn = playBtn; dialog._speedBtn = speedBtn; dialog._skipBtn = skipBtn;
     dialog._liveTab = liveTab; dialog._boxTab = boxTab;
     dialog._liveBadge = liveBadge;
+    dialog.addEventListener('cancel', function(e){e.preventDefault();stop();});
     document.body.append(dialog);
     return dialog;
   }
@@ -283,7 +295,7 @@
     var logo = el('span', 'mbc-team-logo');
     var name = el('span', 'mbc-team-name');
     var sc = el('span', 'mbc-team-score', '0');
-    d.append(logo, name, sc);
+    d.append(el('span','arena-team-side',side==='home'?'HOME / 主队':'AWAY / 客队'),logo, name, sc);
     teamEls[side] = d; scoreEls[side] = { name: name, score: sc, logo: logo };
     return d;
   }
@@ -297,10 +309,10 @@
     dialog._liveTab.classList.toggle('is-active', mode === 'live');
     dialog._boxTab.classList.toggle('is-active', mode === 'box');
     if (mode === 'box') {
+      feed.hidden = true; feedTools.hidden = true; boxView.hidden = false;
       if (isLiveDone()) renderBoxScore(); else renderLiveBox();
-      feed.hidden = true; boxView.hidden = false;
     }
-    else { boxView.hidden = true; feed.hidden = false; }
+    else { boxView.hidden = true; feed.hidden = false; feedTools.hidden = false; if(autoFollow)feed.scrollTop=feed.scrollHeight; }
   }
   function isLiveDone() { return gameOver; }
   function renderBoxPending() {
@@ -319,26 +331,27 @@
       dialog._liveTab.classList.add('is-active');
       dialog._boxTab.classList.remove('is-active');
     }
-    boxView.hidden = true; feed.hidden = false;
+    boxView.hidden = true; feed.hidden = false; feedTools.hidden = false;
   }
   function currentGame() {
     return game;
   }
   function renderBoxScore() {
     var g = currentGame();
-    boxView.replaceChildren();
-    if (!g) { boxView.append(el('div', 'mbc-box-empty', '暂无数据')); return; }
-    boxView.append(boxSection('home', g), boxSection('away', g));
-    boxView.scrollTop = 0;
+    window.MBLInteraction.preserveScroll(boxView,function(){
+      boxView.replaceChildren();
+      if (!g) { boxView.append(el('div', 'mbc-box-empty', '暂无数据')); return; }
+      boxView.append(el('p','arena-live-note','终场技术统计 · 完整数据'),boxSection('home', g), boxSection('away', g),window.MBLArenaMatch.comparison(compactBox(g)));
+    });
   }
   // 直播中：用当前事件的 box 快照渲染“打到此刻”的实时数据（得分/分钟实时算，不剧透终场）
   function renderLiveBox() {
     var g = currentGame();
-    var keep = boxView.scrollTop;
-    boxView.replaceChildren();
-    if (!g || !liveSnap) { boxView.append(el('div', 'mbc-box-empty', '暂无数据')); return; }
-    boxView.append(boxSection('home', g, liveSnap, liveProg), boxSection('away', g, liveSnap, liveProg));
-    boxView.scrollTop = keep;
+    window.MBLInteraction.preserveScroll(boxView,function(){
+      boxView.replaceChildren();
+      if (!g || !liveSnap) { boxView.append(el('div', 'mbc-box-empty', '暂无数据')); return; }
+      boxView.append(el('p','arena-live-note','实时技术统计 · 出场分钟为估算'),boxSection('home', g, liveSnap, liveProg), boxSection('away', g, liveSnap, liveProg));
+    });
   }
   function td(txt, cls) {
     var c = document.createElement('td');
@@ -378,6 +391,7 @@
     sec.append(head);
 
     var wrapTbl = el('div', 'mbc-table-wrap');
+    wrapTbl.dataset.mblScrollKey = 'broadcast:' + side;
     var table = document.createElement('table');
     table.className = 'mbc-table';
     var thead = document.createElement('thead');
@@ -390,7 +404,7 @@
     t.players.forEach(function (p) {
       var fb = t.box[p.id], b, dMin, dPts;
       if (live) {
-        b = snap[side][p.id] || fb;
+        b = snap[side]?.[p.id] || {fgm:0,fga:0,tpm:0,tpa:0,ftm:0,fta:0,ore:0,dre:0,ast:0,stl:0,blk:0,to:0,pf:0};
         dMin = Math.min(Math.round(fb.min), Math.round(fb.min * (prog || 0)));
         dPts = (b.fgm - b.tpm) * 2 + b.tpm * 3 + b.ftm;
       } else { b = fb; dMin = Math.round(b.min); dPts = b.pts; }
@@ -482,16 +496,24 @@
   }
 
   function stickFeed() {
-    if (feed.scrollHeight - feed.scrollTop - feed.clientHeight < 96) feed.scrollTop = feed.scrollHeight;
+    if (autoFollow && !feed.hidden) feed.scrollTop = feed.scrollHeight;
+  }
+  function syncFollow(){var text=autoFollow?'跟随中':'回到直播';if(followBtn&&followBtn.textContent!==text)followBtn.textContent=text;}
+  function paintLead(){
+    var value=window.MBLArenaMatch.lead(runScore.home,runScore.away);
+    leadBar.style.setProperty('--home-share',value.share+'%');
+    leadLabel.textContent=value.side==='tie'?'双方战平':(value.side==='home'?'主队':'客队')+' 领先 '+value.gap+' 分';
   }
 
   function renderLine(ev) {
     if (ev.qEnd) {
+      var period=el('div','arena-period');
+      period.append(el('span','',ev.qEnd>4?'OT'+(ev.qEnd-4):'Q'+ev.qEnd),el('b','',ev.qHome+' : '+ev.qAway));periodStrip.append(period);
       var qe = el('div', 'mbc-qend');
       qe.append(el('span', 'mbc-qe-txt', periodLabel(ev.qEnd) + '结束'),
         el('span', 'mbc-qe-score', (ev.qEnd > 4 ? '加时 ' : '本节 ') + ev.qHome + ' : ' + ev.qAway));
       feed.append(qe);
-      if (autoFollow) feed.scrollTop = feed.scrollHeight;
+      if (!fastForward) stickFeed();
       return;
     }
     if (ev.marker) {
@@ -504,7 +526,8 @@
     runScore[ev.side] += (ev.points || 0);
     scoreEls.home.score.textContent = runScore.home;
     scoreEls.away.score.textContent = runScore.away;
-    if (ev.points > 0) bumpScore(ev.side);
+    if (ev.points > 0 && !fastForward) bumpScore(ev.side);
+    paintLead();
     if (ev._snap) liveSnap = ev._snap;
     liveProg = progOf(ev);
     metaEl.replaceChildren();
@@ -525,8 +548,8 @@
       line.append(bw);
     }
     feed.append(line);
-    if (autoFollow) feed.scrollTop = feed.scrollHeight;
-    if (tabMode === 'box' && !isLiveDone()) renderLiveBox();
+    if (!fastForward) stickFeed();
+    if (!fastForward && tabMode === 'box' && !isLiveDone()) renderLiveBox();
   }
   function lineClass(ev) {
     if (ev.kind === 'ft') return 'is-ft';
@@ -536,8 +559,7 @@
   }
   function meta2(t) { return el('b', '', t); }
   function formatClock(sec) {
-    var m = Math.floor(sec / 60), s = sec % 60;
-    return (m ? m + ':' + (s < 10 ? '0' : '') : '') + s;
+    return window.MBLArenaMatch.clock(sec);
   }
   // 玩家本人中文名（事件里 actor 是中文名）
   function myHansName() {
@@ -592,8 +614,10 @@
     }
   }
   function skipAll() {
+    if (gameOver) return;
     clearInterval(timer); playing = false; dialog._playBtn.textContent = '播放';
-    while (cursor < items.length) renderLine(items[cursor++]);
+    fastForward=true;
+    try { while (cursor < items.length) renderLine(items[cursor++]); } finally { fastForward=false; }
     finish();
   }
   function commitPreset() {
@@ -608,8 +632,10 @@
     };
   }
   function finish() {
+    if (gameOver) return;
     clearInterval(timer); playing = false; gameOver = true;
-    if (dialog) dialog._playBtn.textContent = '播放';
+    if (dialog) {dialog._playBtn.textContent = '已结束';dialog._playBtn.disabled=true;dialog._skipBtn.disabled=true;}
+    metaEl.replaceChildren(meta2('终场'),meta2('0:00'));
     setLiveEnd();
     commitPreset();
     if (tabMode === 'box') renderBoxScore();
@@ -650,6 +676,8 @@
     if (!mu || !window.MBLMatchEngine) return;
     ensureDialog();
     paintTeam('home', mu.home); paintTeam('away', mu.away);
+    teamEls.home.classList.toggle('is-mine',mu.mySide==='home');
+    teamEls.away.classList.toggle('is-mine',mu.mySide==='away');
     lastMu = { home: mu.home, away: mu.away };
     var record = real ? window.MBLMatchRecord.snapshot(mu, mu.seed) : null;
     game = replay || (record ? window.MBLMatchRecord.simulate(record) : window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: Math.random, overtime: true }));
@@ -659,9 +687,13 @@
     clutchShown = false; liveSnap = null; liveProg = 0;
     resetLiveBadge();
     runScore = { home: 0, away: 0 };
+    periodStrip.replaceChildren();paintLead();leadLabel.textContent='比赛尚未开始';
+    metaEl.replaceChildren(meta2('第 1 节'),meta2('12:00'));
+    dialog._playBtn.disabled=false;dialog._skipBtn.disabled=false;
     scoreEls.home.score.textContent = '0'; scoreEls.away.score.textContent = '0';
     feed.replaceChildren();
     autoFollow = true;
+    syncFollow();boxView.replaceChildren();boxView.scrollTop=0;
     items = buildItems(game); cursor = 0; speedIdx = 0; dialog._speedBtn.textContent = SPEEDS[0].t;
     resetTabLive();
     if (!dialog.open) dialog.showModal();

@@ -1,63 +1,55 @@
-/* 年度账单：把当前计划消费汇总成一张账单，一次结算。
- * 只读内核的 N8/IF，不改变结算规则；固定支出仍按原逻辑在年末处理。 */
-(function () {
+/* Planned-purchase settlement. Preserve parent-funded and unsuccessful entries. */
+(function(){
   'use strict';
-  if (window.MBLBillPanel) return;
-  var C = window.MBLCore;
-
-  function money(v, life) {
-    try { if (window.Zt) return Zt(v, life); } catch (e) {}
-    return Math.round(Number(v) || 0);
+  if(window.MBLBillPanel)return;
+  const C=window.MBLCore,h=C.h,locked=new WeakSet(),status=new WeakMap();
+  function money(v,life){return typeof Zt==='function'?Zt(v,life):String(Math.round(Number(v)||0));}
+  function eligible(options){return (options||[]).filter(x=>x.queued&&!x.byParents&&!x.done);}
+  function fingerprint(items){return JSON.stringify(items.map(x=>[x.id,x.cost,x.slotTaken,x.affordable]));}
+  function settle(life,items,options,pay){
+    let paid=0,failed=0;
+    for(const entry of items){
+      if(!life.spendQueue?.includes(entry.id))continue;
+      const current=eligible(options(life)).find(x=>x.id===entry.id);
+      if(!current||current.slotTaken||!current.affordable||current.cost!==entry.cost){failed++;continue;}
+      try{
+        if(!pay(life,entry.id)){failed++;continue;}
+        paid++;
+        if(life.spendQueue){life.spendQueue=life.spendQueue.filter(id=>id!==entry.id);if(!life.spendQueue.length)delete life.spendQueue;}
+      }catch(e){failed++;console.error('[bill payment]',e);break;}
+    }
+    return {paid,failed};
   }
-
-  function build() {
-    var modal = document.querySelector('.modal.spend');
-    if (!modal) return;
-    var life = C.life();
-    if (!life) return;
-    if (modal.querySelector('.mbl-bill')) return;
-    if (!window.N8 || !window.IF) return;
-
-    var list = N8(life) || [];
-    var queued = list.filter(function (item) { return item.queued && !item.byParents; });
-    var total = queued.reduce(function (sum, item) { return sum + item.cost; }, 0);
-    var cash = Number(life.money && life.money.cash) || 0;
-    var left = cash - total;
-
-    var sec = C.h('section', 'mbl-bill');
-    sec.innerHTML =
-      '<div class="mbl-bill-head"><b>年度账单</b><span>' + queued.length + ' 项待结算</span></div>' +
-      '<div class="mbl-bill-rows">' +
-        '<div><span>现金</span><b>' + money(cash, life) + '</b></div>' +
-        '<div><span>计划消费</span><b>' + money(total, life) + '</b></div>' +
-        '<div><span>结算后</span><b class="' + (left < 0 ? 'is-neg' : '') + '">' + money(left, life) + '</b></div>' +
-      '</div>' +
-      '<button type="button" class="mbl-bill-pay">结算全部计划消费</button>' +
-      '<p class="mbl-bill-msg">只结算打勾的计划消费；住房、贷款等固定支出仍按原规则在年末处理。</p>';
-
-    var button = sec.querySelector('.mbl-bill-pay');
-    button.disabled = !queued.length;
-    button.addEventListener('click', function () {
-      if (button.disabled) return;
-      button.disabled = true;
-      var current = C.life();
-      if (!current) return;
-      var ids = (current.spendQueue || []).slice();
-      var paid = 0;
-      ids.forEach(function (id) {
-        try { if (IF(current, id)) paid += 1; } catch (e) {}
-      });
-      if (current.spendQueue) delete current.spendQueue;
-      sec.querySelector('.mbl-bill-msg').textContent = '已结算 ' + paid + ' 项。';
-      try { if (window.mn) mn(); } catch (e) {}
-    });
-
-    var top = modal.querySelector('.modal-top');
-    if (top && top.parentNode) top.parentNode.insertBefore(sec, top.nextSibling);
-    else modal.prepend(sec);
+  function build(){
+    const modal=document.querySelector('.modal.spend'),life=C.life();
+    if(!modal||!life||typeof N8!=='function'||typeof IF!=='function')return;
+    const items=eligible(N8(life)),total=items.reduce((n,x)=>n+x.cost,0);
+    const available=typeof c0==='function'?c0(life):Number(life.money?.cash)||0;
+    const left=available-total,message=status.get(life)||'只结算已安排的个人消费；住房、贷款等固定支出仍按原规则处理。';
+    const sig=JSON.stringify([fingerprint(items),available,message,locked.has(life),window.MBLCurrency?.label?.()]);
+    const old=modal.querySelector('.mbl-bill');if(old?.dataset.sig===sig)return;
+    const sec=h('section','mbl-bill');sec.dataset.sig=sig;
+    const head=h('div','mbl-bill-head');head.append(h('b','','计划消费账单'),h('span','',items.length+' 项待结算'));sec.append(head);
+    const grid=h('div','mbl-bill-rows');
+    for(const [label,value] of [['含投资可用',available],['计划消费',total],['结算后可用',left]]){const r=h('div');r.append(h('span','',label),h('b',value<0?'is-neg':'',money(value,life)));grid.append(r);}sec.append(grid);
+    const b=h('button','mbl-bill-pay','确认并结算计划消费');b.type='button';b.disabled=!items.length||locked.has(life)||left<0;sec.append(b,h('p','mbl-bill-msg',left<0?'可用资金不足，请先调整消费计划。':message));
+    b.onclick=async function(){
+      if(b.disabled||locked.has(life)||C.life()!==life)return;
+      locked.add(life);b.disabled=true;
+      try{
+        if(!window.MBLConfirm){status.set(life,'无法打开确认窗口，请稍后重试。');return;}
+        const ok=await window.MBLConfirm.open({title:'确认计划消费',message:`结算 ${items.length} 项个人消费，共 ${money(total,life)}。未成功的项目会保留，不会重复扣款。`,confirmText:'确认结算'});
+        if(!ok||C.life()!==life)return;
+        const current=eligible(N8(life));
+        if(fingerprint(current)!==fingerprint(items)||(typeof c0==='function'&&c0(life)<total)){status.set(life,'计划或可用资金已发生变化，请重新确认。');return;}
+        const result=settle(life,items,N8,IF);
+        status.set(life,`已结算 ${result.paid} 项${result.failed?'，'+result.failed+' 项暂未完成':''}。未成功的项目仍保留在计划中。`);
+        window.Nt?.saveLife?.(life);
+        if(typeof mn==='function')mn();
+      }finally{locked.delete(life);sec.dataset.sig='';build();}
+    };
+    if(old)old.replaceWith(sec);else{const top=modal.querySelector('.modal-top');if(top)top.after(sec);else modal.prepend(sec);}
   }
-
-  C.onDom(build, 'play');
-  C.onHeartbeat(build, 600);
-  window.MBLBillPanel = { refresh: build };
+  C.onDom(build,'play');C.onHeartbeat(build,600);
+  window.MBLBillPanel={refresh:build,settle,eligible,fingerprint};
 })();
