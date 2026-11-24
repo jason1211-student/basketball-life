@@ -209,7 +209,7 @@
   var dialog = null, timer = null, speedIdx = 0, playing = false;
   var gameOver = false;
   var closeCb = null; // 真实比赛/系列赛终场、退出弹窗后触发的自动结算回调
-  var feed = null, scoreEls = {}, teamEls = {}, metaEl = null;
+  var feed = null, scoreEls = {}, teamEls = {}, metaEl = null, autoFollow = true;
   var runScore = { home: 0, away: 0 }, ctx = null;
   var boxView = null, tabMode = 'live', lastMu = null;
   var liveSnap = null, liveProg = 0, clutchShown = false;
@@ -240,6 +240,9 @@
     tabs.append(liveTab, boxTab);
     sb.append(titleRow, teams, metaEl, tabs);
     feed = el('div', 'mbc-feed');
+  feed.addEventListener('scroll', function () {
+    autoFollow = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+  });
     boxView = el('div', 'mbc-boxview');
     boxView.hidden = true;
     var controls = el('div', 'mbc-controls');
@@ -464,13 +467,12 @@
   }
 
   function renderLine(ev) {
-    var atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 120;
     if (ev.qEnd) {
       var qe = el('div', 'mbc-qend');
       qe.append(el('span', 'mbc-qe-txt', periodLabel(ev.qEnd) + '结束'),
         el('span', 'mbc-qe-score', (ev.qEnd > 4 ? '加时 ' : '本节 ') + ev.qHome + ' : ' + ev.qAway));
       feed.append(qe);
-      if (atBottom) feed.scrollTop = feed.scrollHeight;
+      if (autoFollow) feed.scrollTop = feed.scrollHeight;
       return;
     }
     if (ev.marker) {
@@ -504,7 +506,7 @@
       line.append(bw);
     }
     feed.append(line);
-    if (atBottom) feed.scrollTop = feed.scrollHeight;
+    if (autoFollow) feed.scrollTop = feed.scrollHeight;
     if (tabMode === 'box' && !isLiveDone()) renderLiveBox();
   }
   function lineClass(ev) {
@@ -637,6 +639,7 @@
     runScore = { home: 0, away: 0 };
     scoreEls.home.score.textContent = '0'; scoreEls.away.score.textContent = '0';
     feed.replaceChildren();
+    autoFollow = true;
     items = buildItems(game); cursor = 0; speedIdx = 0; dialog._speedBtn.textContent = SPEEDS[0].t;
     resetTabLive();
     if (!dialog.open) dialog.showModal();
