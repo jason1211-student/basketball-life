@@ -89,6 +89,8 @@
     if (!l || !l.ball || done(l)) return false;
     if (!window.de || de.screen !== 'play' || de.sharedView || de.credits) return false;
     if (document.querySelector('dialog[open]')) return false;
+    if (document.querySelector('#mbl-qs-busy')) return false;
+    if (window.de && (de.auto || de.autoPlay)) return false;
     return true;
   }
 

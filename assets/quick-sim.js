@@ -50,7 +50,9 @@
     return new Promise(function (resolve) {
       var t = setInterval(function () {
         var pop = document.querySelector('.mbl-era-pop');
-        if (!pop || !pop.open) { clearInterval(t); resolve(); }
+        if (!pop || !pop.open) { clearInterval(t); resolve(); return; }
+        var ok = pop.querySelector('.mbl-era-pop-ok');
+        if (ok) ok.click(); else if (pop.close) pop.close();
       }, 150);
     });
   }

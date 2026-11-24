@@ -211,6 +211,10 @@
 
     var body = el('div', 'dt-body' + (state.enabled ? '' : ' disabled'));
     body.id = 'dt-body';
+    box.addEventListener('click', function (ev) {
+      if (ev.target.closest('.dt-switch')) return;
+      if (!state.enabled && ev.target.closest('.dt-opt, .dt-tweak-btn')) state.enabled = true;
+    }, true);
 
     // 位置
     var posItems = Object.keys(POS_CN).map(function (k) { return { id: k, name: POS_CN[k] }; });
