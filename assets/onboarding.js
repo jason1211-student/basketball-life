@@ -116,6 +116,21 @@
   window.addEventListener('mbl:state-changed', schedule);
   window.addEventListener('mbl:birth-started', function () { scheduled = false; });
 
+  // 旧自定义模板存档可能缺身高字段：补成位置标准身高，避免综合评分掉到兜底值。
+  C.onHeartbeat(function () {
+    var l = C.life();
+    if (!l || !l.ball || !l.ball.started) return;
+    var b = l.ball, changed = false;
+    if (!(Number(b.adultHeight) > 0)) {
+      var g = typeof kn === 'function' ? kn(b) : 'wing';
+      b.adultHeight = g === 'guard' ? 188 : g === 'wing' ? 199 : 208;
+      changed = true;
+    }
+    if (!(Number(b.height) > 0)) { b.height = b.adultHeight; changed = true; }
+    if (!(Number(b.wingspan) > 0)) { b.wingspan = b.adultHeight; changed = true; }
+    if (changed) { try { if (window.Nt && Nt.saveLife) Nt.saveLife(l); } catch (e) {} }
+  }, 1500);
+
   // 困难模式已移除：旧 hard 存档在读入后静默降为普通，生涯数据与成绩保留。
   C.onHeartbeat(function () {
     var l = C.life();
