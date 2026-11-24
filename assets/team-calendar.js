@@ -393,5 +393,5 @@
 
   C.onDom(onDomChange, 'play');
   mount();
-  window.MBLTeamCalendar = { refresh: render, mount: mount };
+  window.MBLTeamCalendar = { refresh: render, mount: mount, simOne: advanceOneGame };
 })();

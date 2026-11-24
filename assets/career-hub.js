@@ -82,9 +82,14 @@
     if (l.pending && l.pending.length) next.textContent = '请先处理当前抉择';
     else if (de.outcome) next.textContent = '请先查看当前结果';
     else if (de.notices.length) next.textContent = '请先查看通知';
+    else if (window.de && de.life && de.life.ball && de.life.ball.season && de.life.ball.season.phase === 'regular') next.textContent = '前往下一场 »';
     else next.textContent = '前往下一个 »';
     next.disabled = !!blocked;
     next.onclick = function () {
+      if (!blocked && window.MBLTeamCalendar && typeof MBLTeamCalendar.simOne === 'function' && window.de && de.life && de.life.ball && de.life.ball.season && de.life.ball.season.phase === 'regular') {
+        MBLTeamCalendar.simOne();
+        return;
+      }
       var b = document.querySelector('main.play [data-act="next"]');
       if (b && !b.disabled) b.click();
     };
