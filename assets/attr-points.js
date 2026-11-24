@@ -1,7 +1,7 @@
 /* 2K 式专项训练（单机复刻扩展）。
  * 规则：保留内核自动成长；每成长一岁 +2 个训练点，持有封顶 9。
  * 比赛与奖项另给「表现点」：每 20 场常规赛 +1（每季最多 4），每个奖项/冠军 +1（每季最多 3）。
- * 玩家在「位置 3 张 + 通用 5 张」专项卡里选择：每张给两项加成、一项代价。
+ * 玩家在 8 张通用专项卡里选择：每张给两项加成、一项代价；所有位置通用。
  * 旧档的 apPoints 继续可用；退役 / 死亡 / 坐牢期间不再发点。 */
 (function () {
   'use strict';
@@ -15,53 +15,28 @@
   var SKILL_KEYS = C.SKILLS;
   var FLOOR = 25;
 
-  var PROGRAMS = {
-    guard: [
-      { id: 'g-shoot', name: '投射专项', desc: '把出手练成习惯；对抗训练会被挤掉。',
-        gains: { three: 2, mid: 1 }, loss: { strength: 1 } },
-      { id: 'g-play', name: '组织专项', desc: '球权交给你来分配；内线对抗练得少。',
-        gains: { pass: 2, handle: 1 }, loss: { interiorD: 1 } },
-      { id: 'g-drive', name: '突破专项', desc: '第一步更快、终结更稳；外线投篮会生疏。',
-        gains: { layup: 2, speedWithBall: 1 }, loss: { three: 1 } }
-    ],
-    wing: [
-      { id: 'w-3d', name: '3D 专项', desc: '防守和底角三分一起练；持球会退步。',
-        gains: { perimeterD: 2, three: 1 }, loss: { handle: 1 } },
-      { id: 'w-score', name: '得分专项', desc: '中距离和终结更可靠；传球视野会变窄。',
-        gains: { mid: 2, layup: 1 }, loss: { pass: 1 } },
-      { id: 'w-body', name: '身体专项', desc: '力量和弹跳上去了；罚球手感会受影响。',
-        gains: { strength: 2, vertical: 1 }, loss: { freeThrow: 1 } }
-    ],
-    big: [
-      { id: 'b-board', name: '篮板专项', desc: '卡位和力量一起练；外线投篮更没时间。',
-        gains: { rebound: 2, strength: 1 }, loss: { three: 1 } },
-      { id: 'b-rim', name: '护框专项', desc: '盖帽和内线防守更扎实；横移会慢一点。',
-        gains: { block: 2, interiorD: 1 }, loss: { speed: 1 } },
-      { id: 'b-finish', name: '终结专项', desc: '篮下终结更凶；罚球还是老样子。',
-        gains: { dunk: 2, layup: 1 }, loss: { freeThrow: 1 } }
-    ]
-  };
-
-  var COMMON = [
-    { id: 'c-body', name: '体能专项', desc: '速度和弹跳一起练；球商会暂时生疏。',
-      gains: { speed: 2, vertical: 1 }, loss: { iq: 1 } },
-    { id: 'c-strength', name: '对抗专项', desc: '力量和内线对抗更硬；横移会慢一点。',
-      gains: { strength: 2, interiorD: 1 }, loss: { speed: 1 } },
-    { id: 'c-defense', name: '防守专项', desc: '抢断和外线防守更稳；三分练得少。',
-      gains: { steal: 2, perimeterD: 1 }, loss: { three: 1 } },
-    { id: 'c-handle', name: '控运专项', desc: '控球和持球速度更顺；内线对抗会落下。',
+  // 8 项通用专项：所有位置共用，保留「涨两项、挤一项」的联动，不再按位置锁卡。
+  var PROGRAMS = [
+    { id: 't-shoot', name: '投射专项', desc: '三分、中远投和罚球一起练；对抗会落下。',
+      gains: { three: 2, mid: 1, freeThrow: 1 }, loss: { strength: 1 } },
+    { id: 't-finish', name: '终结专项', desc: '篮下终结更稳；外线投篮会生疏。',
+      gains: { layup: 2, dunk: 1 }, loss: { three: 1 } },
+    { id: 't-play', name: '组织专项', desc: '传球和视野更好；对抗训练被挤掉。',
+      gains: { pass: 2, handle: 1, iq: 1 }, loss: { strength: 1 } },
+    { id: 't-handle', name: '控运专项', desc: '控球和持球速度更顺；内线对抗会落下。',
       gains: { handle: 2, speedWithBall: 1 }, loss: { interiorD: 1 } },
-    { id: 'c-iq', name: '球商专项', desc: '阅读比赛和传球更好；速度训练被挤掉。',
+    { id: 't-defense', name: '防守专项', desc: '外线防守、抢断和护框更稳；三分练得少。',
+      gains: { perimeterD: 2, steal: 1, block: 1 }, loss: { three: 1 } },
+    { id: 't-board', name: '篮板专项', desc: '卡位、力量和弹跳一起练；外线投篮更没时间。',
+      gains: { rebound: 2, strength: 1, vertical: 1 }, loss: { three: 1 } },
+    { id: 't-body', name: '身体专项', desc: '速度和弹跳上去了；罚球手感会受影响。',
+      gains: { speed: 2, vertical: 1 }, loss: { freeThrow: 1 } },
+    { id: 't-iq', name: '球商专项', desc: '阅读比赛和传球更好；速度训练被挤掉。',
       gains: { iq: 2, pass: 1 }, loss: { speed: 1 } }
   ];
 
   function life() { return C.life(); }
   function ball() { var l = life(); return l && l.ball ? l.ball : null; }
-
-  function groupOf(b) {
-    try { if (typeof kn === 'function') return kn(b); } catch (e) {}
-    return 'wing';
-  }
 
   function ensure(b) {
     if (b.apPoints == null) b.apPoints = 0;
@@ -158,9 +133,8 @@
     return Object.keys(gains).some(function (k) { return skillOf(b, k) < capOf(b, k); });
   }
 
-  function listFor(b) {
-    var pos = PROGRAMS[groupOf(b)] || PROGRAMS.wing;
-    return pos.concat(COMMON);
+  function listFor() {
+    return PROGRAMS;
   }
 
   function programs() {
