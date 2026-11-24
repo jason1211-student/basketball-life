@@ -66,8 +66,7 @@
 .mbl-badge-icon.locked{background:var(--line);color:var(--faint)}
 
 /* 专项训练卡 */
-.mbl-train-grid{display:grid;gap:10px;margin:10px 0 2px}
-@media(min-width:520px){.mbl-train-grid{grid-template-columns:1fr 1fr 1fr}}
+.mbl-train-grid{display:grid;gap:10px;margin:10px 0 2px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .mbl-train-card{border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;background:var(--soft);display:flex;flex-direction:column;gap:4px}
 .mbl-train-card.is-off{opacity:.55}
 .mbl-train-card b{font-size:14px}

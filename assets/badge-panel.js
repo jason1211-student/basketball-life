@@ -61,8 +61,8 @@
     var pts = MBLAttrPoints.points();
     var cards = MBLAttrPoints.programs();
     var tip = pts > 0
-      ? '选择一个专项，消耗 1 个训练点。练什么，就少练什么。'
-      : '下一次生日会获得 1 个训练点（最多存 3 个）。';
+      ? '选择一个专项，消耗 1 个训练点。每年获得 2 点，练什么就少练什么。'
+      : '下一次生日会获得 2 个训练点（最多存 ' + MBLAttrPoints.MAX + ' 个）。';
     return '<div class="mbl-badge-points"><span class="mbl-badge-points-label">可用训练点</span>' +
       '<span class="mbl-badge-points-num">' + pts + '</span></div>' +
       '<p class="mbl-badge-points-tip">' + tip + '</p>' +
