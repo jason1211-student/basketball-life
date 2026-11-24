@@ -115,11 +115,28 @@
     if (de.screen !== 'play') return;
     var cta = document.querySelector('#mbl-hub-cta');
     if (!cta) return;
-    if (cta.parentElement.querySelector('#mbl-qs-wrap')) return;
+    var regular = !!(de.life && de.life.ball && de.life.ball.season && de.life.ball.season.phase === 'regular');
+    var mode = regular ? 'manual' : 'auto';
+    var existing = cta.parentElement.querySelector('#mbl-qs-wrap');
+    if (existing) {
+      if (existing.dataset.mode === mode) return;
+      existing.remove();
+    }
     var wrap = el('div', 'mbl-qs-wrap');
     wrap.id = 'mbl-qs-wrap';
+    wrap.dataset.mode = mode;
     var btn = el('button', 'mbl-qs-btn');
     btn.id = 'mbl-qs-btn'; btn.type = 'button';
+    if (regular) {
+      btn.textContent = '手动模拟本场';
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (window.MBLTeamCalendar && typeof MBLTeamCalendar.simOne === 'function') MBLTeamCalendar.simOne();
+      });
+      wrap.append(btn);
+      cta.after(wrap);
+      return;
+    }
     btn.textContent = '全自动模拟…';
     var menu = el('div', 'mbl-qs-menu');
     menu.id = 'mbl-qs-menu';
