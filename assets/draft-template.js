@@ -348,6 +348,7 @@
     }
     await C.wait(60);
     rebornBusy = false;
+    if (window.mn) mn();
     refresh();
   }
 

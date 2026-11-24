@@ -169,6 +169,7 @@
     }
     await C.wait(120);
     state.busy = false;
+    if (window.mn) mn();
     mount();
   }
 

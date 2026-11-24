@@ -129,6 +129,8 @@
   /* ===== 月历网格：底层只有「第几场」，视图层把场次确定性地映射成日期（不写存档、可回退）===== */
   var GAP = [2, 2, 1, 2, 3, 2, 1, 2, 2, 3, 2, 1]; // 相邻比赛间隔（天）：含背靠背(1)与长休息(3)，均值约 2
   var calYM = null;                                  // 当前显示月份 {y, m}，翻月时保持
+  var calSeasonKey = '';                             // 赛季/球队变化时重置月份
+  var calNextGame = null;                            // 下一场变化时自动翻到对应月份
   function dkey(d) { return d.getFullYear() + '/' + d.getMonth() + '/' + d.getDate(); }
   function startOfSeason(s) { return new Date(s.year, 9, 20); } // NBA 口径：10 月 20 日开赛
 
@@ -195,6 +197,13 @@
     var appointments = window.MBLRelationsMessages?.gameAppointmentIndex(life, s);
     var wrap = el('div', 'mbl-tcal-gridwrap');
     var cm = buildCalendarMap(s);
+    var seasonKey = [s.year, s.leagueId, s.team && s.team.en].join('|');
+    if (seasonKey !== calSeasonKey) { calSeasonKey = seasonKey; calYM = null; calNextGame = null; }
+    if (ng && ng.game !== calNextGame) {
+      calNextGame = ng.game;
+      var nextEntry = cm.entries[ng.game - 1];
+      if (nextEntry) calYM = { y: nextEntry.date.getFullYear(), m: nextEntry.date.getMonth() };
+    }
     if (!calYM) {
       var anchor = ng ? cm.entries[ng.game - 1] : cm.entries[0];
       calYM = { y: anchor.date.getFullYear(), m: anchor.date.getMonth() };

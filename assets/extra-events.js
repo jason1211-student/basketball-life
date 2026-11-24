@@ -81,7 +81,7 @@
     {
       id: 'mbl_ball_vs_study',
       ages: [13, 19],
-      when: function (life) { return life.age >= 13 && life.age <= 19; },
+      when: function (life) { return life.age >= 13 && life.age <= 19 && !life.ball.pro && !life.ball.retiredFromPlaying; },
       title: T('Basketball vs. books', '篮球与学业', '籃球與學業'),
       text: T('Practice and exams keep colliding this term. Where do you put your energy?',
         '这学期训练和考试总撞在一起，你把精力放在哪边？', '這學期訓練和考試總撞在一起，你把精力放在哪邊？'),

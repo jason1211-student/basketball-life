@@ -464,12 +464,13 @@
   }
 
   function renderLine(ev) {
+    var atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 120;
     if (ev.qEnd) {
       var qe = el('div', 'mbc-qend');
       qe.append(el('span', 'mbc-qe-txt', periodLabel(ev.qEnd) + '结束'),
         el('span', 'mbc-qe-score', (ev.qEnd > 4 ? '加时 ' : '本节 ') + ev.qHome + ' : ' + ev.qAway));
       feed.append(qe);
-      stickFeed();
+      if (atBottom) feed.scrollTop = feed.scrollHeight;
       return;
     }
     if (ev.marker) {
@@ -503,7 +504,7 @@
       line.append(bw);
     }
     feed.append(line);
-    stickFeed();
+    if (atBottom) feed.scrollTop = feed.scrollHeight;
     if (tabMode === 'box' && !isLiveDone()) renderLiveBox();
   }
   function lineClass(ev) {

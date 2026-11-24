@@ -156,6 +156,7 @@
     }
 
     function B(side, p) { return side === 'home' ? boxH[pid(p)] : boxA[pid(p)]; }
+    function addFoul(b) { if (b.pf < 6) b.pf += 1; if (b.pf >= 6) b.fo = 1; }
     function rot(side) { return side === 'home' ? rotH : rotA; }
     function clutch(q) { return q >= 4 && Math.abs(score.home - score.away) <= 8; }
     function addScore(side, pts) { score[side] += pts; qScore[currentQ - 1][side] += pts; }
@@ -174,7 +175,7 @@
     // 非投篮防守犯规；球队犯规数到了给 bonus 罚球
     function genericFoul(shotSide, def, q, clock) {
       var defSide = shotSide === 'home' ? 'away' : 'home';
-      var bd = B(defSide, def); bd.pf++; foulCnt[defSide]++;
+      var bd = B(defSide, def); addFoul(bd); foulCnt[defSide]++;
       if (foulCnt[defSide] >= 6) {
         var shooter = pick(rot(shotSide), rng);
         pushEv({ q: q, clock: Math.round(clock), side: shotSide, actor: pname(def), kind: 'foul', points: 0,
@@ -291,7 +292,7 @@
       var fgPoints = 0;
 
       if (foul) {
-        bd.pf++; foulCnt[other]++;
+        addFoul(bd); foulCnt[other]++;
         if (made) {
           fgPoints = zone === 'three' ? 3 : 2; b.fgm++; if (zone === 'three') b.tpm++;
           // 先 push 投篮事件（此时快照只含投篮，不含尚未发生的加罚）
