@@ -1,13 +1,17 @@
 /* 2K 式专项训练（单机复刻扩展）。
- * 规则：保留内核自动成长；每成长一岁、且仍有潜力空间时 +2 个训练点，持有封顶 6。
- * 玩家不再逐项 +1，而是在「位置 3 张 + 通用 5 张」专项卡里选择：每张给两项加成、一项代价。
+ * 规则：保留内核自动成长；每成长一岁 +2 个训练点，持有封顶 9。
+ * 比赛与奖项另给「表现点」：每 20 场常规赛 +1（每季最多 4），每个奖项/冠军 +1（每季最多 3）。
+ * 玩家在「位置 3 张 + 通用 5 张」专项卡里选择：每张给两项加成、一项代价。
  * 旧档的 apPoints 继续可用；退役 / 死亡 / 坐牢期间不再发点。 */
 (function () {
   'use strict';
   if (window.MBLAttrPoints) return;
   var C = window.MBLCore;
 
-  var MAX_POINTS = 6;
+  var MAX_POINTS = 9;
+  var GAMES_PER_POINT = 20;
+  var GAME_POINTS_CAP = 4;
+  var AWARD_POINTS_CAP = 3;
   var SKILL_KEYS = C.SKILLS;
   var FLOOR = 25;
 
@@ -73,6 +77,66 @@
 
   function save(l) { if (window.Nt && typeof Nt.saveLife === 'function') Nt.saveLife(l); }
 
+  function seasonKeyOf(season) {
+    if (!season) return '';
+    var league = season.leagueId || (season.league && (season.league.en || season.league.hans)) || '';
+    return [season.year, league].join(':');
+  }
+
+  function perfState(b) {
+    if (!b.apPerf) {
+      var season = b.season;
+      b.apPerf = {
+        key: seasonKeyOf(season),
+        gamesSeen: season && season.games ? season.games.length : 0,
+        gamePoints: 0,
+        awardPoints: 0,
+        awardsSeen: (b.awards || []).length
+      };
+    }
+    return b.apPerf;
+  }
+
+  function performance(l, b) {
+    var p = perfState(b);
+    var season = b.season || null;
+    var key = seasonKeyOf(season);
+    if (p.key !== key) {
+      p.key = key;
+      p.gamesSeen = 0;
+      p.gamePoints = 0;
+      p.awardPoints = 0;
+    }
+
+    var awards = b.awards || [];
+    if (p.awardsSeen > awards.length) p.awardsSeen = awards.length;
+    var gained = 0;
+    for (; p.awardsSeen < awards.length; p.awardsSeen++) {
+      var kind = awards[p.awardsSeen] && awards[p.awardsSeen].kind;
+      if ((kind === 'award' || kind === 'cup' || kind === 'medal') && p.awardPoints < AWARD_POINTS_CAP) {
+        p.awardPoints += 1;
+        gained += 1;
+      }
+    }
+
+    if (season && season.games) {
+      var games = season.games.length;
+      if (games < p.gamesSeen) p.gamesSeen = games;
+      var due = Math.floor(games / GAMES_PER_POINT) - Math.floor(p.gamesSeen / GAMES_PER_POINT);
+      while (due > 0 && p.gamePoints < GAME_POINTS_CAP) {
+        p.gamePoints += 1;
+        gained += 1;
+        due -= 1;
+      }
+      p.gamesSeen = games;
+    }
+
+    if (gained > 0) {
+      b.apPoints = Math.min(MAX_POINTS, C.num(b.apPoints, 0) + gained);
+      save(l);
+    }
+  }
+
   function grant() {
     var l = life();
     if (!l || !l.alive || !l.ball) return;
@@ -85,6 +149,7 @@
       if (hasRoom(b) && b.apPoints < MAX_POINTS) b.apPoints = Math.min(MAX_POINTS, b.apPoints + 2);
       save(l);
     }
+    performance(l, b);
   }
 
   function points() { var b = ball(); return b ? C.num(b.apPoints, 0) : 0; }
@@ -101,8 +166,7 @@
   function programs() {
     var b = ball();
     if (!b) return [];
-    var list = listFor(b);
-    return list.map(function (p) {
+    return listFor(b).map(function (p) {
       return {
         id: p.id, name: p.name, desc: p.desc,
         gains: p.gains, loss: p.loss,
