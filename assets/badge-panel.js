@@ -81,7 +81,7 @@
   function buildAttrs(b, canEdit) {
     var rows = S.CATEGORIES.map(function (cat) {
       var inner = cat.keys.map(function (k) {
-        var v = C.round(b.skills[k]), p = C.num(b.potential[k], v);
+        var v = C.round(b.skills[k]), p = C.round(C.num(b.potential[k], v));
         var pct = Math.round(C.clamp(v / 99, 0, 1) * 100);
         var potPct = Math.round(C.clamp(p / 99, 0, 1) * 100);
         return '<div class="mbl-badge-attr"><div class="mbl-badge-attr-top"><span>' +

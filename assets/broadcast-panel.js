@@ -319,10 +319,11 @@
   // 直播中：用当前事件的 box 快照渲染“打到此刻”的实时数据（得分/分钟实时算，不剧透终场）
   function renderLiveBox() {
     var g = currentGame();
+    var keep = boxView.scrollTop;
     boxView.replaceChildren();
     if (!g || !liveSnap) { boxView.append(el('div', 'mbc-box-empty', '暂无数据')); return; }
     boxView.append(boxSection('home', g, liveSnap, liveProg), boxSection('away', g, liveSnap, liveProg));
-    boxView.scrollTop = 0;
+    boxView.scrollTop = keep;
   }
   function td(txt, cls) {
     var c = document.createElement('td');
@@ -336,7 +337,7 @@
     var five = S.matchFive(p.ratings);
     var badges = p.badges || S.badgeTiers(p.ratings);
     var n = Object.assign({}, five, { ratings: p.ratings, badges: badges });
-    return jk({ name: p.name, pos: p.pos, ovr: p.ovr, age: p.age }, Mp(p), n);
+    return jk({ name: p.name, pos: p.pos, ovr: Math.round(Number(p.ovr)||0), age: p.age }, Mp(p), n);
   }
   function nameCell(p) {
     var c = document.createElement('td');
@@ -458,13 +459,17 @@
     return items;
   }
 
+  function stickFeed() {
+    if (feed.scrollHeight - feed.scrollTop - feed.clientHeight < 96) feed.scrollTop = feed.scrollHeight;
+  }
+
   function renderLine(ev) {
     if (ev.qEnd) {
       var qe = el('div', 'mbc-qend');
       qe.append(el('span', 'mbc-qe-txt', periodLabel(ev.qEnd) + '结束'),
         el('span', 'mbc-qe-score', (ev.qEnd > 4 ? '加时 ' : '本节 ') + ev.qHome + ' : ' + ev.qAway));
       feed.append(qe);
-      feed.scrollTop = feed.scrollHeight;
+      stickFeed();
       return;
     }
     if (ev.marker) {
@@ -498,7 +503,7 @@
       line.append(bw);
     }
     feed.append(line);
-    feed.scrollTop = feed.scrollHeight;
+    stickFeed();
     if (tabMode === 'box' && !isLiveDone()) renderLiveBox();
   }
   function lineClass(ev) {
@@ -596,7 +601,7 @@
         : (game.winner === 'home' || game.winner === 'away') ? '（你输了）' : '（平局）';
       feed.append(el('div', 'mbc-line is-final', '终场 ' + runScore.home + ' : ' + runScore.away + ' ' + win));
     }
-    feed.scrollTop = feed.scrollHeight;
+    stickFeed();
   }
   function stop() {
     // 终场（preset 已写入）才自动结算；中途退出保持原样，不替玩家推进

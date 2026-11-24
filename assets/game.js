@@ -3672,7 +3672,7 @@ function Kst(e){let o=wAe(e.five,e.level,e.team?"team":e.quiet?"quiet":"player")
   <div class="modal-backdrop bsheet shpback" data-act="shapeclose">
   <article class="card modal shpsheet tinted tint-${Gst[A]}${de.shapeShown===e.key?"":" rising"}" role="dialog" aria-modal="true" aria-label="${ie}" data-act="noop">
     <span class="bgrab" aria-hidden="true"></span>
-    <div class="modal-top skhead"><span class="skwho"><b>${e.title}</b><small>${e.sub}</small></span>${e.ovr!==void 0?`<span class="skbig">${e.ovr}</span>`:""}<button class="ghost small" data-act="shapeclose">${Q(Y.close)}</button></div>
+    <div class="modal-top skhead"><span class="skwho"><b>${e.title}</b><small>${e.sub}</small></span>${e.ovr!==void 0?`<span class="skbig">${Math.round(Number(e.ovr)||0)}</span>`:""}<button class="ghost small" data-act="shapeclose">${Q(Y.close)}</button></div>
     <svg class="shpdefs" width="0" height="0" aria-hidden="true"><filter id="shprough" x="-10%" y="-20%" width="120%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
     ${pe}
     ${le}
