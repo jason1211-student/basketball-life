@@ -240,9 +240,9 @@ function RAe(e,o,n,s,r){if(s.name)return s.name;let i=Math.floor(Te(e.seed,n,s.k
 function DAe(e,o,n,s){let r=e.ball;if(!r.pro||o.spg===void 0||o.bpg===void 0)return 0;let i=$ie(r,n),c=s?.played,y=c?.n?c.form/c.n:r.form,w={...e,ball:{...r,form:y,skills:Object.fromEntries(MBLAttrSys.KEYS.map(k=>[k,i]))}},A=c?.n?c.use/c.n:Wr(e),H=R8(w,n,o.tier,A),ee=eI(w,n,o.tier,A),oe=VD(H.pts,H.reb,H.ast,ee.stl,ee.blk)+OAe[n];return re((VD(o.ppg,o.rpg,o.apg,o.spg,o.bpg)-oe)*WAe,-pY,pY)}
 function JD(e,o,n){return re(M0(e,o,n,100)*EAe,-pY,pY)}
 function X$(e){return cte(e,Dr(e.ball))}
-function cte(e,o){let n=e.ball,s=zt(e.country),r=s.country.height.male,i=n.height>=n.adultHeight-1?NI(n,r):0,c=(Math.min(n.height,n.adultHeight)-n.adultHeight)*OFe;return o+Z8(n.adultHeight,r)+c+i+s.lean*BI}
-function P0(e,o=zS,n=2.1){let s=rf;if(e>=s[0])return o[0]+(e-s[0])*n;for(let r=1;r<=4;r++)if(e>=s[r])return o[r]+(e-s[r])*(o[r-1]-o[r])/Math.max(.5,s[r-1]-s[r]);return o[4]-25*Math.log(1+(s[4]-e)/25)}
-function ej(e){let o=Math.max(0,e.status.reputation-Number(e.flags.boughtRep??0));return re((o-60)/20,0,zAe)}
+function cte(e,o){let n=e.ball,s=zt(e.country),r=s&&s.country&&s.country.height?s.country.height.male:195;let h=Number(n.height),ah=Number(n.adultHeight);if(!Number.isFinite(ah))ah=195;if(!Number.isFinite(h))h=ah;let i=h>=ah-1?NI({...n,height:h},r):0,c=(Math.min(h,ah)-ah)*OFe;return o+Z8(ah,r)+c+i+(s&&Number.isFinite(s.lean)?s.lean*BI:0)}
+function P0(e,o=zS,n=2.1){if(!Number.isFinite(Number(e)))return 1;e=Number(e);let s=rf;if(e>=s[0])return o[0]+(e-s[0])*n;for(let r=1;r<=4;r++)if(e>=s[r])return o[r]+(e-s[r])*(o[r-1]-o[r])/Math.max(.5,s[r-1]-s[r]);return o[4]-25*Math.log(1+(s[4]-e)/25)}
+function ej(e){let o=Number(e.status.reputation);if(!Number.isFinite(o))o=0;o=Math.max(0,o-Number(e.flags.boughtRep??0));let v=re((o-60)/20,0,zAe);return Number.isFinite(v)?v:0}
 function qS(e){return re(Math.round(P0(X$(e),zS,aj)+ej(e)),1,99)}
 function L0(e){let v=re(Math.round(P0(cte(e,jie(e.ball)),zS,aj)+ej(e)),1,99);return Number.isFinite(v)?v:50}
 function tj(e){let o=e.flags,n=o.bestRating!==void 0?{v:Number(o.bestRating),age:Number(o.bestRatingAge)}:null,s=o.bestOvr!==void 0?{v:re(Math.round(P0(X$(e)-Dr(e.ball)+Number(o.bestOvr),zS,aj)+ej(e)),1,99),age:Number(o.bestOvrAge)}:null;return n?!s||s.age>=n.age?n:s.v>n.v?s:n:s}
@@ -1564,7 +1564,7 @@ function Hie(e){let o=e.adultHeight,n=e.mblPositionRule===1;if(o<(n?197:190))ret
 function X0(e){let o=e.ball.skills,n=o.mid*.6+o.three*.4,s=kn(e.ball),r=s==="big"?.08:s==="wing"?.02:0;return re(.8+(n-Jje)*.01+(e.traits.discipline-65)*.0015-r,.35,.95)}
 function $ie(e,o=kn(e)){return MBLAttrSys.overall(e.skills,o)}
 function Dr(e){return Math.round(jie(e))}
-function jie(e){let o=$ie(e),n=Hie(e),s=n==="guard"?188:n==="wing"?199:208;return re(o+(e.height-s)*.15,0,99)}
+function jie(e){let o=$ie(e),n=Hie(e),s=n==="guard"?188:n==="wing"?199:208;let h=Number(e.height);if(!Number.isFinite(h))h=s;return re(o+(h-s)*.15,0,99)}
 function ar(e){let o=e.ball,n=o.pro;if(!n){let v=Dr(o)+o.form*.4;return Number.isFinite(v)?v:60}let s=Xl(e,n);let v=Pt(n.leagueId).mean+rn[n.tier].edge+re(s*1.5,-6,6)+o.form*Zje;return Number.isFinite(v)?v:Pt(n.leagueId).mean}
 function Qje(e){let o=e.ball.pro;if(!o)return 1;let n=Xl(e,o),s=YI(e),r=s?s.share>=.75&&s.played>=.6?1.08:s.share<.3?.92:1:1;return(n>0&&!o.twoWay?1-Math.min(.4,n*.1):1)*((o.adapt??0)>0?.5:1)*r*Xje(e)}
 function YI(e){let o=e.ball.season;return!e.ball.pro||!o||o.staff||o.year!==Ee+e.age?null:{share:Wr(e),played:o.games.filter(n=>n.pts!==void 0).length/Math.max(1,o.total)}}
