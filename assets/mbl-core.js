@@ -64,6 +64,7 @@
   var domFns = [];   // {fn, screens:null|[]}
   var beatFns = [];  // {fn, gap, last}
   var domQueued = false;
+  var pendingMutations = [];
   var HEARTBEAT_MS = 400;
 
   // 注册 DOM 变化回调，whenScreen 限定只在对应界面触发
@@ -102,10 +103,16 @@
   }
 
   function scheduleDom(mutations) {
+    for (var i = 0; i < mutations.length; i++) pendingMutations.push(mutations[i]);
     if (domQueued) return;
     domQueued = true;
-    if (window.requestAnimationFrame) requestAnimationFrame(function () { flushDom(mutations); });
-    else setTimeout(function () { flushDom(mutations); }, 16);
+    function run() {
+      var batch = pendingMutations;
+      pendingMutations = [];
+      flushDom(batch);
+    }
+    if (window.requestAnimationFrame) requestAnimationFrame(run);
+    else setTimeout(run, 16);
   }
 
   function heartbeat() {

@@ -1,0 +1,20 @@
+/* One visible interaction layer; preserve suspended native dialogs for Back/Close. */
+.mbl-visual .mbl-overlay-suspended { visibility:hidden!important;pointer-events:none!important; }
+.mbl-visual dialog.mbl-overlay-suspended::backdrop { background:transparent!important;backdrop-filter:none!important; }
+.mbl-visual body.mbl-overlay-open .mbl-dock,
+.mbl-visual body.mbl-overlay-open .mbl-fab-dial { visibility:hidden;pointer-events:none; }
+.mbl-visual .modal-backdrop { -webkit-backdrop-filter:none;backdrop-filter:none;overscroll-behavior:contain; }
+.mbl-visual dialog[open],.mbl-visual .modal-backdrop .modal { overscroll-behavior:contain; }
+.mbl-visual .mbl-overlay-host { position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;border:0;margin:0;padding:0;background:transparent;overflow:hidden; }
+.mbl-visual .mbl-overlay-host::backdrop { background:transparent; }
+.mbl-visual .mbl-overlay-host .modal-backdrop { z-index:auto; }
+.mbl-visual main.mbl-fade-in { animation:none!important; }
+.mbl-visual .modal.rising,.mbl-visual .modal.pop { animation:none!important; }
+.mbl-visual .mbl-dock-btn { touch-action:manipulation; }
+.mbl-visual .mbl-view { overflow-anchor:none; }
+.mbl-visual .mbl-rel-modal,.mbl-visual .mbl-sms-thread,.mbl-visual .mbl-sched-modal,.mbl-visual .mbl-badge-modal { overflow-anchor:none; }
+.mbl-visual { scroll-behavior:auto; }
+@media(max-width:600px) {
+  .mbl-visual .mbl-fab-dial { right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px)); }
+  .mbl-visual .mbl-dock { padding-right:max(env(safe-area-inset-right,0px),84px); }
+}

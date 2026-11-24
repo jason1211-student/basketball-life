@@ -92,7 +92,7 @@
         if (stopWhen && stopWhen(life, stopped)) return finish('stopwhen');
 
         // 停滞看门狗：内核与弹窗状态连续多步无任何变化即结束，避免点击无效导致永久转圈
-        var sig = life.age + '|' + life.log.length + '|' + (life.pending ? life.pending.length : 0) +
+        var sig = life.age + '|' + life.log.length + '|' + (life.ball?.season?.games?.length ?? 0) + '|' + (life.pending ? life.pending.length : 0) +
           '|' + document.querySelectorAll('dialog[open]').length +
           '|' + document.querySelectorAll('.modal-backdrop').length;
         if (sig === lastSig) { if (++stall > 150) return finish('stalled'); }
@@ -116,7 +116,10 @@
 
         // 2) 通知
         var notice = visibleNode(Array.from(document.querySelectorAll('[data-act="noticeok"]')));
-        if (notice) { idleTries = 0; notice.click(); return schedule(); }
+        if (notice) {
+          if (opts.pauseNotice) return finish('notice');
+          idleTries = 0; notice.click(); return schedule();
+        }
 
         // 选秀夜：跳过动画，再完成
         var draftSkip = visibleNode(Array.from(document.querySelectorAll('[data-act="draftskip"]')));

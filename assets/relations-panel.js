@@ -276,12 +276,14 @@
   }
 
   function render() {
+    return window.MBLInteraction.preserveScroll(dialog, renderContents);
+  }
+
+  function renderContents() {
     var life = L();
-    var top = dialog.scrollTop;
     body.replaceChildren();
     if (!life) {
       body.append(make('p', 'mbl-rel-muted', '开始一段人生后，这里会显示你的关系网。'));
-      setTimeout(function () { dialog.scrollTop = top; setTimeout(function () { dialog.scrollTop = top; }, 100); }, 50);
       return;
     }
     if (window.MBLRelationsMessages) body.append(window.MBLRelationsMessages.render(life, render));
@@ -290,13 +292,9 @@
     body.append(renderFriends(life));
     var meet = renderMeet(life); if (meet) body.append(meet);
     var past = renderPast(life); if (past) body.append(past);
-    setTimeout(function () { dialog.scrollTop = top; setTimeout(function () { dialog.scrollTop = top; }, 100); }, 50);
   }
 
   closeBtn.onclick = function () { dialog.close(); };
-  dialog.addEventListener('close', function () {
-    if (window.MBLNavDock) window.MBLNavDock.setActive('home');
-  });
 
   function open() { render(); if (!dialog.open) dialog.showModal(); }
   function close() { if (dialog.open) dialog.close(); }

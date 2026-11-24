@@ -252,14 +252,16 @@
   }
 
   function render() {
+    return window.MBLInteraction.preserveScroll(dialog, renderContents);
+  }
+
+  function renderContents() {
     var l = life();
-    var top = dialog.scrollTop;
     if (!l) {
       stage.textContent = '尚未开始人生';
       calendar.replaceChildren();
       planSection.replaceChildren();
       renderTimeline(null);
-      setTimeout(function () { dialog.scrollTop = top; setTimeout(function () { dialog.scrollTop = top; }, 100); }, 50);
       return;
     }
     var pro = l.ball && l.ball.pro;
@@ -268,11 +270,9 @@
     renderCalendar(l);
     renderPlan(l);
     renderTimeline(l);
-    setTimeout(function () { dialog.scrollTop = top; setTimeout(function () { dialog.scrollTop = top; }, 100); }, 50);
   }
 
   closeBtn.onclick = function () { dialog.close(); };
-  dialog.addEventListener('close', function () { if (window.MBLNavDock) window.MBLNavDock.setActive('home'); });
 
   function open() { render(); if (!dialog.open) dialog.showModal(); }
   function close() { if (dialog.open) dialog.close(); }

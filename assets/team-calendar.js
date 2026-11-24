@@ -30,6 +30,7 @@
 
   var box = el('section', 'mbl-tcal');
   var busy = false;
+  var lastRenderKey = '';
   var POS8 = ['guard', 'guard', 'wing', 'wing', 'big', 'guard', 'wing', 'big'];
   var POS_CN = { guard: '后卫', wing: '侧翼', big: '内线' };
 
@@ -45,7 +46,7 @@
 
   // 模拟这一场：推进到 games.length 多一场即停；任何抉择/重大节点/历史弹窗都停下等玩家
   function advanceOneGame() {
-    if (busy) return;
+    if (busy || window.MBLSeasonCommand?.busy() || window.__mblAutoSim) return;
     var s = season();
     if (!s) return;
     var g0 = s.games.length;
@@ -71,7 +72,7 @@
     var card = document.querySelector('main.play article.card.decide') ||
       document.querySelector('main.play .modal-backdrop') ||
       document.querySelector('main.play [data-act="dismiss"]');
-    if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (card) card.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
   }
 
   function renderHead(s) {
@@ -116,9 +117,11 @@
     var btns = el('div', 'mbl-tcal-btns');
     var liveBtn = el('button', 'mbl-tc-btn live');
     liveBtn.type = 'button'; liveBtn.textContent = '直播这场';
+    liveBtn.disabled = busy || !!window.MBLSeasonCommand?.busy();
     liveBtn.onclick = function () { if (window.MBLBroadcast) window.MBLBroadcast.open(advanceOneGame); };
     var simBtn = el('button', 'mbl-tc-btn sim');
     simBtn.type = 'button'; simBtn.textContent = '模拟这场';
+    simBtn.disabled = liveBtn.disabled;
     simBtn.onclick = advanceOneGame;
     btns.append(liveBtn, simBtn);
     card.append(btns);
@@ -138,7 +141,7 @@
   function buildCalendarMap(s) {
     var cur = startOfSeason(s), map = {}, entries = [];
     for (var i = 0; i < s.total; i++) {
-      if (i > 0) cur = new Date(cur.getTime() + GAP[(i - 1) % GAP.length] * 86400000);
+      if (i > 0) cur.setDate(cur.getDate() + GAP[(i - 1) % GAP.length]);
       var played = i < s.games.length;
       var e = {
         idx: i, date: new Date(cur), opp: s.teams[s.schedule[i]], home: (i % 2 === 0),
@@ -231,7 +234,17 @@
     var days = new Date(y, m + 1, 0).getDate();
     for (var day = 1; day <= days; day++) {
       var d = new Date(y, m, day), e = cm.map[dkey(d)];
-      cells.append(e ? gameCell(s, e, appointments?.get(e.idx + 1)) : offCell(d, cm));
+      var cell = e ? gameCell(s, e, appointments?.get(e.idx + 1)) : offCell(d, cm);
+      var date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      if (window.MBLSeasonCommand?.isSelected(s, date)) cell.classList.add('mbl-season-selected');
+      if (!e || !e.played) {
+        var count = cm.entries.filter(function (entry) { return entry.date <= d; }).length;
+        cell.onclick = function (selectedDate, targetCount, entry) { return function () {
+          window.MBLSeasonCommand?.select(s, selectedDate, targetCount, entry ? function () { openPreview(s, entry.idx); } : null);
+        }; }(date, count, e);
+        if (!e) { cell.tabIndex = 0; cell.setAttribute('role', 'button'); cell.onkeydown = function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); } }; }
+      }
+      cells.append(cell);
     }
 
     var legend = el('div', 'mbl-cal-legend');
@@ -342,10 +355,21 @@
   // 插画：场景卡（含同住说明）
   function renderScene(l) { return toNode(HX(l)); }
 
+  function renderKey(l, s) {
+    var threads = l.flags?.mblMessages?.threads || {};
+    var privateState = Object.entries(threads).map(function (entry) {
+      return [entry[0], entry[1].promise, entry[1].appointments, entry[1].lastChange];
+    });
+    return JSON.stringify([l.seed, l.age, l.alive, l.log?.length, l.ball?.out,
+      s && [s.year, s.leagueId, s.team?.en, s.phase, s.games.length, s.total],
+      l.pending?.map(function (p) { return p.tid; }), !!de.outcome, de.notices.length, privateState]);
+  }
+
   function render() {
     var l = C.life();
     if (!l) { return; }
     var s = season();
+    lastRenderKey = renderKey(l, s);
     var appointments = window.MBLRelationsMessages?.renderAppointments(l, render, function (id) {
       window.MBLRelationsMessages.selectConversation(id);
       window.MBLRelationsPanel?.open();
@@ -362,6 +386,7 @@
     box.replaceChildren(
       renderHead(s),
       renderGrid(l, s, ng),
+      ...(window.MBLSeasonCommand ? [window.MBLSeasonCommand.render(s)] : []),
       ...(appointments ? [appointments] : []),
       renderAction(l, s, ng),
       renderRecord(l),
@@ -389,19 +414,14 @@
     var h0 = home();
     if (!h0) return;
     if (!h0.contains(box)) h0.prepend(box);
-    render();
+    var l = C.life();
+    if (l && (lastRenderKey !== renderKey(l, season()) || !box.children.length && season())) render();
   }
 
   C.onDom(onDomChange, 'play');
   C.onHeartbeat(function () {
     if (!window.de || de.screen !== 'play') return;
-    var h = home();
-    if (!h) return;
-    if (!h.contains(box)) h.prepend(box);
-    var s = season();
-    if (!s) { if (box.style.display !== 'none') { box.style.display = 'none'; box.replaceChildren(); } return; }
-    var key = [s.year, s.games.length, s.phase].join(':');
-    if (box.dataset.key !== key) render();
+    mount();
   }, 1200);
   mount();
   window.MBLTeamCalendar = { refresh: render, mount: mount, simOne: advanceOneGame };

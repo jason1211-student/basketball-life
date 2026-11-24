@@ -159,7 +159,7 @@
     var card = document.querySelector('main.play article.card.decide') ||
       document.querySelector('main.play .modal-backdrop') ||
       document.querySelector('main.play [data-act="dismiss"]');
-    if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (card) card.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
   }
 
   /* ---------- 操作区：场间门控 / 夺冠横幅 / 当前系列赛 ---------- */

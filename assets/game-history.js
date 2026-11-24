@@ -14,6 +14,7 @@
 
   var section = el('section', 'mbl-ghistory');
   var dialog = null;
+  var lastLife = null, lastKey = '';
 
   function teamView() { return document.querySelector('main.play .mbl-view[data-view="team"]'); }
   function inside(node, root) {
@@ -23,12 +24,23 @@
   // 收集赛季分组：当前赛季在前，往季（有 gameLog）按年份倒序
   function collectGroups(l) {
     var groups = [], cur;
-    try { cur = Oa(l); } catch (e) { cur = null; }
+    cur = l.ball?.season;
+    if (cur?.staff) cur = null;
+    function playoffGames(series) {
+      return (series || []).flatMap(round => (round.games || []).map(game => ({ ...game, opp: game.opp || round.opp })));
+    }
+    if (cur) {
+      var postseason = playoffGames(cur.series);
+      if (cur.activePlayoffSeries) postseason.push(...playoffGames([{ ...cur.activePlayoffSeries, opp: typeof cy === 'function' ? cy(cur)?.opp : null }]));
+      if (postseason.length) groups.push({ year: cur.year, team: cur.team, games: postseason, playoffs: true });
+    }
     if (cur && cur.games && cur.games.length)
       groups.push({ year: cur.year, team: cur.team, games: cur.games });
     var seasons = (l.ball && l.ball.seasons) || [];
     for (var i = seasons.length - 1; i >= 0; i--) {
       var ag = seasons[i];
+      if (cur?.phase === 'done' && cur.games === ag.gameLog) continue;
+      if (ag.playoffGameLog?.length) groups.push({ year: ag.year, team: ag.team, games: ag.playoffGameLog, playoffs: true });
       if (ag.gameLog && ag.gameLog.length)
         groups.push({ year: ag.year, team: ag.team, games: ag.gameLog });
     }
@@ -45,6 +57,20 @@
     var body = el('div', 'mbl-gh-body');
     if (g.box) body.append(renderBox(g.box));
     else body.append(renderFallback(g));
+    if ([1, 2].includes(g.matchRecord?.version)) {
+      var replay = el('button', 'mbl-season-btn', '重播比赛');
+      replay.type = 'button';
+      replay.onclick = function () {
+        closeDialog();
+        var opened = false;
+        try { opened = window.MBLBroadcast?.openHistorical(g); } catch (error) { console.warn('[history replay]', error); }
+        if (!opened) {
+          openDetail(g);
+          dialog.querySelector('.mbl-gh-body').append(el('p', 'muted', '历史引擎或比分不一致，已保留原始统计。'));
+        }
+      };
+      body.prepend(replay);
+    }
     dialog.replaceChildren(head, body);
     if (!dialog.open) dialog.showModal();
   }
@@ -149,11 +175,22 @@
   }
   function closeDialog() { if (dialog && dialog.open) dialog.close(); }
 
-  function render() {
+  function groupKey(groups) {
+    return JSON.stringify(groups.map(function (group) {
+      var last = group.games.at(-1);
+      return [group.year, group.team?.en, !!group.playoffs, group.games.length, last?.us, last?.them];
+    }));
+  }
+
+  function render(force) {
     var l = C.life();
-    section.replaceChildren();
     if (!l) return;
     var groups = collectGroups(l);
+    var key = groupKey(groups);
+    if (!force && lastLife === l && lastKey === key) return;
+    lastLife = l;
+    lastKey = key;
+    section.replaceChildren();
     section.append(el('h4', 'jsec mbl-gh-title', '历史比赛'));
     if (!groups.length) {
       section.append(el('p', 'muted small', '还没有打过的比赛，开打后这里会汇总。'));
@@ -161,7 +198,7 @@
     }
     groups.forEach(function (grp) {
       var head = el('div', 'mbl-gh-ghead');
-      head.textContent = grp.year + '–' + String(grp.year + 1).slice(2) + ' 赛季 · ' + C.hans(grp.team);
+      head.textContent = grp.year + '–' + String(grp.year + 1).slice(2) + (grp.playoffs ? ' 季后赛 · ' : ' 赛季 · ') + C.hans(grp.team);
       section.append(head);
       var list = el('div', 'mbl-gh-list');
       for (var i = grp.games.length - 1; i >= 0; i--) {
@@ -203,5 +240,5 @@
 
   C.onDom(onDomChange, 'play');
   mount();
-  window.MBLGameHistory = { refresh: render, mount: mount, openDetail: openDetail };
+  window.MBLGameHistory = { refresh: function () { render(true); }, mount: mount, openDetail: openDetail };
 })();

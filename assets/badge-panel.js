@@ -127,12 +127,17 @@
     }).join('');
   }
 
+  var trainLock = 0;
   function bindTraining(container, rerender) {
     if (!window.MBLAttrPoints) return;
     container.querySelectorAll('.mbl-train-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        if (Date.now() - trainLock < 450) return;   // 防连点重复扣点
+        trainLock = Date.now();
+        container.querySelectorAll('.mbl-train-btn').forEach(function (b) { b.disabled = true; });
         var result = MBLAttrPoints.apply(btn.getAttribute('data-train'));
         if (result && result.ok) { rerender(); return; }
+        container.querySelectorAll('.mbl-train-btn').forEach(function (b) { b.disabled = false; });
         var msg = container.querySelector('.mbl-train-msg');
         if (msg) msg.textContent = (result && result.reason) || '训练没有完成';
       });
@@ -140,9 +145,12 @@
   }
 
   function render() {
-    var b = ball();
     if (!dialog) return;
-    var keepTop = dialog.scrollTop;
+    return window.MBLInteraction.preserveScroll(dialog, renderContents);
+  }
+
+  function renderContents() {
+    var b = ball();
     if (!b || !b.started) {
       dialog.replaceChildren(el('div', 'mbl-badge-head',
         el('h2', '', '能力与徽章')),
@@ -164,7 +172,6 @@
       '<p class="mbl-badge-foot">徽章档位：铜 / 银 / 金 / 名人堂；每档给对应比赛轴 +1/+2/+3/+4，单项封顶 +8。</p>';
 
     dialog.replaceChildren(head, body);
-    dialog.scrollTop = keepTop;
     if (canEdit) bindTraining(body, function () { render(); });
   }
 

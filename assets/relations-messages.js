@@ -376,6 +376,8 @@
       card.append(make('p', 'mbl-rel-meta', (delta > 0 ? '+' : '') + delta + ' · ' + reason));
     }
     const messages = make('ol', 'mbl-sms-thread');
+    messages.dataset.mblScrollKey = 'sms:' + contact.id;
+    messages.setAttribute('data-mbl-follow-bottom', '');
     for (const entry of thread.messages) {
       const bubble = make('li', 'mbl-sms-bubble' + (entry.fromPlayer ? ' is-sent' : ''));
       bubble.append(make('small', '', (entry.fromPlayer ? '你' : C.hans(contact.person.name) || profile.label) + ' · ' + entry.age + ' 岁'));

@@ -1,0 +1,126 @@
+/* Shared sports-career visual system, loaded after the original styles. */
+:root.mbl-visual {
+  --mbl-stage-color: #c15a21;
+  --bg: #e9edf3; --bg-seam: transparent; --card: #fff; --soft: #eff3f8;
+  --ink: #172336; --muted: #485b72; --faint: #596b80; --line: #cdd6e1;
+  --accent: color-mix(in srgb, var(--mbl-stage-color) 45%, #182437);
+  --accent-ink: #fff; --accent-soft: color-mix(in srgb,var(--mbl-stage-color) 12%,white);
+  --fill: var(--accent); --up: #17653e; --down: #a83239;
+  --scoreboard: #111b2c; --scoreboard-ink: #ffe5b0;
+  --radius: 12px; --radius-md: 9px; --radius-sm: 6px;
+  --shadow: 0 2px 8px #1723360d; --backdrop: #1018279c;
+  --sans: system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --display: "Arial Narrow","Bahnschrift",var(--sans);
+}
+:root.mbl-visual[data-mbl-stage="birth"] { --mbl-stage-color: #ca7840; }
+:root.mbl-visual[data-mbl-stage="childhood"] { --mbl-stage-color: #d29951; }
+:root.mbl-visual[data-mbl-stage="youth"] { --mbl-stage-color: #397aac; }
+:root.mbl-visual[data-mbl-stage="pro"] { --mbl-stage-color: var(--mbl-team-color,#ea813f); }
+:root.mbl-visual[data-mbl-stage="legacy"] { --mbl-stage-color: #ac8b50; }
+:root.mbl-visual:not([data-theme="light"]) {
+  color-scheme: dark;
+  --bg: #0b1020; --card: #121c2b; --soft: #1a2839; --ink: #edf3fa;
+  --muted: #b3c2d3; --faint: #91a3b9; --line: #324256;
+  --accent: color-mix(in srgb,var(--mbl-stage-color) 52%,white);
+  --accent-ink: #101827; --accent-soft: color-mix(in srgb,var(--mbl-stage-color) 22%,#101827);
+  --up: #77d9ac; --down: #ff999e; --scoreboard: #0b1321; --scoreboard-ink: #ffd8a0;
+  --t-peach: #35271e; --t-peach-ink: #ffbf91; --t-rose: #37252f; --t-rose-ink: #ffafbb;
+  --t-butter: #332d20; --t-butter-ink: #f6d494; --t-sky: #203146; --t-sky-ink: #b0d5ff;
+  --t-mint: #1a392e; --t-mint-ink: #a0e3bd; --t-lilac: #302842; --t-lilac-ink: #d7c2ff;
+  --c-health: #e8999d; --c-happiness: #e9cc7e; --c-skills: #86bcef;
+  --c-relationships: #82d5b1; --c-reputation: #c4b4ef;
+  --shadow: 0 3px 12px #00000026; --backdrop: #030712c9;
+}
+.mbl-visual body { background:var(--bg);font-family:var(--sans);line-height:1.55; }
+.mbl-visual main { gap:14px; }
+.mbl-visual h1,.mbl-visual h2,.mbl-visual h3 { letter-spacing:-.025em; }
+.mbl-visual .card { box-shadow:var(--shadow);border-color:var(--line); }
+.mbl-visual .primary,.mbl-visual .ghost,.mbl-visual .choice { border-radius:8px; }
+.mbl-visual button:focus-visible,.mbl-visual [role="button"]:focus-visible { outline:2px solid var(--accent);outline-offset:2px; }
+
+/* Landing, birth and save selection */
+.mbl-visual main.home .intro { padding:28px 20px 24px;min-height:220px;position:relative;justify-content:center;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:var(--radius);background:radial-gradient(ellipse at 100% 0%,var(--accent-soft),transparent 65%),var(--card); }
+.mbl-visual main.home .intro::before { content:"";position:absolute;right:12px;bottom:12px;width:150px;height:150px;border:1px solid var(--accent);border-radius:50%;opacity:.10;pointer-events:none;background:linear-gradient(90deg,transparent 49.5%,var(--accent) 50%,transparent 50.5%),linear-gradient(transparent 49.5%,var(--accent) 50%,transparent 50.5%); }
+.mbl-visual main.home .bigtitle { font-family:var(--display);font-weight:850;font-size:clamp(2rem,8.2vw,3.7rem);margin:8px 0 0; }
+.mbl-visual main.home .intro .lead { max-width:34ch;color:var(--muted);font-size:.97rem; }
+.mbl-visual .actionbar { background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none; }
+.mbl-visual main.birth .rollcard { border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:var(--radius);background:linear-gradient(155deg,#182a3a,#101827); }
+.mbl-visual .rollkick { color:#f4c58f; }
+.mbl-visual .mbl-birth-custom,.mbl-visual .mbl-slot-card { border-radius:var(--radius);border-color:var(--line);background:var(--soft); }
+
+/* Career dashboard and navigation */
+.mbl-visual .lifebar { padding:12px 0 10px;background:var(--bg); }
+.mbl-visual .lifebar .who { padding:12px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--radius);background:var(--card);gap:10px; }
+.mbl-visual .whoname b { font-size:1.2rem;font-weight:800; }
+.mbl-visual .agebig { color:var(--accent);font-weight:800;font-variant-numeric:tabular-nums; }
+.mbl-visual .mbl-hub,.mbl-visual .mbl-tcal-head,.mbl-visual .mbl-tcal-gridwrap,.mbl-visual .mbl-tcal-next { border-radius:var(--radius);box-shadow:var(--shadow); }
+.mbl-visual .mbl-hub-date b,.mbl-visual .mbl-tcal-tmtext b { font-family:var(--display);font-weight:800; }
+.mbl-visual .mbl-hub-tabs button,.mbl-visual .mbl-hub-filter button,.mbl-visual .mbl-node { border-radius:7px; }
+.mbl-visual .log .ev { padding:11px 0; }
+.mbl-visual .log .lage { color:var(--muted); }
+.mbl-visual .mbl-dock { background:var(--card);box-shadow:0 -5px 20px #00000018; }
+.mbl-visual .mbl-dock-btn { border-top:3px solid transparent; }
+.mbl-visual .mbl-dock-btn.is-active { border-top-color:var(--accent);background:var(--accent-soft);font-weight:750; }
+.mbl-visual .mbl-dock-icon { opacity:.8; }
+
+/* Calendar, team and season controls */
+.mbl-visual .mbl-tcal-chip { border-radius:8px;border:1px solid var(--line); }
+.mbl-visual .mbl-tcal-chip b { font-family:var(--display);font-size:22px;font-weight:800; }
+.mbl-visual .mbl-cal-mon b { font-size:21px;font-weight:800; }
+.mbl-visual .mbl-cal-cells,.mbl-visual .mbl-cal-week { grid-template-columns:repeat(7,minmax(0,1fr));gap:3px; }
+.mbl-visual .mbl-gc { border-radius:5px;min-width:0; }
+.mbl-visual .mbl-gc.home { border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); }
+.mbl-visual .mbl-gc.is-played { opacity:1; }
+.mbl-visual .mbl-gc-sc { color:var(--ink);white-space:nowrap; }
+.mbl-visual .mbl-gc-sc.w { color:var(--up); }
+.mbl-visual .mbl-gc-sc.l { color:var(--down); }
+.mbl-visual .mbl-season-command { background:var(--card);border-left:3px solid var(--accent); }
+.mbl-visual .mbl-season-command > b { font-size:1rem; }
+.mbl-visual .mbl-season-btn,.mbl-visual .mbl-tc-btn { min-height:42px;font-weight:650; }
+.mbl-visual .mbl-roster-row { border-radius:7px; }
+.mbl-visual .mbl-roster-ovr,.mbl-visual .mbl-gc-sc,.mbl-visual .mbl-bill-rows { font-variant-numeric:tabular-nums; }
+
+/* Skills, contacts, finances, historical records and legacies */
+.mbl-visual .mbl-badge-ovr-card { background:var(--accent-soft);border-color:var(--line); }
+.mbl-visual .mbl-badge-ovr-num { font-family:var(--display);font-size:44px;font-weight:850; }
+.mbl-visual .mbl-train-card { border-radius:8px;border-top:2px solid var(--accent); }
+.mbl-visual .mbl-train-btn { color:var(--accent-ink); }
+.mbl-visual .mbl-train-gain { color:var(--up); }
+.mbl-visual .mbl-train-loss { color:var(--down); }
+.mbl-visual .mbl-train-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.mbl-visual .mbl-rel-card,.mbl-visual .mbl-bill,.mbl-visual .mbl-gh-row { border-radius:8px; }
+.mbl-visual .mbl-sms-bubble { border-radius:10px 10px 10px 3px; }
+.mbl-visual .mbl-sms-bubble.is-sent { border-radius:10px 10px 3px 10px;background:var(--accent-soft); }
+.mbl-visual .mbl-rel-sub,.mbl-visual .mbl-slot-section-title,.mbl-visual .mbl-badge-sub { font-weight:750;color:var(--ink); }
+.mbl-visual .mbl-bill { border-left:3px solid var(--accent); }
+.mbl-visual .moneysheet .networth { font-family:var(--display);font-weight:800;font-variant-numeric:tabular-nums; }
+.mbl-visual .moneysheet .budgetlist { border-top:1px solid var(--line); }
+.mbl-visual .modal-top .kicker { font-weight:750; }
+.mbl-visual .mbl-gh-ghead { font-weight:700; }
+.mbl-visual .mbl-gh-table td,.mbl-visual .mbl-gh-table th { font-variant-numeric:tabular-nums; }
+.mbl-visual .hero { background:var(--card);border-top:4px solid var(--accent); }
+.mbl-visual .heroart,.mbl-visual .heroframe { border-radius:8px; }
+
+/* Live broadcast has its own dark palette. */
+.mbl-visual .mbl-broadcast { background:#0b1020;color:#edf3fa; }
+.mbl-visual .mbc-scoreboard { background:#101c2b;border-bottom-color:#324256; }
+.mbl-visual .mbc-team { background:#172438;border-radius:8px; }
+.mbl-visual .mbc-team-name { color:#e5edf8; }
+.mbl-visual .mbc-team-score { color:#fff;font-family:var(--display);font-size:clamp(32px,11vw,54px);font-weight:850; }
+.mbl-visual .mbc-line { background:#132031;border-color:#283b50;border-left-color:var(--line-team,#f3a15e);border-radius:6px; }
+.mbl-visual .mbc-sidetag { border-radius:4px;color:color-mix(in srgb,var(--tagc) 65%,white); }
+.mbl-visual .mbc-meta { color:#b3c2d3; }
+.mbl-visual .mbc-close { background:#26384f;color:#edf3fa; }
+
+@media(max-width:420px) {
+  .mbl-visual main { padding-left:10px;padding-right:10px; }
+  .mbl-visual .card { padding:14px; }
+  .mbl-visual .mbl-tcal-gridwrap { padding-left:7px;padding-right:7px; }
+  .mbl-visual .mbl-gc-badge img,.mbl-visual .mbl-gc-badge .team-badge { width:22px;height:22px; }
+  .mbl-visual .mbl-gc-sc { font-size:9px; }
+  .mbl-visual .mbl-train-card { padding:9px;min-width:0;overflow-wrap:anywhere; }
+  .mbl-visual .mbl-dock-btn { font-size:11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .mbl-visual main.mbl-fade-in,.mbl-visual .mbc-line { animation:none; }
+}

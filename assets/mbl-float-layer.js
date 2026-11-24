@@ -34,9 +34,26 @@
   };
 
   // 独立浮层宿主（普通 div，不形成层叠上下文，内部 fixed 弹层行为与内核原生一致）
-  var clubHost = document.createElement('div');
-  var shapeHost = document.createElement('div');
-  function show(host) { if (!host.isConnected) document.body.append(host); }
+  var clubHost = document.createElement('dialog');
+  var shapeHost = document.createElement('dialog');
+  clubHost.className = shapeHost.className = 'mbl-overlay-host';
+  function show(host) {
+    if (!host.isConnected) document.body.append(host);
+    if (!host.open) host.showModal();
+  }
+  function closeHost(host) {
+    if (host.open) host.close();
+    host.remove();
+  }
+  [clubHost, shapeHost].forEach(function (host) {
+    host.addEventListener('click', function (event) {
+      if (event.target.classList.contains('modal-backdrop')) closeHost(host);
+    });
+    host.addEventListener('cancel', function (event) {
+      event.preventDefault();
+      closeHost(host);
+    });
+  });
 
   // 捕获阶段拦截，阻止冒泡到 ER
   document.addEventListener('click', function (ev) {
@@ -45,9 +62,13 @@
     var act = node.dataset.act, v = node.dataset.v || '';
     if (act === 'club') {
       ev.stopPropagation();
-      shapeHost.remove();
-      clubHost.remove();
-      if (v) { de.clubOpen = v; clubHost.innerHTML = Ust(de.life); show(clubHost); }
+      closeHost(shapeHost);
+      closeHost(clubHost);
+      if (v) {
+        de.clubOpen = v;
+        try { clubHost.innerHTML = Ust(de.life); } finally { de.clubOpen = ''; }
+        show(clubHost);
+      }
       else de.clubOpen = '';
     } else if (act === 'shape') {
       ev.stopPropagation();
@@ -56,15 +77,15 @@
       if (data) { shapeHost.innerHTML = Kst(data); show(shapeHost); }
     } else if (act === 'shapeclose') {
       ev.stopPropagation();
-      shapeHost.remove();
+      closeHost(shapeHost);
     }
   }, true);
 
   // Esc 关闭浮层：先资料卡，再球队
   document.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Escape') return;
-    if (shapeHost.isConnected) { shapeHost.remove(); ev.stopPropagation(); }
-    else if (clubHost.isConnected) { clubHost.remove(); de.clubOpen = ''; ev.stopPropagation(); }
+    if (shapeHost.isConnected && window.MBLInteraction?.isTop(shapeHost)) { ev.preventDefault(); closeHost(shapeHost); ev.stopPropagation(); }
+    else if (clubHost.isConnected && window.MBLInteraction?.isTop(clubHost)) { ev.preventDefault(); closeHost(clubHost); de.clubOpen = ''; ev.stopPropagation(); }
   }, true);
 
   window.MBLFloatLayer = {};

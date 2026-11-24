@@ -77,9 +77,9 @@
     try { return (typeof kn === 'function') ? kn(ball) : 'wing'; } catch (e) { return 'wing'; }
   }
   // 系统真实姓名（与 Ed 给新秀命名同口径），去重
-  function realName(used) {
+  function realName(used, sourceLife) {
     var n = null;
-    for (var t = 0; t < 12; t++) { n = Ed(life(), 'NBA'); if (!used.has(n.en)) break; }
+    for (var t = 0; t < 12; t++) { n = Ed(sourceLife || life(), 'NBA'); if (!used.has(n.en)) break; }
     used.add(n.en);
     return n;
   }
@@ -91,16 +91,20 @@
   }
 
   // ===== 正式比赛：从真实赛季建队 =====
-  function buildRealMatchup() {
+  function buildRealMatchup(absent) {
     var l = life(), season;
     try { season = Oa(l); } catch (e) { season = null; }
     if (!season) return null;
     var ng = pi(season);
     if (!ng) return null;
+    absent = absent ?? ((l.ball.out ?? 0) > 0 || l.prisonYears > 0 || !!season.sitOut || hb(season));
+    var seed = window.MBLMatchRecord.seedFor(l, season, 'regular', ng.game - 1);
+    var rosterRng = window.MBLMatchRecord.rng(seed ^ 0x9e3779b9);
+    var nameLife = Object.assign({}, l, { rng: seed });
     var S = window.MBLAttrSys, ball = l.ball, pos = myPos(ball), used = new Set();
 
     // 我方 8 人：按 SLOT_POS 从赛季名单挑，能力缺失则由五轴确定性生成
-    var roster = season.roster || [], taken = {};
+    var roster = (season.roster || []).filter(function (player) { return !player.me; }), taken = {};
     var mySide = SLOT_POS.map(function (slot) {
       var idx = roster.findIndex(function (pl, i) { return !taken[i] && pl.pos === slot; });
       if (idx < 0) idx = roster.findIndex(function (pl, i) { return !taken[i]; });
@@ -112,21 +116,26 @@
     // 玩家本人替换同位置
     var myBase = S.overall(ball.skills, pos);
     var meSlot = (function () { var i = mySide.findIndex(function (x) { return x && x.pos === pos; }); return i < 0 ? 0 : i; })();
-    mySide[meSlot] = { id: 'me', name: (l.name && l.name.en) ? l.name : '你', pos: pos, ratings: ball.skills, ovr: myBase, badges: S.badgeTiers(ball.skills) };
+    if (!absent) mySide[meSlot] = { id: 'me', name: (l.name && l.name.en) ? l.name : '你', pos: pos, ratings: ball.skills, ovr: myBase, badges: S.badgeTiers(ball.skills) };
+    mySide = mySide.map(function (player, index) {
+      if (player) return player;
+      var slot = SLOT_POS[index], reserve = iH(Math.max(50, myBase - 8), slot, rosterRng);
+      return { id: 'reserve' + index, name: realName(used, nameLife), pos: slot, ratings: reserve.ratings, ovr: reserve.ovr };
+    });
 
     // 对手 8 人：真实队名 + 真实姓名，能力按对手球队的真实强度（season.strength）生成
     var oppName = ng.opp;
     var oppBase = C.clamp(Math.round(Number(season.strength[ng.index])) || myBase, 50, 98);
     var oppSide = SLOT_POS.map(function (p) {
-      var nm = realName(used), r = iH(oppBase, p, Math.random);
+      var nm = realName(used, nameLife), r = iH(oppBase, p, rosterRng);
       return { id: nm.en, name: nm, pos: p, ratings: r.ratings, ovr: r.ovr, badges: r.badges };
     });
 
     var myTeam = { name: season.team, players: mySide, color: teamColor(season.team) };
     var oppTeam = { name: oppName, players: oppSide, color: teamColor(oppName) };
     return ng.home
-      ? { home: myTeam, away: oppTeam, mySide: 'home', gameIndex: ng.game - 1 }
-      : { home: oppTeam, away: myTeam, mySide: 'away', gameIndex: ng.game - 1 };
+      ? { home: myTeam, away: oppTeam, mySide: 'home', gameIndex: ng.game - 1, seed: seed }
+      : { home: oppTeam, away: myTeam, mySide: 'away', gameIndex: ng.game - 1, seed: seed };
   }
 
   // ===== 表演赛兜底（无正式比赛时） =====
@@ -157,7 +166,7 @@
   }
 
   // ===== 季后赛：从当前系列赛建队（用 cy 上下文 + 同份 roster） =====
-  function buildPlayoffMatchup(series) {
+  function buildPlayoffMatchup(series, seed) {
     var l = life(), s = l && l.ball && l.ball.season;
     if (!s || s.phase !== 'playoffs') return null;
     var cx = cy(s);
@@ -177,16 +186,19 @@
     mySide[meSlot] = { id: 'me', name: (l.name && l.name.en) ? l.name : '你', pos: pos, ratings: ball.skills, ovr: myBase, badges: S.badgeTiers(ball.skills) };
 
     var used = new Set();
+    var seeded = seed !== undefined && window.MBLMatchRecord;
+    var rosterRng = seeded ? window.MBLMatchRecord.rng(seed ^ 0x9e3779b9) : Math.random;
+    var nameLife = seeded ? Object.assign({}, l, { rng: seed }) : l;
     var oppBase = C.clamp(Math.round(Number(s.strength[cx.oppIndex])) || myBase, 50, 98);
     var oppSide = SLOT_POS.map(function (p) {
-      var nm = realName(used), r = iH(oppBase, p, Math.random);
+      var nm = realName(used, nameLife), r = iH(oppBase, p, rosterRng);
       return { id: nm.en, name: nm, pos: p, ratings: r.ratings, ovr: r.ovr, badges: r.badges };
     });
     if (series) {
       mySide = mySide.map(function (player, index) {
         if (!player || (player.id === 'me' && series.out > series.games.length)) {
-          var pos = SLOT_POS[index], reserve = iH(myBase - 8, pos, Math.random);
-          player = { id: 'reserve' + index, name: realName(used), pos: pos,
+          var pos = SLOT_POS[index], reserve = iH(myBase - 8, pos, rosterRng);
+          player = { id: 'reserve' + index, name: realName(used, nameLife), pos: pos,
             ratings: reserve.ratings, ovr: reserve.ovr };
         }
         var ratings = Object.fromEntries(Object.entries(player.ratings).map(function (entry) {
@@ -424,17 +436,24 @@
   function compactBox(g) {
     return { home: compactTeam(g, 'home'), away: compactTeam(g, 'away') };
   }
+  function playerSummary(b) {
+    if (!b) return {};
+    return { pts: b.pts, reb: b.ore + b.dre, ast: b.ast, stl: b.stl, blk: b.blk,
+      min: b.min, fga: b.fga, fgm: b.fgm, tpa: b.tpa, tpm: b.tpm,
+      fta: b.fta, ftm: b.ftm, pf: b.pf, fo: !!b.fo };
+  }
   // 模拟路径用：建真实对阵并跑引擎，返回与直播同形状的 preset（含完整 box）
-  function makePreset() {
-    var mu = buildRealMatchup();
+  function makePreset(absent) {
+    var mu = buildRealMatchup(absent);
     if (!mu) return null;
-    var g = window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: Math.random });
+    var record = window.MBLMatchRecord.snapshot(mu, mu.seed);
+    var g = window.MBLMatchRecord.simulate(record);
     var mine = mu.mySide, other = mine === 'home' ? 'away' : 'home', b = g[mine].box['me'];
     return {
       gameIndex: mu.gameIndex,
       us: g.score[mine], them: g.score[other],
-      pts: b.pts, reb: b.ore + b.dre, ast: b.ast, stl: b.stl, blk: b.blk,
-      box: compactBox(g)
+      absent: !b, ...playerSummary(b),
+      box: compactBox(g), matchRecord: record, overtime: Math.max(0, g.quarters.length - 4)
     };
   }
 
@@ -584,8 +603,8 @@
     window.__mblPreset = {
       gameIndex: ctx.gameIndex,
       us: game.score[mine], them: game.score[other],
-      pts: b.pts, reb: b.ore + b.dre, ast: b.ast, stl: b.stl, blk: b.blk,
-      box: compactBox(game)
+      absent: !b, ...playerSummary(b),
+      box: compactBox(game), matchRecord: ctx.matchRecord, overtime: Math.max(0, game.quarters.length - 4)
     };
   }
   function finish() {
@@ -594,7 +613,9 @@
     setLiveEnd();
     commitPreset();
     if (tabMode === 'box') renderBoxScore();
-    if (ctx.playoff) {
+    if (ctx.historical) {
+      feed.append(el('div', 'mbc-line is-final', '历史战报回放结束'));
+    } else if (ctx.playoff) {
       feed.append(el('div', 'mbc-line is-final', '终场 ' + runScore.home + ' : ' + runScore.away + '（已计入系列赛）'));
     } else if (ctx.real) {
       feed.append(el('div', 'mbc-line is-final', '终场 ' + runScore.home + ' : ' + runScore.away +
@@ -625,14 +646,15 @@
     scoreEls[side].logo.innerHTML = TBadge(tm, yr);
   }
 
-  function present(mu, real, replay) {
+  function present(mu, real, replay, historical) {
     if (!mu || !window.MBLMatchEngine) return;
     ensureDialog();
     paintTeam('home', mu.home); paintTeam('away', mu.away);
     lastMu = { home: mu.home, away: mu.away };
-    game = replay || window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: Math.random });
-    ctx = { real: !!real, playoff: !!replay, mySide: mu.mySide, gameIndex: mu.gameIndex };
-    dialog.querySelector('.mbc-title').textContent = replay ? '季后赛第 ' + mu.playoffGameNo + ' 场' : '比赛直播';
+    var record = real ? window.MBLMatchRecord.snapshot(mu, mu.seed) : null;
+    game = replay || (record ? window.MBLMatchRecord.simulate(record) : window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: Math.random, overtime: true }));
+    ctx = { real: !!real, playoff: !!replay && !historical, historical: !!historical, mySide: mu.mySide, gameIndex: mu.gameIndex, matchRecord: record };
+    dialog.querySelector('.mbc-title').textContent = historical ? '历史战报回放' : replay ? '季后赛第 ' + mu.playoffGameNo + ' 场' : '比赛直播';
     gameOver = false;
     clutchShown = false; liveSnap = null; liveProg = 0;
     resetLiveBadge();
@@ -654,16 +676,28 @@
   }
 
   function makePlayoffGame(series, rng) {
-    var mu = buildPlayoffMatchup(series);
+    var recorder = window.MBLMatchRecord;
+    var seed = recorder && rng ? Math.floor(rng() * 4294967296) : undefined;
+    var mu = buildPlayoffMatchup(series, seed);
     if (!mu || !window.MBLMatchEngine) return null;
-    var game = window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: rng, overtime: true });
-    return game.winner ? { mu: mu, game: game } : null;
+    var matchRecord = seed !== undefined ? recorder.snapshot(mu, seed) : null;
+    var game = matchRecord ? recorder.simulate(matchRecord) : window.MBLMatchEngine.simulate(mu.home, mu.away, { rng: rng, overtime: true });
+    return game.winner ? { mu: mu, game: game, ...(matchRecord ? { matchRecord: matchRecord, box: compactBox(game) } : {}) } : null;
   }
 
   function openPlayoff() {
     if (dialog && dialog.open) return;
     var replay = playNextPlayoffGame();
     if (replay) { closeCb = null; present(replay.mu, false, replay.game); }
+  }
+
+  function openHistorical(record) {
+    if (dialog?.open) return false;
+    var replay = window.MBLMatchRecord.replay(record);
+    if (!replay) return false;
+    closeCb = null;
+    present(replay.mu, false, replay.game, true);
+    return true;
   }
 
   function hasRealGame() {
@@ -695,8 +729,10 @@
   window.MBLBroadcast = {
     open: open,
     openPlayoff: openPlayoff,
+    openHistorical: openHistorical,
     makePlayoffGame: makePlayoffGame,
     makePreset: makePreset,
+    teamColor: teamColor,
     _state: function () { return { game: game, ctx: ctx, runScore: runScore }; },
     _buildReal: buildRealMatchup,
     _buildEx: buildExhibition,

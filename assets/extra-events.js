@@ -19,7 +19,7 @@
     {
       id: 'mbl_kid_coach',
       ages: [4, 12],
-      when: function (life) { return life.age >= 4 && life.age <= 12; },
+      when: function (life) { return life.age >= 4 && life.age <= 12 && !!life.ball?.started; },
       title: T('A coach notices you', '教练注意到了你', '教練注意到了你'),
       text: T('At practice, a coach stopped to watch you for a while and nodded. How do you respond?',
         '训练时，一位教练停下来看了你一会儿，点了点头。你会怎么做？',
@@ -53,7 +53,7 @@
     {
       id: 'mbl_kid_streetball',
       ages: [6, 12],
-      when: function (life) { return life.age >= 6 && life.age <= 12; },
+      when: function (life) { return life.age >= 6 && life.age <= 12 && !!life.ball?.started; },
       title: T('Streetball invitation', '街头野球邀约', '街頭野球邀約'),
       text: T('Older kids on the court wave you over to join their pickup game. Do you dare?',
         '场上大孩子招手叫你加入野球局。你敢不敢上？', '場上大孩子招手叫你加入野球局。你敢不敢上？'),
@@ -81,7 +81,7 @@
     {
       id: 'mbl_ball_vs_study',
       ages: [13, 19],
-      when: function (life) { return life.age >= 13 && life.age <= 19 && !life.ball.pro && !life.ball.retiredFromPlaying; },
+      when: function (life) { return life.age >= 13 && life.age <= 19 && life.inSchool && life.ball?.started && !life.ball.pro && !life.ball.retiredFromPlaying; },
       title: T('Basketball vs. books', '篮球与学业', '籃球與學業'),
       text: T('Practice and exams keep colliding this term. Where do you put your energy?',
         '这学期训练和考试总撞在一起，你把精力放在哪边？', '這學期訓練和考試總撞在一起，你把精力放在哪邊？'),
@@ -113,7 +113,7 @@
     {
       id: 'mbl_teammate_friction',
       ages: [13, 19],
-      when: function (life) { return life.age >= 13 && life.age <= 19; },
+      when: function (life) { return life.age >= 13 && life.age <= 19 && !!life.ball?.youth && !life.ball.pro && !life.ball.retiredFromPlaying; },
       title: T('Friction with a teammate', '和队友起了摩擦', '和隊友起了摩擦'),
       text: T('A teammate argued with you over a missed play in the huddle. How do you handle it?',
         '一次失误后，队友在板凳旁和你争了起来。你怎么处理？', '一次失誤後，隊友在板凳旁和你爭了起來。你怎麼處理？'),
@@ -145,7 +145,7 @@
     {
       id: 'mbl_pro_minor_injury',
       ages: [18, 40],
-      when: function (life) { return !!(life.ball && life.ball.pro && !life.ball.retiredFromPlaying); },
+      when: function (life) { return !!window.MBLEventPolicy.regular(life) && !(life.ball.out > 0) && life.status.health <= 78; },
       title: T('A minor knock', '一处小伤', '一處小傷'),
       text: T('A minor injury nags at you before an important stretch. Do you play through it?',
         '关键赛程前，一处小伤隐隐作痛。你要不要带伤上场？', '關鍵賽程前，一處小傷隱隱作痛。你要不要帶傷上場？'),
@@ -155,8 +155,7 @@
           text: T('Play through it', '带伤坚持', '帶傷堅持'),
           lean: { bravery: 1 },
           apply: function (life) {
-            if (k(life, 0.5)) { setStatus(life, 'health', -4); $(life, T('The knock flared up and kept you out longer than expected.',
-              '伤势加重，比预期缺阵更久。', '傷勢加重，比預期缺陣更久。'), {}); }
+            if (k(life, 0.5)) window.MBLEventPolicy.schedule(life, 'injury_risk', 3);
             else be(life, ['finishing'], 1);
           }
         },
@@ -164,14 +163,17 @@
           key: 'rest_up',
           text: T('Rest and recover', '安心休养', '安心休養'),
           lean: { patience: 1 },
-          apply: function (life) { setStatus(life, 'health', 3); }
+          apply: function (life) {
+            life.ball.out = Math.max(life.ball.out ?? 0, 2);
+            window.MBLEventPolicy.schedule(life, 'injury_rest', 3);
+          }
         }
       ]
     },
     {
       id: 'mbl_contract_year',
       ages: [18, 40],
-      when: function (life) { return !!(life.ball && life.ball.pro && !life.ball.retiredFromPlaying); },
+      when: function (life) { return !!window.MBLEventPolicy.regular(life) && Number(life.ball.pro.contract) === 1; },
       title: T('Contract year', '合同年', '合同年'),
       text: T('This season decides your next deal. What mindset do you bring?',
         '这个赛季决定你的下一份合同，你抱着什么心态？', '這個賽季決定你的下一份合同，你抱著什麼心態？'),
@@ -181,6 +183,7 @@
           text: T('Chase the big deal', '全力争取大合同', '全力爭取大合同'),
           lean: { ambition: 1 },
           apply: function (life) {
+            window.MBLEventPolicy.schedule(life, 'contract_pressure', 5);
             if (k(life, 0.55)) { be(life, ['mid'], 2); d(life, T('You played hungry and scouts took notice.',
               '你打得很拼，球探看在眼里。', '你打得很拼，球探看在眼裡。'), {}); }
             else setStatus(life, 'happiness', -2);
@@ -198,7 +201,7 @@
     {
       id: 'mbl_endorsement_trap',
       ages: [16, 45],
-      when: function (life) { return life.age >= 16; },
+      when: function (life) { return !!window.MBLEventPolicy.regular(life) && life.status.reputation >= 45; },
       title: T('An endorsement offer', '一份代言邀约', '一份代言邀約'),
       text: T('A commercial offer lands in your lap that could distract from the season. Do you take it?',
         '一份商业代言找上门，可能分散赛季精力。你接不接？', '一份商業代言找上門，可能分散賽季精力。你接不接？'),
@@ -223,7 +226,10 @@
     {
       id: 'mbl_slump_mindset',
       ages: [16, 45],
-      when: function (life) { return life.age >= 16; },
+      when: function (life) {
+        var season = window.MBLEventPolicy.regular(life);
+        return !!season && (life.ball.form <= -3 || (season.games.length >= 5 && season.games.slice(-5).filter(function (g) { return g.us <= g.them; }).length >= 4));
+      },
       title: T('A slump of confidence', '状态低谷', '狀態低谷'),
       text: T('Results have dipped and confidence is fraying. How do you climb out?',
         '表现下滑，信心有些动摇。你怎么走出来？', '表現下滑，信心有些動搖。你怎麼走出來？'),
@@ -267,19 +273,19 @@
     return true;
   }
 
-  function maybeInject() {
-    var life = window.de && de.life;
+  function maybeInject(life, at) {
     if (!life || !life.alive) return;
     if (life.pending && life.pending.length) return;
+    if (window.MBLEventPolicy.followUp(life)) return;
+    if (!window.MBLEventPolicy.claimCheckpoint(life, at)) return;
     var flags = life.flags || (life.flags = {});
     var used = flags.mblExtraEvents || (flags.mblExtraEvents = {});
-    var avail = EXTRA.filter(function (e) { return !used[e.id] && e.when(life); });
+    var avail = EXTRA.filter(function (e) { return !used[e.id] && life.age >= e.ages[0] && life.age <= e.ages[1] && e.when(life); });
     if (!avail.length) return;
-    if (tr(life) > 0.12) return; // 低概率，避免刷屏
+    if (tr(life) > 0.26) return; // 每个生涯进度节点最多抽取一次
     var pick = avail[Math.floor(tr(life) * avail.length)];
     life.pending.push({ tid: pick.id, params: {}, pool: 'life' });
     used[pick.id] = 1;
-    window.de.screen === 'play' && mn();
   }
 
   window.MBLExtraEvents = { register: register, maybeInject: maybeInject, list: EXTRA.map(function (e) { return e.id; }) };
@@ -292,6 +298,5 @@
     }
     C.onHeartbeat(waitRegister, 120);
   }
-  // 事件注入：接入统一心跳，最小间隔 900ms
-  C.onHeartbeat(maybeInject, 900);
+  // 调度由内核生涯推进节点调用；页面停留时间不影响事件。
 })();
