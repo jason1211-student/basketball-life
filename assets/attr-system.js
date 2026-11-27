@@ -9,7 +9,7 @@
   function rnd(v) { return C ? C.round(v) : Math.round(num(v)); }
   function clamp(v, lo, hi) { return C ? C.clamp(v, lo, hi) : Math.max(lo, Math.min(hi, v)); }
 
-  var ATTR_VERSION = 2;
+  var ATTR_VERSION = 3;
 
   // ===== 17 项能力与分组 =====
   var KEYS = ['layup', 'dunk', 'three', 'mid', 'freeThrow',
@@ -105,22 +105,12 @@
   STYLES.forEach(function (st) { STYLE_NAME[st.id] = st.name; });
 
   // ===== 总评（位置加权 + 风格微调）=====
-  var STYLE_BUFF = .3, STYLE_NERF = .15;
+  // A fixed positional base plus the strongest specialty is monotone in every skill.
   function overall(r, pos) {
-    var w0 = WEIGHTS[pos] || WEIGHTS.wing, style = detectStyle(r);
-    var def = STYLES.find(function (st) { return st.id === style; });
-    var keySet = def ? def.keys : null;
-    var w = {}, sum = 0;
-    KEYS.forEach(function (k) {
-      var mult = 1;
-      if (keySet) mult = keySet.indexOf(k) >= 0 ? 1 + STYLE_BUFF : 1 - STYLE_NERF;
-      w[k] = w0[k] * mult;
-      sum += w[k];
-    });
-    var s = 0;
-    KEYS.forEach(function (k) { s += num(r[k]) * (w[k] / sum); });
-    var out = Math.round(clamp(s, 0, 99));
-    return Number.isFinite(out) ? out : 0;
+    var weights = WEIGHTS[pos] || WEIGHTS.wing;
+    var base = KEYS.reduce((sum,k) => sum + num(r[k]) * weights[k], 0);
+    var specialty = Math.max(...STYLES.map(style => meanOf(r,style.keys)));
+    return Math.round(clamp(base * .88 + specialty * .12, 0, 99));
   }
 
   // ===== 徽章（31 个，四档）=====
@@ -196,6 +186,25 @@
     BADGES.forEach(function (b) { var t = tierOf(r, b); if (t) out[b.id] = t; });
     return out;
   }
+  function badgeLimit(ovr) { return ovr < 45 ? 2 : ovr < 65 ? 4 : ovr < 80 ? 6 : ovr < 90 ? 8 : 10; }
+  function activeBadges(r,pos) {
+    var ovr = overall(r,pos), max = badgeLimit(ovr);
+    var style = STYLES.find(item=>item.id===detectStyle(r));
+    var eligible = BADGES.map((b,index)=>{
+      var tier = tierOf(r,b), value = badgeValue(r,b.attrs);
+      var specialty = style ? b.attrs.filter(k=>style.keys.includes(k)).length/b.attrs.length : 0;
+      return {b,index,tier,score:(TIER_POWER[tier]||0)*10 + value + specialty*4};
+    }).filter(e=>e.tier).sort((a,b)=>b.score-a.score || a.index-b.index);
+    var map = {}, counts = {};
+    for (var item of eligible) {
+      var cat = item.b.cat;
+      if ((counts[cat]||0)>=3) continue;
+      map[item.b.id]=item.tier;
+      counts[cat]=(counts[cat]||0)+1;
+      if(Object.keys(map).length>=max)break;
+    }
+    return map;
+  }
   // 各比赛轴的徽章加成（每轴封顶 +8）
   function badgeBonus(r) {
     var acc = { sh: 0, ins: 0, pm: 0, df: 0, ath: 0 };
@@ -206,12 +215,8 @@
     FIVE.forEach(function (a) { acc[a] = Math.min(8, acc[a]); });
     return acc;
   }
-  // 含徽章的实战 5 轴
-  function matchFive(r) {
-    var base = fiveAxis(r), bonus = badgeBonus(r);
-    FIVE.forEach(function (a) { base[a] = clamp(base[a] + bonus[a], 0, 99); });
-    return base;
-  }
+  // 球队分析使用原始五轴。情境徽章由比赛引擎在对应回合应用。
+  function matchFive(r) { return fiveAxis(r); }
 
   // ===== 旧存档迁移 =====
   // 玩家：旧 10 项 -> 新 17 项（严格保总评，拆分项均值=原值）
@@ -225,17 +230,23 @@
       speedWithBall: rnd(H * .6 + A * .4),
       perimeterD: pD, steal: pD,
       interiorD: iD, block: rnd(iD * .6 + A * .4),
-      rebound: num(o.rebounding),
+      rebound: num(o.rebounding ?? o.rebound),
       speed: A, strength: A, vertical: A,
       freeThrow: rnd(num(o.three) * .5 + num(o.mid) * .5)
     };
   }
   function migratePlayerBall(b) {
+    if (!b || !b.skills || !b.potential) return b;
     if (b.attrVersion === ATTR_VERSION) return b;
-    if (b.skills && b.skills.finishing !== undefined) {
-      b.skills = deriveFromOld(b.skills);
-      if (b.potential) b.potential = deriveFromOld(b.potential);
+    function normalize(source,fallback) {
+      var legacy = ['finishing','handling','athleticism','passing','rebounding'].some(k=>Number.isFinite(source[k]));
+      var derived = legacy ? deriveFromOld(source) : {};
+      return Object.fromEntries(KEYS.map(k=>[k,clamp(Number.isFinite(source[k]) ? source[k] :
+        Number.isFinite(derived[k]) ? derived[k] : fallback(k),0,99)]));
     }
+    b.skills=normalize(b.skills,()=>0);
+    b.potential=normalize(b.potential,k=>Math.max(65,b.skills[k]));
+    KEYS.forEach(k=>{b.potential[k]=Math.max(b.skills[k],b.potential[k]);});
     b.attrVersion = ATTR_VERSION;
     return b;
   }
@@ -247,8 +258,6 @@
     df: ['perimeterD', 'interiorD', 'steal', 'block'],
     ath: ['speed', 'strength', 'vertical']
   };
-  var KEY_AXIS = {};
-  FIVE.forEach(function (a) { AXIS_GROUP[a].forEach(function (k) { KEY_AXIS[k] = a; }); });
 
   // 位置倾向（分）：同位置招牌技能偏高、非招牌偏低
   var BIAS = {
@@ -274,7 +283,7 @@
   // 由能力值与位置做确定性随机（同一球员每次结果稳定，不依赖外部 rng）
   function prngFor(o, pos) {
     var h = 2166136261 ^ (pos === 'guard' ? 1 : pos === 'big' ? 3 : 2);
-    KEYS.forEach(function (k) { h = Math.imul(h ^ Math.round(num(o[k])), 16777619) >>> 0; });
+    (o.sh == null ? KEYS : FIVE).forEach(function (k) { h = Math.imul(h ^ Math.round(num(o[k])), 16777619) >>> 0; });
     return mulberry32(h >>> 0);
   }
 
@@ -291,68 +300,23 @@
     return out;
   }
 
-  // 徽章预算（按总评四档）：球星 20-28 / 首发 12-18 / 角色 5-10 / 边缘 0-4
-  function budgetRange(ovr) {
-    if (ovr >= 86) return [20, 28];
-    if (ovr >= 75) return [12, 18];
-    if (ovr >= 65) return [5, 10];
-    return [0, 4];
-  }
-  function assignBadges(ratings, ovr, rng) {
-    var range = budgetRange(ovr);
-    var budget = range[0] + Math.floor(rng() * (range[1] - range[0] + 1));
-    var elig = [];
-    BADGES.forEach(function (b) {
-      var t = tierOf(ratings, b);
-      if (t) elig.push({ id: b.id, tier: t, pow: TIER_POWER[t], val: badgeValue(ratings, b.attrs), j: rng() });
-    });
-    if (elig.length > budget) {
-      elig.sort(function (x, y) {
-        return (y.pow * 100 + y.val + y.j * 6) - (x.pow * 100 + x.val + x.j * 6);
-      });
-      elig = elig.slice(0, budget);
-    }
-    var out = {};
-    elig.forEach(function (e) { out[e.id] = e.tier; });
-    return out;
-  }
-  function bonusFromMap(map) {
-    var acc = { sh: 0, ins: 0, pm: 0, df: 0, ath: 0 };
-    BADGES.forEach(function (b) { if (map[b.id]) acc[b.axis] += TIER_POWER[map[b.id]]; });
-    FIVE.forEach(function (a) { acc[a] = Math.min(8, acc[a]); });
-    return acc;
-  }
+  // Compatibility APIs for callers that previously requested a random allocation.
+  function budgetRange(ovr) { return [0,badgeLimit(ovr)]; }
+  function assignBadges(ratings,ovr,rng,pos) { return activeBadges(ratings,pos||'wing'); }
 
   // iH 入口：原始 5 轴 -> 17 项分化能力 + 预算徽章 + 与能力一致的 5 轴
   function finalizeNpc(raw, pos) {
     raw.ratings = genNpcRatings(raw, pos);
-    var ovr = overall(raw.ratings, pos);
-    raw.badges = assignBadges(raw.ratings, ovr, prngFor(raw.ratings, pos));
-    var base = fiveAxis(raw.ratings), bn = bonusFromMap(raw.badges);
-    FIVE.forEach(function (a) { raw[a] = Math.round(clamp(base[a] + bn[a], 0, 99)); });
+    raw.badges = activeBadges(raw.ratings,pos);
+    var base = fiveAxis(raw.ratings);
+    FIVE.forEach(function (a) { raw[a] = Math.round(base[a]); });
     return raw;
   }
 
   // 年度成长后重同步：已有能力沿形态平移（招牌技能保持），无 ratings 的旧档才重新生成
   function resyncNpc(npc) {
-    var z = { sh: 0, ins: 0, pm: 0, df: 0, ath: 0 };
-    var oldBonus = npc.badges ? bonusFromMap(npc.badges) : z;
-    var raw = {};
-    FIVE.forEach(function (a) { raw[a] = num(npc[a]) - oldBonus[a]; });
-    if (npc.ratings) {
-      var oldBase = fiveAxis(npc.ratings);
-      KEYS.forEach(function (k) {
-        var ax = KEY_AXIS[k];
-        npc.ratings[k] = Math.round(clamp(num(npc.ratings[k]) + (raw[ax] - oldBase[ax]), 20, 99));
-      });
-    } else {
-      npc.ratings = genNpcRatings(raw, npc.pos);
-    }
-    var ovr = overall(npc.ratings, npc.pos);
-    npc.badges = assignBadges(npc.ratings, ovr, prngFor(npc.ratings, npc.pos));
-    var base = fiveAxis(npc.ratings), bn = bonusFromMap(npc.badges);
-    FIVE.forEach(function (a) { npc[a] = Math.round(clamp(base[a] + bn[a], 0, 99)); });
-    return npc;
+    if(window.MBLDevelopment) return Object.assign(npc,window.MBLDevelopment.npc(npc));
+    return finalizeNpc(npc,npc.pos);
   }
   // 兼容保留：旧的 5 轴摊平（主流程已不再使用）
   function expandNpc(five) {
@@ -372,7 +336,7 @@
     FIVE: FIVE, WEIGHTS: WEIGHTS,
     fiveAxis: fiveAxis, matchFive: matchFive,
     STYLES: STYLES, STYLE_NAME: STYLE_NAME, detectStyle: detectStyle,
-    overall: overall,
+    overall: overall, activeBadges: activeBadges, badgeLimit: badgeLimit,
     BADGES: BADGES, BADGE_CATS: BADGE_CATS,
     TIERS: TIERS, TIER_LABEL: TIER_LABEL, TIER_ORDER: TIER_ORDER, TIER_NEXT: TIER_NEXT,
     tierOf: tierOf, badgeTiers: badgeTiers, badgeBonus: badgeBonus,

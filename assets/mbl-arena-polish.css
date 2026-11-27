@@ -1,0 +1,52 @@
+/* ARENA 34 / responsive identity, readable team colors, stable shell. */
+:root.mbl-arena:not([data-theme=light]) main.play[data-team] {--accent:#ffad76;--accent-ink:#20140e;--accent-soft:#392b26;--fill:#ff9a62;}
+:root.mbl-arena[data-theme=light] main.play[data-team] {--accent:#934018;--accent-ink:#fff;--accent-soft:#f9e8da;--fill:#aa532b;}
+.mbl-arena .arena-player-avatar {display:flex;flex-direction:column;align-items:center;gap:2px;flex:none;min-width:0;}
+.mbl-arena .arena-player-avatar .portrait {display:block;width:78px;height:86px;max-width:100%;border:1px solid #667485;border-radius:7px;background:#e5f1eb;}
+.mbl-arena .arena-player-avatar .agebig {display:flex;align-items:baseline;justify-content:center;gap:4px;min-width:0;padding:2px 3px;background:transparent;box-shadow:none;color:#ffbc90;font:850 18px/1.2 var(--display);}
+.mbl-arena .arena-player-avatar .agebig small {display:inline;font:650 10px/1 var(--sans);color:#cad4df;}
+.mbl-arena .lifebar .who {grid-template-columns:auto minmax(0,1fr) auto;gap:10px;}
+:root.mbl-arena[data-mbl-stage=childhood] .lifebar .who {background:linear-gradient(120deg,#26313c,#44372a);}
+:root.mbl-arena[data-mbl-stage=youth] .lifebar .who {background:linear-gradient(120deg,#172d42,#314c63);}
+:root.mbl-arena[data-mbl-stage=legacy] .lifebar .who {background:linear-gradient(120deg,#26303b,#4d412c);}
+.mbl-arena main.play[data-team] .lifebar .who {border-left-color:var(--team-trim,#ff8847);}
+.mbl-arena .whometa {min-width:0;}
+.mbl-arena .whoname {min-width:0;}
+.mbl-arena .whoname b {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mbl-arena .lifebar .whoend {min-width:0;}
+.mbl-arena .arena-action-grid .arena-action {min-height:52px;}
+.mbl-arena .arena-action small {overflow-wrap:anywhere;}
+/* Mobile secondary destinations should reveal their content above the fold. */
+@media(max-width:720px){
+  .mbl-arena main.play {padding-top:10px;gap:10px;}
+  .mbl-arena .lifebar {gap:8px;padding-top:4px;}
+  .mbl-arena .arena-brandline {gap:7px;font-size:10px;}
+  .mbl-arena .arena-monogram {height:24px;min-width:34px;}
+  .mbl-arena .lifebar .who {min-height:0;padding:10px 9px;gap:7px;}
+  .mbl-arena .arena-player-avatar .portrait {width:55px;height:60px;}
+  .mbl-arena .arena-player-avatar .agebig {font-size:15px;}
+  .mbl-arena .whoname b {font-size:clamp(16px,5vw,23px);}
+  .mbl-arena .lifebar .ms {padding:6px 4px;}
+  .mbl-arena .arena-action-grid .arena-action {min-height:48px;padding:7px 5px;}
+  .mbl-arena .arena-section-heading {padding:8px 0 9px;margin-bottom:9px;}
+  .mbl-arena main.play[data-arena-view]:not([data-arena-view=home]) .arena-brandline {display:none;}
+  .mbl-arena main.play[data-arena-view]:not([data-arena-view=home]) .ministats {display:none;}
+  .mbl-arena main.play[data-arena-view]:not([data-arena-view=home]) .arena-player-avatar .portrait {width:43px;height:47px;}
+  .mbl-arena main.play[data-arena-view]:not([data-arena-view=home]) .lifebar .who {padding:6px 8px;}
+  .mbl-arena main.play[data-arena-view]:not([data-arena-view=home]) .arena-action-grid .arena-action {min-height:42px;padding:5px;}
+}
+/* Desktop: navigation + permanent-in-flow player column + working page. */
+@media(min-width:1250px){
+  .mbl-arena main.play {display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);align-items:start;gap:18px;width:min(calc(100% - 215px),1180px);max-width:none;margin-left:max(195px,calc((100vw - 1360px)/2 + 180px));margin-right:auto;padding:18px 14px 32px;}
+  .mbl-arena main.play > header.lifebar {grid-column:1;grid-row:1;min-width:0;padding:0;}
+  .mbl-arena main.play > .mbl-views {grid-column:2;grid-row:1;min-width:0;}
+  .mbl-arena main.play > :not(.lifebar):not(.mbl-views) {grid-column:1/-1;min-width:0;}
+  .mbl-arena .mbl-dock {left:max(12px,calc((100vw - 1360px)/2));top:70px;width:165px;}
+  .mbl-arena .lifebar .who {grid-template-columns:auto minmax(0,1fr);padding:12px;min-height:0;}
+  .mbl-arena .lifebar .whoend {grid-column:1/-1;justify-self:stretch;}
+  .mbl-arena .lifebar .whoname b {font-size:23px;}
+  .mbl-arena .lifebar .ministats {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .mbl-arena .lifebar .ministats .ms:last-child {grid-column:1/-1;}
+  .mbl-arena .arena-action-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .mbl-arena .arena-section-heading {padding-top:8px;}
+}

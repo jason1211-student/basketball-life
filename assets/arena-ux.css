@@ -1,0 +1,107 @@
+/* Shared interactive dimensions and viewport boundaries. */
+.mbl-arena {
+  --mbl-target: 44px;
+  --mbl-focus: #d17d43;
+}
+.mbl-arena :is(button, a[href], summary, select, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--mbl-focus);
+  outline-offset: 2px;
+}
+.mbl-arena :is(.arena-subnav-btn,.mbl-pc-tab,.arena-phone-tab,.mbc-tab,.mbc-close,.arena-follow),
+.mbl-arena .arena-phone :is(.mbl-rel-btn,.mbl-rel-close) {
+  min-block-size: var(--mbl-target);
+  touch-action: manipulation;
+}
+.mbl-arena :is(.mbl-pc-tabs,.arena-phone-nav,.arena-subnav) [role=tab] {
+  scroll-margin-inline: 5px;
+}
+.mbl-arena .arena-phone .mbl-rel-tip:empty { display: none; }
+.mbl-arena .mbc-table :is(td.is-name, th:first-child) {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: #1a2330;
+}
+.mbl-arena .mbc-table th:first-child { z-index: 2; background: #202a39; }
+.mbl-arena .mbc-table .mbl-player-link { min-block-size: var(--mbl-target); }
+.mbl-arena .mbl-dock {
+  padding-inline: env(safe-area-inset-left,0px) env(safe-area-inset-right,0px);
+}
+.mbl-arena .mbl-dock-btn { min-inline-size: 0; }
+.mbl-arena .more .menu { max-block-size: clamp(116px, 42dvh, 440px); }
+.mbl-arena .more .menu button { min-block-size: var(--mbl-target); }
+.mbl-arena .mbl-dock-btn:focus-visible { outline-offset: -3px; }
+
+.mbl-arena.mbl-keyboard-open {
+  --panel-height: calc(var(--mbl-visible-height) - var(--panel-top) - var(--panel-bottom));
+}
+.mbl-arena.mbl-keyboard-open dialog[open] {
+  /* Override the short-screen dialog rules that normally center the panel. */
+  inset-block: calc(var(--mbl-visible-top) + var(--panel-top)) auto !important;
+  margin-block: 0 !important;
+  max-block-size: var(--panel-height);
+}
+.mbl-arena.mbl-keyboard-open .modal-backdrop:not(.mbl-overlay-host .modal-backdrop) {
+  inset-block: var(--mbl-visible-top) auto;
+  block-size: var(--mbl-visible-height);
+}
+
+@media (max-width: 600px) {
+  .mbl-arena .mbl-dock-btn { padding-inline: 2px; }
+  .mbl-arena :is(.arena-action,.mbl-season-btn) { min-block-size: var(--mbl-target); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .mbl-arena .mbl-dock { align-items: stretch; }
+  .mbl-arena .mbl-dock-btn {
+    min-block-size: var(--mbl-target);
+    flex-direction: row;
+    padding-block: 3px;
+  }
+  .mbl-arena .mbl-dock-icon { width: 19px; height: 19px; }
+  .mbl-arena .mbc-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    grid-template-rows: auto minmax(0,1fr) auto;
+  }
+  .mbl-arena .mbc-scoreboard { grid-area: 1 / 1 / 2 / -1; }
+  .mbl-arena :is(.mbc-feed,.mbc-boxview) { grid-area: 2 / 1 / 3 / -1; }
+  .mbl-arena .arena-feedtools { grid-area: 3 / 1; gap: 5px; background:#1b222f; }
+  .mbl-arena .mbc-controls { grid-area: 3 / 2; }
+  .mbl-arena .arena-feedtools[hidden] ~ .mbc-controls { grid-column: 1 / -1; }
+  .mbl-arena .mbc-scoreboard {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+    gap: 3px 8px;
+    align-items: center;
+  }
+  .mbl-arena .mbc-title-row { grid-area: 1 / 1 / 2 / 3; margin: 0; }
+  .mbl-arena .mbc-tabs { grid-area: 1 / 3; margin: 0; }
+  .mbl-arena .mbc-teams { grid-area: 2 / 1 / 3 / -1; }
+  .mbl-arena .mbc-meta { grid-area: 3 / 1; margin: 0; }
+  .mbl-arena .arena-lead-label { grid-area: 3 / 2; }
+  .mbl-arena .arena-period-strip { grid-area: 3 / 3; }
+  .mbl-arena .arena-lead-bar { display: none; }
+  .mbl-arena .mbc-team {
+    grid-template-columns: 28px minmax(0,1fr) auto;
+    grid-template-rows: auto;
+  }
+  .mbl-arena .mbc-team-logo,
+  .mbl-arena .mbc-team-name,
+  .mbl-arena .mbc-team-score { grid-row: 1; }
+  .mbl-arena .mbc-team-score { grid-column: 3; font-size: 30px; margin: 0; }
+  .mbl-arena .arena-lead-label { margin-block: 1px; }
+  .mbl-arena .arena-period-strip { min-block-size: 22px; }
+  .mbl-arena .mbc-controls { padding-block: 4px max(4px,env(safe-area-inset-bottom,0px)); }
+  .mbl-arena .arena-feedtools { padding-block: 0; padding-inline: 6px; }
+  .mbl-arena .arena-phone .mbl-rel-head { padding-block: 5px; }
+  .mbl-arena .arena-phone-nav { padding-block: 2px; }
+}
+@media (min-width: 1060px) {
+  .mbl-arena .mbl-dock { padding-inline: 8px; max-block-size: calc(100dvh - 90px); overflow-y: auto; }
+}
+@media (pointer: coarse) {
+  .mbl-arena :is(dialog[open],.modal-backdrop) :is(textarea,input:not([type=checkbox]):not([type=radio]):not([type=range])) { font-size: max(1em,16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mbl-arena :is(.mbl-dock-btn,.arena-subnav-btn,.mbl-pc-tab,.arena-phone-tab,.mbc-tab) { transition: none; }
+}

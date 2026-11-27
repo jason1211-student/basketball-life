@@ -9,18 +9,23 @@
   function tabs(root, key, items) {
     if (owner !== C.life()) { owner = C.life(); selected.clear(); }
     const nav = h('div', 'arena-subnav');
-    nav.setAttribute('role', 'group');
+    nav.setAttribute('role', 'tablist');
     nav.setAttribute('aria-label', key === 'team' ? '球队内容分类' : key === 'journey' ? '生涯档案分类' : '球员发展分类');
     const panels = {}, buttons = {};
     for (const [id, label] of items) {
       const button = h('button', 'arena-subnav-btn', label);
       button.type = 'button';
       button.dataset.arenaTab = id;
+      button.id='arena-tab-'+key+'-'+id;
+      button.setAttribute('role','tab');
+      button.setAttribute('aria-controls','arena-panel-'+key+'-'+id);
       buttons[id] = button;
       nav.append(button);
       const panel = h('section', 'arena-subpanel');
       panel.dataset.arenaPanel = id;
-      panel.setAttribute('aria-label', label);
+      panel.id='arena-panel-'+key+'-'+id;
+      panel.setAttribute('role','tabpanel');
+      panel.setAttribute('aria-labelledby',button.id);
       panels[id] = panel;
       button.addEventListener('click', () => select(id));
     }
@@ -28,11 +33,13 @@
       selected.set(key, id);
       for (const [name] of items) {
         const active = id === name;
-        buttons[name].setAttribute('aria-pressed', String(active));
+        buttons[name].setAttribute('aria-selected',String(active));
+        buttons[name].tabIndex=active?0:-1;
         panels[name].hidden = !active;
       }
     }
     root.replaceChildren(nav, ...Object.values(panels));
+    window.MBLInteraction?.tabKeys(nav,()=>Object.values(buttons));
     const active = selected.get(key);
     select(panels[active] ? active : items[0][0]);
     return panels;
@@ -90,7 +97,10 @@
     const card=h('section','arena-team-overview');
     const s=life.ball?.season, team=s?.team || life.ball?.pro?.team;
     const hero=h('header','arena-team-hero');
-    hero.append(h('span','arena-eyebrow','FRANCHISE / SEASON'), h('h3','',C.hans(team)||'尚未签约球队'), h('p','',s?.year?`${s.year}–${String(s.year+1).slice(-2)} 赛季`:'进入职业后解锁赛季数据'));
+    const teamIdentity=h('div','mbl-art-team-name');
+    teamIdentity.append(h('h3','',C.hans(team)||'尚未签约球队'), h('p','',s?.year?`${s.year}–${String(s.year+1).slice(-2)} 赛季`:'进入职业后解锁赛季数据'));
+    hero.append(teamIdentity);
+    if(team?.en&&window.MBLCareerArt)hero.append(MBLCareerArt.jersey(team,life.ball?.number));
     card.append(hero);
     if (!s) return card;
     const data=summarize(s.games);

@@ -76,3 +76,11 @@
 .mbl-train-btn{margin-top:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:var(--radius);padding:7px 10px;font:12px system-ui;cursor:pointer}
 .mbl-train-btn:disabled{border-color:var(--line);background:transparent;color:var(--faint);cursor:default}
 .mbl-train-msg{min-height:18px;margin:6px 0 0;font-size:12px;color:var(--muted)}
+
+.mbl-train-card,.mbl-train-grid>*{min-width:0}
+.mbl-train-card select{max-width:100%;min-height:40px;margin:.3rem 0;padding:0 .5rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px}
+.mbl-train-confirm{padding:.75rem;border-left:3px solid var(--accent);background:var(--card);font-size:.85rem}
+.mbl-train-confirm p,.mbl-training-receipt{margin:.4rem 0;line-height:1.5}
+.mbl-train-confirm button{margin-right:.5rem;min-height:40px}
+.mbl-train-confirm button:last-child{color:var(--ink);background:transparent;border-color:var(--line)}
+.mbl-training-receipt{padding:.65rem .8rem;border:1px solid var(--line);border-radius:6px;font-size:.85rem}

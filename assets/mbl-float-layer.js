@@ -4,38 +4,11 @@
 (function () {
   'use strict';
   if (window.MBLFloatLayer) return;
-  var TARGET = 14;
-
-  // 去掉 hue 的年份门槛，早期赛季其他球队也能点开
   window.hue = function (e, o) { return F_(e, o.leagueId); };
-
-  // 早期赛季名单不足时，按位置用程序化球员补齐到 14 人
-  var origI = window.I_;
-  function needPos(list) {
-    var g = list.filter(function (x) { return x.player.pos === 'guard'; }).length;
-    var w = list.filter(function (x) { return x.player.pos === 'wing'; }).length;
-    return g < 5 ? 'guard' : (w < 5 ? 'wing' : 'big');
-  }
-  window.I_ = function (e, o, team, yr) {
-    var list = origI(e, o, team, yr);
-    if (yr >= Rs || list.length >= TARGET) return list;
-    var used = new Set(list.map(function (x) { return x.player.name.en; }));
-    while (list.length < TARGET) {
-      var pos = needPos(list), nh = Nh(e, o, pos, used), age = nh.age;
-      var player = {
-        name: nh.name, born: yr - age, country: e.country, pos: pos,
-        at: pos === 'guard' ? 'pg' : (pos === 'wing' ? 'sf' : 'c'),
-        peak: nh.ovr + Math.max(0, 23 - age) * 3, legend: false, stints: []
-      };
-      list.push({ player: player, since: null, mood: null, years: null, pay: null });
-      used.add(nh.name.en);
-    }
-    return list;
-  };
-
   // 独立浮层宿主（普通 div，不形成层叠上下文，内部 fixed 弹层行为与内核原生一致）
   var clubHost = document.createElement('dialog');
   var shapeHost = document.createElement('dialog');
+  var clubContext=null,clubFactories=new Map();
   clubHost.className = shapeHost.className = 'mbl-overlay-host';
   function show(host) {
     if (!host.isConnected) document.body.append(host);
@@ -44,6 +17,7 @@
   function closeHost(host) {
     if (host.open) host.close();
     host.remove();
+    if(host===clubHost){clubContext=null;clubFactories.clear();}
   }
   [clubHost, shapeHost].forEach(function (host) {
     host.addEventListener('click', function (event) {
@@ -66,14 +40,47 @@
       closeHost(clubHost);
       if (v) {
         de.clubOpen = v;
-        try { clubHost.innerHTML = Ust(de.life); } finally { de.clubOpen = ''; }
+        try {
+          var context=xB(de.life);
+          clubContext=context?{team:context.team,year:context.season.year}:null;
+          clubHost.innerHTML = Ust(de.life);
+          clubHost.querySelectorAll('[data-act="shape"][data-v]').forEach(function(control){
+            if(TB.has(control.dataset.v))clubFactories.set(control.dataset.v,TB.get(control.dataset.v));
+          });
+        } finally { de.clubOpen = ''; }
         show(clubHost);
       }
       else de.clubOpen = '';
     } else if (act === 'shape') {
       ev.stopPropagation();
-      var fn = TB.get(v) || (window.__boxShapes && window.__boxShapes.get(v));
+      var cards=window.MBLPlayerCard,life=de.life;
+      if(cards&&life){
+        if(v==='sbme'||v==='me'){cards.open(cards.current(life));return;}
+        if(v.startsWith('sbp:')){
+          var season=life.ball?.season;
+          var roster=season?.roster||[];
+          var depth=node.closest('.depth');
+          if(depth){
+            var rows=[...depth.querySelectorAll('li[data-act="shape"]')];
+            var ordered=roster.slice().sort(function(a,b){return (b.me?L0(life):b.ovr)-(a.me?L0(life):a.ovr);});
+            var selected=ordered[rows.indexOf(node.closest('li'))];
+            if(selected?.name?.en===v.slice(4)){cards.open(cards.fromRoster(life,season,selected));return;}
+          }
+          var players=roster.filter(function(p){return p.name?.en===v.slice(4);});
+          if(players.length===1){cards.open(cards.fromRoster(life,season,players[0]));return;}
+          if(players.length>1)return;
+        }
+      }
+      var inClub=clubHost.contains(node);
+      var fn = (inClub?clubFactories.get(v):null) || TB.get(v) || (window.__boxShapes && window.__boxShapes.get(v));
       var data = fn ? fn() : null;
+      if(cards&&data&&!data.team){
+        if(data.key==='me'){cards.open(cards.current(life));return;}
+        if(data.player){
+          var context=inClub?clubContext:{year:typeof Gr==='function'?Gr(life):null};
+          cards.open(cards.fromScouting(data.player,context||{}));return;
+        }
+      }
       if (data) { shapeHost.innerHTML = Kst(data); show(shapeHost); }
     } else if (act === 'shapeclose') {
       ev.stopPropagation();

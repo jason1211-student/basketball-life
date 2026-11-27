@@ -118,7 +118,7 @@
   function maybeChampPopup(y) {
     var l = life();
     if (!l || !inNba(l) || y > 2026) return;
-    if (document.querySelector('dialog[open]')) return; // 有别的弹窗，下个 tick 重试
+    if (l.flags.__dynastyPopup || document.querySelector('dialog[open]')) return; // 有别的弹窗，下个 tick 重试
     var seen = seenArr(l);
     if (seen.indexOf(y) >= 0) return;
     var alt = alteredYears(l);
@@ -137,7 +137,7 @@
       popText.textContent = ev.text;
       popInner.style.setProperty('--era-color', eraFor(y).color);
     }
-    pop.showModal();
+    rememberPopup(l);
   }
 
   // 真实 NBA 冠军对照（1984–2026），玩家在 NBA 夺冠时用于说明“历史本是哪队”
@@ -300,7 +300,40 @@
   var popOk = make('button', 'mbl-era-pop-ok', '知道了'); popOk.type = 'button';
   popInner.append(popYear, popTitle, popText, popOk);
   pop.append(popInner);
-  popOk.onclick = function () { if (pop.open) pop.close(); };
+  var popupOwner = null, queueOwner = null;
+  function savePopup(l) { window.Nt?.saveLife?.(l); }
+  function rememberPopup(l) {
+    l.flags.__dynastyPopup = {year:popYear.textContent,title:popTitle.textContent,
+      text:popText.textContent,color:popInner.style.getPropertyValue('--era-color')};
+    popupOwner=l;
+    pop.showModal();
+    savePopup(l);
+  }
+  function showPending() {
+    var l=life(), saved=l?.flags?.__dynastyPopup;
+    if (!saved) return false;
+    if (pop.open) return popupOwner===l;
+    if (document.querySelector('dialog[open]')) return false;
+    popupOwner=l;
+    popYear.textContent=saved.year;
+    popTitle.textContent=saved.title;
+    popText.textContent=saved.text;
+    popInner.style.setProperty('--era-color',saved.color||'var(--accent)');
+    pop.showModal();
+    return true;
+  }
+  function acknowledgePopup(l) {
+    if (!l?.flags?.__dynastyPopup) return;
+    delete l.flags.__dynastyPopup;
+    if (life()===l) savePopup(l);
+  }
+  function closePopup() {
+    if (popupOwner===life()) acknowledgePopup(popupOwner);
+    if (pop.open) pop.close();
+  }
+  popOk.onclick = closePopup;
+  pop.addEventListener('cancel',function(event){event.preventDefault();closePopup();});
+  pop.addEventListener('close',function(){if(!pop.open&&popupOwner===life()) acknowledgePopup(popupOwner);});
 
   function seenArr(l) {
     if (!Array.isArray(l.flags.__dynastySeen)) l.flags.__dynastySeen = [];
@@ -309,6 +342,13 @@
   // 待弹的重大历史年份：快速自动模拟会在帧间连续推进，不能只靠一次"撞"当前年份
   var yearQueue = [];
   var lastYear = null;
+  function syncOwner(l) {
+    if (queueOwner===l) return;
+    queueOwner=l;
+    yearQueue=[];
+    lastYear=null;
+    if (pop.open && popupOwner!==l) pop.close();
+  }
   function isMajorYear(y) {
     return EVENTS.some(function (e) { return e.year === y && e.major && !e.forecast; });
   }
@@ -330,10 +370,11 @@
     popTitle.textContent = ev.title;
     popText.textContent = ev.text;
     popInner.style.setProperty('--era-color', era.color);
-    pop.showModal();
+    rememberPopup(life());
   }
   // 手动模式：每次渲染后尝试弹队首；有别的模态时暂缓，已进联盟则清空
   function pumpYears(l) {
+    if (l.flags.__dynastyPopup) {showPending();return;}
     if (!yearQueue.length) return;
     if (inNba(l)) { yearQueue.length = 0; return; }
     if (document.querySelector('dialog[open]')) return;
@@ -341,6 +382,13 @@
   }
   // 自动模拟串行接管：补全当前年份，按本次暂停口径决定弹窗或直接标记，避免与渲染回调竞争
   function takeAuto(l, willPause) {
+    syncOwner(l);
+    if (l.flags.__dynastyPopup) {
+      if (willPause) {showPending();return 'era';}
+      acknowledgePopup(l);
+      if (pop.open) pop.close();
+      return 'consumed';
+    }
     var y = curYear();
     if (y == null) return null;
     if (y !== lastYear) {
@@ -356,12 +404,15 @@
   }
   // 自动模拟结束时收口：补全到当前年份；不暂停口径把剩余节点全部标记（不弹窗），暂停口径保留
   function drainAuto(l, willPause) {
+    syncOwner(l);
     var y = curYear();
     if (y != null && y !== lastYear) {
       if (lastYear != null) enqueueYears(l, lastYear, y);
       lastYear = y;
     }
     if (willPause) return;
+    acknowledgePopup(l);
+    if (pop.open) pop.close();
     if (inNba(l)) { yearQueue.length = 0; return; }
     var seen = seenArr(l);
     while (yearQueue.length) seen.push(yearQueue.shift());
@@ -373,6 +424,8 @@
     var y = curYear();
     if (y == null) return;
     var l = life();
+    syncOwner(l);
+    if (l?.flags?.__dynastyPopup && !window.__mblAutoSim) showPending();
     captureChampion();
     if (y !== lastYear) {
       if (lastYear != null && l) enqueueYears(l, lastYear, y);
@@ -397,6 +450,6 @@
 
   window.MBLDynasty = {
     openTimeline: openTimeline, eras: ERAS, events: EVENTS, eraFor: eraFor,
-    takeAuto: takeAuto, drainAuto: drainAuto
+    takeAuto: takeAuto, drainAuto: drainAuto, showPending:showPending
   };
 })();

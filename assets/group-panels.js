@@ -44,19 +44,15 @@
     var ul = el('ul', 'mbl-roster-list');
     roster.slice().sort(function (a, b2) { return b2.ovr - a.ovr; }).forEach(function (w) {
       var li = el('li', 'mbl-roster-row' + (w.me ? ' is-me' : ''));
-      // season.roster 是精简对象（无五维字段），用 my() 按名字/位置/ovr 重新生成五维，与内核 roster 一致。
-      var key = gb('mblr:' + w.name.en, function () {
-        var five = my(w.name.en, w.pos, w.ovr, !w.real, true);
-        return jk({ name: w.name, pos: w.pos, ovr: w.ovr, age: w.age }, Mp(w), five);
-      });
-      li.dataset.act = 'shape';
-      li.dataset.v = key;
-      li.append(
-        el('span', 'mbl-roster-name', C.hans(w.name) + (w.me ? '（你）' : '')),
+      var row=window.MBLPlayerCard.button(()=>window.MBLPlayerCard.fromRoster(l,season,w),C.hans(w.name));
+      row.classList.add('mbl-roster-card-button');
+      row.replaceChildren(
+        el('span','mbl-roster-name',C.hans(w.name)+(w.me?'（你）':'')),
         el('span', 'mbl-roster-pos', C.hans(d_[Mp(w)])),
-        el('span', 'mbl-roster-age', w.age + '岁'),
+        el('span', 'mbl-roster-age', Number.isFinite(w.age)?w.age+'岁':'—'),
         el('b', 'mbl-roster-ovr', String(w.ovr))
       );
+      li.append(row);
       ul.append(li);
     });
     card.append(ul);
@@ -74,7 +70,17 @@
 
   function renderTeam(l, c) {
     if (window.MBLArenaSports) {
-      var panels = MBLArenaSports.tabs(c, 'team', [['overview','赛季概览'],['roster','阵容与合同'],['history','比赛记录']]);
+      const room=window.MBLTeamRoom?.view(l);
+      const items=[['overview','赛季概览'],['roster','阵容与合同'],['history','比赛记录']];
+      if(room)items.splice(1,0,['room','更衣室']);
+      var panels = MBLArenaSports.tabs(c, 'team', items);
+      if(room){
+        window.MBLTeamRoomPanel.render(l,panels.room);
+        const link=el('button','mbl-room-summary');
+        link.type='button';link.append(el('strong','',room.roleName+' · '+room.planned+' 分钟'),el('span','','球队领袖 · '+room.leader+'　›'));
+        link.onclick=()=>c.querySelector('[data-arena-tab="room"]').click();
+        panels.overview.append(link);
+      }
       panels.overview.append(MBLArenaSports.teamOverview(l));
       panels.history.dataset.arenaHistory = '';
       addHtml(panels.roster, f$(l));
@@ -101,9 +107,13 @@
   function renderPeople(l, c) {
     if(window.MBLRelationsMessages){
       var info=MBLRelationsMessages.summary(l),card=el('section','arena-social-hub');
-      card.append(el('span','arena-eyebrow','OFF COURT / CONNECTIONS'),el('h3','','私人生活'));
-      var grid=el('div','arena-social-grid');
-      [['messages','通讯录与短信',info.unread+' 条未读'],['relationships','人物关系',info.contacts+' 位联系人'],['appointments','私人约定',info.appointments+' 项待办']].forEach(function(item){var b=el('button','arena-social-entry');b.type='button';b.append(el('b','',item[1]),el('span','',item[2]));b.onclick=function(){window.MBLRelationsPanel?.open(item[0]);};grid.append(b);});
+      var phone=MBLRelationsMessages.canUsePhone(l);
+      card.append(el('span','arena-eyebrow','OFF COURT / CONNECTIONS'),el('h3','',phone?'私人生活':'家庭与成长'));
+      var grid=el('div','arena-social-grid'+(phone?'':' is-childhood'));
+      var destinations=phone
+        ? [['messages','通讯录与短信',info.unread+' 条未读'],['relationships','人物关系',info.contacts+' 位联系人'],['appointments','私人约定',info.appointments+' 项待办']]
+        : [['relationships','家庭与亲友','陪伴家人、与朋友相处']];
+      destinations.forEach(function(item){var b=el('button','arena-social-entry');b.type='button';b.dataset.mblAlertKind=item[0];b.append(el('b','',item[1]),el('span','',item[2]));b.onclick=function(){window.MBLRelationsPanel?.open(item[0]);};grid.append(b);});
       card.append(grid);c.append(card);
     }
     addHtml(c, DX(l));

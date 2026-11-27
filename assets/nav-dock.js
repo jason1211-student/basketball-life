@@ -73,7 +73,13 @@
 
   function setActive(id) {
     activeTab = id;
-    TABS.forEach(function (t) { buttons[t.id].classList.toggle('is-active', t.id === id); });
+    var main=document.querySelector('main.play');if(main&&main.dataset.arenaView!==id)main.dataset.arenaView=id;
+    TABS.forEach(function (t) {
+      const button=buttons[t.id], selected=t.id===id;
+      button.classList.toggle('is-active',selected);
+      if(selected)button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
+    });
   }
 
   function renderActive() {
@@ -112,6 +118,7 @@
   topButton.append(h('span', 'arena-top-icon', '↑'), h('span', 'mbl-dock-label', '回顶'));
   topButton.onclick = function () { window.scrollTo({ top: 0, behavior: 'instant' }); };
   dock.append(topButton);
+  window.MBLInteraction?.tabKeys(dock,()=>Object.values(buttons));
 
   function mount() {
     if (C.screen() !== 'play') {
@@ -174,58 +181,8 @@
   C.onDom(syncMenuClass);
   syncMenuClass();
 
-  // ===== 右侧快捷操作：折叠为单个圆钮，展开后显示带文字的动作（回顶/重心/财务）=====
-  var DIAL_ITEMS = [
-    { act: 'totop', label: '回到顶部', icon: 'M12 19V5 M6 11l6-6 6 6' },
-    { act: 'focusopen', label: '重心', icon: 'M12 12m-8.5 0a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0-17 0 M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0 M12 12h.01' },
-    { act: 'spendopen', label: '财务', icon: 'M12 4c-3.9 0-7 1.3-7 3s3.1 3 7 3 7-1.3 7-3-3.1-3-7-3z M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7 M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5' }
-  ];
-  var dial = h('div', 'mbl-fab-dial');
-  var dialItems = h('div', 'mbl-fab-items');
-  DIAL_ITEMS.forEach(function (it) {
-    var b = h('button', 'mbl-fab-item');
-    b.type = 'button'; b.dataset.act = it.act;
-    b.innerHTML =
-      '<svg class="mbl-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-      'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="' + it.icon + '"/></svg>' +
-      '<span class="mbl-fab-label">' + it.label + '</span>';
-    // 快捷盘挂在 #app 之外，点击不经过内核 ER，这里直接复用内核状态
-    b.onclick = function () {
-      if (it.act === 'totop') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-      if (it.act === 'focusopen') { de.focusOpen = true; }
-      else if (it.act === 'spendopen') { de.spendOpen = true; de.spendLast = null; de.spendView = 'open'; }
-      dial.classList.remove('is-open');
-      mn();
-    };
-    dialItems.append(b);
-  });
-  var dialToggle = h('button', 'mbl-fab-toggle');
-  dialToggle.type = 'button';
-  dialToggle.setAttribute('aria-label', '快捷操作');
-  dialToggle.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/>' +
-    '<circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
-  dialToggle.onclick = function () { dial.classList.toggle('is-open'); };
-  dial.append(dialItems, dialToggle);
-  document.addEventListener('click', function (e) {
-    if (dial.classList.contains('is-open') && !dial.contains(e.target)) dial.classList.remove('is-open');
-  });
-
-  function mountDial() {
-    var inPlay = !!(window.de && de.screen === 'play');
-    if (inPlay && !document.body.contains(dial)) document.body.append(dial);
-    if (!inPlay && document.body.contains(dial)) { dial.classList.remove('is-open'); document.body.removeChild(dial); }
-    var alive = !!(de.life && de.life.alive);
-    var itemBtns = dialItems.querySelectorAll('.mbl-fab-item');
-    for (var i = 0; i < itemBtns.length; i++) {
-      var act = itemBtns[i].dataset.act;
-      itemBtns[i].style.display = (act === 'totop' || alive) ? '' : 'none';
-    }
-  }
-  C.onDom(mountDial);
-  mountDial();
-
   window.MBLNavDock = {
+    activeTab: function () { return activeTab; },
     open: showView,
     setActive: setActive,
     getView: function (id) { ensureViews(); return views[id]; },

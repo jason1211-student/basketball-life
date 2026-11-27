@@ -1,0 +1,15 @@
+.mbl-room{display:grid;gap:12px}
+.mbl-room .card{margin:0;padding:16px;min-width:0}
+.mbl-room h3,.mbl-room h4,.mbl-room p{margin:0}
+.mbl-room h3{font-size:1.5rem}
+.mbl-room-hero,.mbl-room-person,.mbl-room-promise,.mbl-room-log{display:grid;gap:8px;align-content:start}
+.mbl-room-hero,.mbl-room-promise{border-inline-start:3px solid var(--accent)}
+.mbl-room-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.mbl-room-person label{display:flex;align-items:center;gap:8px}
+.mbl-room-person select{min-width:0;max-width:82%;min-height:44px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px}
+.mbl-room-action,.mbl-room-summary{min-height:44px;border:1px solid var(--line);border-radius:8px;text-align:start;background:var(--soft);color:var(--ink);padding:8px 12px;cursor:pointer}
+.mbl-room-action:not(:disabled){color:var(--accent)}
+.mbl-room-action:disabled{color:var(--muted);cursor:default}
+.mbl-room-summary{width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mbl-room small,.mbl-room-summary span{color:var(--muted)}
+.mbl-room-log p+p{border-top:1px solid var(--line);padding-top:6px}

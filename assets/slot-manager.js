@@ -27,14 +27,107 @@
   var lastError = '';
   var readError = '';
   var unreadableRaw = null;
+  var lastRaw = null;
+  // The prefix makes earlier releases preserve the raw store on read failure.
+  var PACKED_PREFIX = 'MBLZ1:';
+  var packedBlocks = new Map();
+  // Use 15 bits per storage character, avoiding surrogate and control characters.
+  function packBytes(bytes) {
+    const parts=[bytes.length.toString(36),':'];
+    let chunk='', value=0, bits=0;
+    for (const byte of bytes) {
+      value=(value<<8)|byte;
+      bits+=8;
+      if(bits>=15){
+        bits-=15;
+        chunk+=String.fromCharCode(256+((value>>>bits)&32767));
+        if(chunk.length===8192){parts.push(chunk);chunk='';}
+      }
+    }
+    if(bits)chunk+=String.fromCharCode(256+((value<<(15-bits))&32767));
+    parts.push(chunk);
+    return parts.join('');
+  }
+  function unpackBlock(raw,offset) {
+    const start=raw.indexOf(':',offset)+1;
+    if(start<=offset || start-offset>9)throw Error('Invalid packed header');
+    const length=parseInt(raw.slice(offset,start-1),36);
+    const end=start+Math.ceil(length*8/15);
+    if(!Number.isSafeInteger(length) || length<1 || end>raw.length)throw Error('Invalid packed length');
+    const bytes=new Uint8Array(length);
+    let index=0, value=0, bits=0;
+    for(let i=start;i<end;i++){
+      const unit=raw.charCodeAt(i)-256;
+      if(unit<0 || unit>32767)throw Error('Invalid packed character');
+      value=(value<<15)|unit;
+      bits+=15;
+      while(bits>=8 && index<length){bits-=8;bytes[index++]=(value>>>bits)&255;}
+    }
+    return {text:window.pako.inflate(bytes,{to:'string'}),end};
+  }
+  function storeBlocks(json) {
+    const next=new Map(), parts=[PACKED_PREFIX], max=192*1024;
+    let start=0;
+    function append(end){
+      while(start<end){
+        let stop=Math.min(start+max,end);
+        // A UTF-8 compression block must contain both halves of an astral character.
+        if(stop<json.length && /[\uD800-\uDBFF]/.test(json[stop-1]))stop--;
+        const text=json.slice(start,stop);
+        let packed=next.get(text)||packedBlocks.get(text);
+        if(!packed)packed=packBytes(window.pako.deflate(text,{level:1}));
+        next.set(text,packed);parts.push(packed);start=stop;
+      }
+    }
+    // Completed fixtures retain their digest as earlier fields change length.
+    // Anchor here so adding a game does not force recompression of old seasons.
+    const marker=/\\"digest\\":(-?\d+)/g;
+    for(let match; (match=marker.exec(json));){
+      if((Number(match[1])&7)===0 && match.index-start>8192)append(match.index);
+    }
+    append(json.length);
+    const packed=parts.join('');
+    localStorage.setItem(STORE_KEY,packed);
+    packedBlocks=next;
+    return packed;
+  }
+  function decodeStore(raw) {
+    if (raw === null) return [];
+    let json=raw;
+    if(raw.startsWith(PACKED_PREFIX)){
+      const pieces=[];
+      for(let offset=PACKED_PREFIX.length;offset<raw.length;){
+        const block=unpackBlock(raw,offset);
+        pieces.push(block.text);offset=block.end;
+      }
+      json=pieces.join('');
+    }
+    const rows = JSON.parse(json);
+    if (!Array.isArray(rows) || rows.some(slot =>
+      !slot || typeof slot.slotId !== 'string' || !slot.entries || typeof slot.entries !== 'object'
+    )) throw Error('Invalid save list');
+    return rows;
+  }
+
+  function persistStore(rows) {
+    const json = JSON.stringify(rows);
+    if (!lastRaw?.startsWith(PACKED_PREFIX) || json.length < 1024 * 1024) {
+      try {
+        localStorage.setItem(STORE_KEY, json);
+        packedBlocks.clear();
+        return json;
+      } catch (error) {
+        if (error.name !== 'QuotaExceededError' || !window.pako) throw error;
+      }
+    }
+    return storeBlocks(json);
+  }
 
   function loadStore() {
     try {
       unreadableRaw = localStorage.getItem(STORE_KEY);
-      var arr = unreadableRaw === null ? [] : JSON.parse(unreadableRaw);
-      if (!Array.isArray(arr) || arr.some(function (slot) {
-        return !slot || typeof slot.slotId !== 'string' || !slot.entries || typeof slot.entries !== 'object';
-      })) throw new Error('Invalid save list');
+      var arr = decodeStore(unreadableRaw);
+      lastRaw=unreadableRaw;
       unreadableRaw = null;
       return arr;
     } catch (_) {
@@ -49,7 +142,21 @@
     lastError = readError;
     if (readError) return false;
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(next));
+      const disk=localStorage.getItem(STORE_KEY);
+      if(disk!==lastRaw){
+        const latest=decodeStore(disk);
+        const changes=next.filter(slot=>slot!==slots.find(old=>old.slotId===slot.slotId));
+        const removed=slots.filter(slot=>!next.some(n=>n.slotId===slot.slotId));
+        for(const slot of changes.concat(removed)){
+          if(JSON.stringify(latest.find(n=>n.slotId===slot.slotId))!==JSON.stringify(slots.find(n=>n.slotId===slot.slotId))){
+            lastError='此存档已在另一个窗口更新，请重新读取后继续。';return false;
+          }
+        }
+        const byId=new Map(changes.map(slot=>[slot.slotId,slot]));
+        next=changes.filter(slot=>!latest.some(n=>n.slotId===slot.slotId)).concat(latest.filter(slot=>!removed.some(n=>n.slotId===slot.slotId)).map(slot=>byId.get(slot.slotId)||slot));
+        if(next.length>MAX_SLOTS){lastError='存档已满，请重新读取存档列表。';return false;}
+      }
+      lastRaw=persistStore(next);
       slots = next;
       return true;
     } catch (e) {
@@ -161,15 +268,25 @@
       };
       return commit([slot].concat(slots)) ? slot : null;
     },
-    overwrite: function (id) {
+    overwrite: function (id, options) {
       var i = find(id); if (i < 0) return null;
       var entries = currentEntries();
+      if (options?.skipUnchanged && !readError && ENTRY_KEYS.every(key => entries[key] === slots[i].entries[key])) {
+        // Another tab may have edited or removed this slot since our last write.
+        try {
+          if (localStorage.getItem(STORE_KEY) === lastRaw) {
+            lastError = '';
+            return slots[i];
+          }
+        } catch (_) { /* Let commit report the storage failure. */ }
+      }
       var summary = summarize(entries);
       var slot = Object.assign({}, slots[i], { entries: entries, summary: summary, updatedAt: Date.now() });
       if (!slot.customName) slot.name = defaultName(summary);
       return replaceSlot(i, slot) ? slot : null;
     },
     load: async function (id) {
+      readError="";slots=loadStore();if(readError)return false;
       var i = find(id);
       if (i < 0 || !window.MBLHost || !window.MBLHost.restore) return false;
       window.__MBL_SLOT_RESTORE__ = true;

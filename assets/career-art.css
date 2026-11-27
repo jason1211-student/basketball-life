@@ -1,0 +1,184 @@
+/* Art direction: midnight slate, court amber and brushed copper. */
+.mbl-arena main.home .intro {
+  background: linear-gradient(90deg, #10151eef 0%, #10151edc 34%, #10151e2b 100%),
+    url("images/career/arena.webp") center 55% / cover, #141c29;
+  border-bottom: 3px solid #cf8958;
+}
+.mbl-arena main.home .intro::after,
+.mbl-arena main.home .intro::before { content: none; }
+
+.mbl-arena .arena-section-heading.mbl-art-family {
+  display: grid;
+  align-items: end;
+  isolation: isolate;
+  min-height: clamp(140px, 35vw, 248px);
+  padding: 18px;
+  border: 0;
+  border-bottom: 3px solid #b08058;
+  overflow: hidden;
+  background: #202630;
+}
+.mbl-art-family .mbl-career-image,
+.arena-honors-cover > .mbl-career-image {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  z-index: -2;
+}
+.mbl-art-family::after,
+.arena-honors-cover:has(> .mbl-career-image)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(0deg, #10151eef, #10151e25 82%);
+}
+.mbl-arena .arena-section-heading.mbl-art-family h2 {
+  margin: 0;
+  color: #fff5e9;
+}
+.arena-honors-cover > .mbl-career-image {
+  width: 55%;
+  object-position: center 44%;
+}
+.arena-honors-cover:has(> .mbl-career-image) { background: #1a2330; }
+.arena-honors-cover:has(> .mbl-career-image)::after {
+  background: linear-gradient(90deg, #171e29 36%, #171e29bd 55%, #171e2917 100%);
+}
+.arena-honors-cover:has(> .mbl-career-image) .arena-legacy-grid,
+.arena-honors-cover:has(> .mbl-career-image) .arena-honors-latest { width: min(65%, 390px); }
+
+.mbl-arena .arena-team-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: #202a39;
+}
+.mbl-art-team-name { min-width: 0; }
+.mbl-art-jersey {
+  position: relative;
+  width: clamp(82px, 21vw, 136px);
+  margin: 0;
+  flex: none;
+  text-align: center;
+}
+.mbl-art-jersey .mbl-career-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 4px;
+}
+.mbl-art-jersey figcaption { font-size: .75rem; line-height: 1.25; overflow-wrap: anywhere; }
+.arena-team-hero .mbl-art-jersey figcaption { display: none; }
+.mbl-art-jersey-number {
+  position: absolute;
+  top: 40%;
+  inset-inline: 0;
+  color: #fff;
+  font: 900 clamp(18px, 5vw, 34px)/1 var(--display);
+  text-shadow: 0 1px 3px #05080d, 0 -1px 3px #05080d, 1px 0 2px #05080d, -1px 0 2px #05080d;
+}
+#mbl-jpick .mbl-art-jersey { margin: 0 auto 10px; }
+.mbl-art-jersey-number:empty { display: none; }
+
+.mbl-arena .mbl-pc-hero:has(.mbl-career-portrait) {
+  grid-template-columns: auto minmax(0,1fr) auto;
+}
+.mbl-art-profile { display: contents; }
+.mbl-career-portrait {
+  width: clamp(48px, 13vw, 84px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #7a655b;
+  border-radius: 5px;
+  color: #f6e4cf;
+  background: #1c222e;
+  font: 750 clamp(18px, 4vw, 32px)/1 var(--sans);
+}
+.mbl-career-portrait .mbl-career-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mbl-art-picker { grid-column: 1 / -1; grid-row: 2; }
+.mbl-art-picker summary {
+  min-height: 44px;
+  align-content: center;
+  width: max-content;
+  color: #ffcfab;
+  cursor: pointer;
+}
+.mbl-art-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.mbl-art-option {
+  display: grid;
+  padding: 2px;
+  width: 64px;
+  height: 64px;
+  color: inherit;
+  background: #222b39;
+  border: 2px solid #617188;
+  border-radius: 5px;
+}
+.mbl-art-option[aria-pressed=true] { border-color: #ffb584; }
+.mbl-art-option:focus-visible, .mbl-art-picker summary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.mbl-art-option img { width: 100%; height: 100%; border-radius: 3px; }
+.mbl-art-status:not(:empty) { display: block; margin-top: 6px; font-size: .75rem; }
+
+.mbl-arena .mbl-broadcast .mbc-scoreboard,
+.mbl-arena .arena-report-hero {
+  background: linear-gradient(95deg, #141c28f7, #141c28db 76%, #141c28a1),
+    url("images/career/arena.webp") center 42% / cover, #141c28;
+}
+.mbl-career-image[hidden] { display: none; }
+@media (max-width: 410px) {
+  .mbl-arena main.home .intro {
+    background-image: linear-gradient(90deg, #10151edd 0%, #10151ebd 100%), url("images/career/arena.webp");
+  }
+  .mbl-arena .mbl-pc-hero:has(.mbl-career-portrait) { grid-template-columns: auto minmax(0,1fr); }
+  .mbl-arena .mbl-pc-hero:has(.mbl-career-portrait) .mbl-pc-scores { grid-column: 2; }
+  .mbl-art-picker { grid-row: auto; order: 1; }
+}
+
+.mbl-arena main.home .intro .actionbar {
+  position: static;
+  padding: 0;
+  backdrop-filter: none;
+  flex-wrap: wrap;
+}
+.mbl-arena main.home .intro .actionbar .primary {
+  white-space: nowrap;
+  min-width: max-content;
+  padding-inline: 18px;
+}
+.mbl-arena .arena-player-avatar .mbl-career-image { object-fit: cover; background: #1c222e; }
+.mbl-arena .arena-player-avatar:has(.mbl-career-image:not([hidden])) svg.portrait,
+.mbl-arena .arena-player-avatar .mbl-career-image[hidden] { display: none; }
+
+.mbl-arena main.home .intro .mbl-draft-pick { width: min(100%, 440px); box-sizing: border-box; }
+.mbl-arena main.home .intro .mbl-draft-opts {
+  max-height: 166px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.mbl-arena main.home .intro .mbl-live {
+  background: #19212cea;
+  border-color: #8491a1;
+  color: #f2eadf;
+}
+
+.mbl-arena main.home .introtext { display: flex; flex-direction: column; gap: 12px; }
+.mbl-arena main.home .intro .bigtitle { margin: 8px 0 0; }
+.mbl-arena main.home .intro .lead { order: 0; margin: 0; }
+.mbl-arena main.home .intro .mbl-live { margin: 0; }
+.mbl-arena main.home .intro .mbl-live-numbers strong { color: #fff3e6; }
+.mbl-arena main.home .intro .actionbar { margin: 0; }

@@ -183,6 +183,10 @@
       window.MBLRelationsPanel?.open('messages');
     });
     if (appointments) calendar.append(appointments);
+    const plan=window.MBLLifeCalendar?.render(l,render);
+    if(plan)calendar.append(plan);
+    const housing=window.MBLRelationsMessages?.calendarHousing?.(l,render);
+    if(housing)calendar.append(housing);
 
     // 图例
     var legend = make('div', 'mbl-cal-legend');
@@ -221,6 +225,7 @@
       timeline.append(make('p', 'mbl-sched-muted', '开始一段人生后，这里会按年份展示你的日程与关键节点。'));
       return;
     }
+    for(const e of l.flags?.mblLifeCalendar?.history||[]) timeline.append(make('p','mbl-sched-day-text',e.age+' 岁'+(e.game?' · 第 '+e.game+' 场':'')+' · '+e.title+' · '+e.detail));
     var groups = groupByAge(l.log);
     var awards = (l.ball && l.ball.awards) || [];
     if (!groups.length && !awards.length) {

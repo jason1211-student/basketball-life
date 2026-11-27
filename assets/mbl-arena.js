@@ -6,18 +6,22 @@
   const h = C.h;
   const root = document.documentElement;
   const titles = {
-    home: ['01 / CAREER', '生涯指挥台', '每一天，都是职业生涯的一部分。'],
-    ball: ['02 / PERFORMANCE', '球员发展中心', '能力、训练与比赛表现'],
-    team: ['03 / FRANCHISE', '球队运营中心', '阵容、合同与赛季动态'],
-    journey: ['04 / LEGACY', '生涯档案馆', '见证每一次突破与荣耀'],
-    people: ['05 / SOCIAL', '人际关系圈', '场外的生活同样重要']
+    home: '生涯指挥台',
+    ball: '球员发展中心',
+    team: '球队运营中心',
+    journey: '生涯档案馆',
+    people: '人际关系圈'
   };
 
   function decorateView(id, container) {
     if (!container || !titles[id] || container.querySelector(':scope > .arena-section-heading')) return;
-    const [code, title, sub] = titles[id];
+    const title = titles[id];
     const heading = h('header', 'arena-section-heading');
-    heading.append(h('span', 'arena-eyebrow', code), h('h2', '', title), h('p', '', sub));
+    heading.append(h('h2', '', title));
+    if(id==='people'&&window.MBLCareerArt){
+      heading.classList.add('mbl-art-family');
+      heading.prepend(MBLCareerArt.picture('family',500));
+    }
     container.prepend(heading);
   }
 
@@ -51,21 +55,31 @@
       bar.append(actions);
     }
     const alive = C.life()?.alive !== false;
+    const messagesButton=actions.querySelector('[data-arena-open="messages"]');
+    const scheduleButton=actions.querySelector('[data-arena-open="schedule"]');
+    if(messagesButton)messagesButton.onclick=()=>window.MBLRelationsPanel?.open(window.MBLRelationsMessages?.canUsePhone(C.life())?'messages':'relationships');
+    if(scheduleButton)scheduleButton.onclick=()=>window.MBLSchedulePanel?.open();
     actions.querySelectorAll('button[data-act]').forEach(b => { b.disabled = !alive; });
     const finance=actions.querySelector('button:first-child');
     if(finance){finance.dataset.act=C.life()?.pending?.length&&!window.de?.decisionHidden?'spendopen':'moneyopen';}
     const messages = actions.querySelector('button:nth-child(3) small');
     const life=C.life();
+    window.MBLCareerArt?.header(bar.querySelector('.arena-player-avatar'),life);
+    const underage=life&&!window.MBLRelationsMessages?.canUsePhone(life);
+    const messageTitle=actions.querySelector('button:nth-child(3) b');
+    if(messageTitle&&messageTitle.textContent!==(underage?'家庭':'消息'))messageTitle.textContent=underage?'家庭':'消息';
     const unread = life ? window.MBLRelationsMessages?.summary(life).unread || 0 : 0;
-    const caption = unread ? `${unread} 条未读` : '联系人与短信';
+    const caption = underage?'与家人相处':unread ? `${unread} 条未读` : '联系人与短信';
     if (messages && messages.textContent !== caption) messages.textContent = caption;
+    const scheduleCaption=scheduleButton?.querySelector('small');
+    if(scheduleCaption&&scheduleCaption.textContent!==(underage?'训练与计划':'计划与约定'))scheduleCaption.textContent=underage?'训练与计划':'计划与约定';
   }
 
   function decorateLanding() {
     const intro = document.querySelector('main.home .introtext');
     if (!intro || intro.querySelector('.arena-landing-label')) return;
     const label = h('div', 'arena-landing-label');
-    label.append(h('span', 'arena-monogram', 'MBL'), h('span', '', 'YOUR COURT. YOUR STORY.'));
+    label.append(h('span', 'arena-monogram', 'MBL'));
     intro.prepend(label);
   }
 

@@ -19,24 +19,24 @@
   // 打法风格：位置 -> 风格列表
   var STYLES = {
     pg: [
-      { id: 'playmaker', name: '组织核心', w: { handling: 5, passing: 6, iq: 4, three: 1, finishing: -3, interiorD: -2, rebounding: -4 } },
-      { id: 'scorer', name: '得分控卫', w: { three: 5, mid: 4, finishing: 3, handling: 3, passing: -2, interiorD: -3, rebounding: -4 } }
+      { id: 'playmaker', name: '组织核心', w: { handle: 5, pass: 6, iq: 4, three: 1, layup: -3, interiorD: -2, rebound: -4 } },
+      { id: 'scorer', name: '得分控卫', w: { three: 5, mid: 4, layup: 3, handle: 3, pass: -2, interiorD: -3, rebound: -4 } }
     ],
     sg: [
-      { id: 'shooter', name: '无球射手', w: { three: 7, mid: 4, handling: 1, passing: -2, finishing: -2, rebounding: -4, interiorD: -3 } },
-      { id: 'slasher', name: '突破分卫', w: { finishing: 6, athleticism: 5, handling: 3, mid: 2, three: -2, rebounding: -2 } }
+      { id: 'shooter', name: '无球射手', w: { three: 7, mid: 4, handle: 1, pass: -2, layup: -2, rebound: -4, interiorD: -3 } },
+      { id: 'slasher', name: '突破分卫', w: { layup: 6, speed: 5, handle: 3, mid: 2, three: -2, rebound: -2 } }
     ],
     sf: [
-      { id: 'scorer', name: '得分锋线', w: { mid: 5, three: 4, finishing: 4, athleticism: 2, passing: -2, interiorD: -2 } },
-      { id: 'twoway', name: '双向锋线', w: { perimeterD: 6, athleticism: 4, finishing: 3, three: 3, iq: 2, passing: -2 } }
+      { id: 'scorer', name: '得分锋线', w: { mid: 5, three: 4, layup: 4, speed: 2, pass: -2, interiorD: -2 } },
+      { id: 'twoway', name: '双向锋线', w: { perimeterD: 6, speed: 4, layup: 3, three: 3, iq: 2, pass: -2 } }
     ],
     pf: [
-      { id: 'stretch', name: '空间大前', w: { three: 6, mid: 4, rebounding: 1, interiorD: 1, finishing: -2, athleticism: -1 } },
-      { id: 'bruiser', name: '强硬内线', w: { interiorD: 5, rebounding: 6, finishing: 5, athleticism: 3, three: -5, handling: -4, passing: -3 } }
+      { id: 'stretch', name: '空间大前', w: { three: 6, mid: 4, rebound: 1, interiorD: 1, layup: -2, speed: -1 } },
+      { id: 'bruiser', name: '强硬内线', w: { interiorD: 5, rebound: 6, layup: 5, speed: 3, three: -5, handle: -4, pass: -3 } }
     ],
     c: [
-      { id: 'rim', name: '护框中锋', w: { interiorD: 7, rebounding: 6, athleticism: 4, finishing: 3, three: -6, handling: -5, passing: -3 } },
-      { id: 'post', name: '低位中锋', w: { finishing: 6, mid: 4, rebounding: 5, interiorD: 4, three: -4, handling: -3 } }
+      { id: 'rim', name: '护框中锋', w: { interiorD: 7, rebound: 6, speed: 4, layup: 3, three: -6, handle: -5, pass: -3 } },
+      { id: 'post', name: '低位中锋', w: { layup: 6, mid: 4, rebound: 5, interiorD: 4, three: -4, handle: -3 } }
     ]
   };
 
@@ -87,32 +87,40 @@
 
     // 2) 潜力：打法风格权重
     var sty = currentStyle();
+    ball.mblBuildStyle=sty.id;ball.mblBuildPosition=state.pos;
+    var weights={...sty.w, dunk:sty.w.layup||0, speedWithBall:sty.w.handle||0, block:sty.w.interiorD||0, steal:sty.w.perimeterD||0, vertical:sty.w.speed||0};
     SKILLS.forEach(function (k) {
-      var w = sty.w[k] || 0;
+      var w = weights[k] || 0;
       ball.potential[k] = clamp(Math.round(Number(ball.potential[k]) + w), 35, 99);
     });
 
     // 3) 体重：偏轻提速、偏重压对抗
     if (state.weight === 'light') {
-      ball.potential.athleticism = clamp(ball.potential.athleticism + 2, 35, 99);
-      ball.potential.finishing = clamp(ball.potential.finishing - 1, 35, 99);
+      ball.potential.speed = clamp(ball.potential.speed + 2, 35, 99);
+      ball.potential.layup = clamp(ball.potential.layup - 1, 35, 99);
       ball.potential.interiorD = clamp(ball.potential.interiorD - 1, 35, 99);
-      ball.potential.rebounding = clamp(ball.potential.rebounding - 2, 35, 99);
+      ball.potential.rebound = clamp(ball.potential.rebound - 2, 35, 99);
     } else if (state.weight === 'heavy') {
-      ball.potential.finishing = clamp(ball.potential.finishing + 2, 35, 99);
+      ball.potential.layup = clamp(ball.potential.layup + 2, 35, 99);
       ball.potential.interiorD = clamp(ball.potential.interiorD + 2, 35, 99);
-      ball.potential.rebounding = clamp(ball.potential.rebounding + 2, 35, 99);
-      ball.potential.athleticism = clamp(ball.potential.athleticism - 2, 35, 99);
+      ball.potential.rebound = clamp(ball.potential.rebound + 2, 35, 99);
+      ball.potential.speed = clamp(ball.potential.speed - 2, 35, 99);
       ball.potential.three = clamp(ball.potential.three - 1, 35, 99);
       if (ball.injuryProne) ball.injuryProne = clamp(ball.injuryProne - 6, 5, 95);
     }
+
+    var mass = state.weight === 'heavy' ? 1 : state.weight === 'light' ? -1 : 0;
+    ball.potential.strength = clamp(ball.potential.strength + 4*mass,35,99);
+    ball.potential.speedWithBall = clamp(ball.potential.speedWithBall - 2*mass,35,99);
+    ball.potential.block = clamp(ball.potential.block + 2*state.wing,35,99);
+    ball.potential.vertical = clamp(ball.potential.vertical + state.tweak.ath,35,99);
 
     // 4) 臂展独立微调：长臂加干扰/篮板、短臂保投篮（每档 1 点，±2 档）
     var ws = state.wing;
     if (ws !== 0) {
       ball.potential.interiorD = clamp(ball.potential.interiorD + ws, 35, 99);
       ball.potential.perimeterD = clamp(ball.potential.perimeterD + ws, 35, 99);
-      ball.potential.rebounding = clamp(ball.potential.rebounding + ws, 35, 99);
+      ball.potential.rebound = clamp(ball.potential.rebound + ws, 35, 99);
       ball.potential.three = clamp(ball.potential.three - ws, 35, 99);
       ball.potential.mid = clamp(ball.potential.mid - ws, 35, 99);
     }
@@ -121,10 +129,10 @@
     var t = state.tweak;
     ball.potential.three = clamp(ball.potential.three + t.shoot, 35, 99);
     ball.potential.mid = clamp(ball.potential.mid + t.shoot, 35, 99);
-    ball.potential.finishing = clamp(ball.potential.finishing + t.shoot, 35, 99);
-    ball.potential.handling = clamp(ball.potential.handling + t.play, 35, 99);
-    ball.potential.passing = clamp(ball.potential.passing + t.play, 35, 99);
-    ball.potential.athleticism = clamp(ball.potential.athleticism + t.ath, 35, 99);
+    ball.potential.layup = clamp(ball.potential.layup + t.shoot, 35, 99);
+    ball.potential.handle = clamp(ball.potential.handle + t.play, 35, 99);
+    ball.potential.pass = clamp(ball.potential.pass + t.play, 35, 99);
+    ball.potential.speed = clamp(ball.potential.speed + t.ath, 35, 99);
     ball.potential.perimeterD = clamp(ball.potential.perimeterD + t.def, 35, 99);
     ball.potential.interiorD = clamp(ball.potential.interiorD + t.def, 35, 99);
 
@@ -142,12 +150,12 @@
     }
 
     // 7) 同步 style/lead，并按目标位置做最小锚定，保证位置稳定推导
-    var inside = ball.potential.rebounding + ball.potential.interiorD -
-      ball.potential.three - ball.potential.handling;
-    var wing = ball.potential.finishing + ball.potential.perimeterD -
-      ball.potential.handling - ball.potential.passing;
-    var lead = ball.potential.handling + ball.potential.passing -
-      ball.potential.three - ball.potential.finishing;
+    var inside = ball.potential.rebound + ball.potential.interiorD -
+      ball.potential.three - ball.potential.handle;
+    var wing = ball.potential.layup + ball.potential.perimeterD -
+      ball.potential.handle - ball.potential.pass;
+    var lead = ball.potential.handle + ball.potential.pass -
+      ball.potential.three - ball.potential.layup;
 
     if (ball.style) {
       if (state.pos === 'pg') {
@@ -164,7 +172,7 @@
       ball.style.inside = Math.round(inside);
       ball.style.wing = Math.round(wing);
     }
-    if (ball.lead != null) ball.lead = Math.round(lead);
+    ball.lead = Math.round(lead);
   }
 
   // ===== 出生界面 UI =====
@@ -172,8 +180,8 @@
     var wrap = el('div', 'dt-seg ' + cls);
     items.forEach(function (it) {
       var b = el('button', 'dt-opt' + (it.id === value || it === value ? ' on' : ''), it.name || it);
-      b.type = 'button'; b.dataset.value = it.id || it;
-      b.addEventListener('click', function () { onpick(it.id || it); });
+      b.type = 'button'; b.dataset.value = it.id ?? it;
+      b.addEventListener('click', function () { onpick(it.id ?? it); });
       wrap.append(b);
     });
     return wrap;

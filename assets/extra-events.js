@@ -257,6 +257,7 @@
 
   function register() {
     if (!window.yR || typeof k !== 'function') return false;
+    window.MBLCareerStories?.register();
     EXTRA.forEach(function (e) {
       if (yR.has(e.id)) return;
       yR.set(e.id, {

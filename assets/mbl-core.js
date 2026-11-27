@@ -103,8 +103,12 @@
   }
 
   function scheduleDom(mutations) {
-    for (var i = 0; i < mutations.length; i++) pendingMutations.push(mutations[i]);
-    if (domQueued) return;
+    for (var i = 0; i < mutations.length; i++) {
+      var node=mutations[i].target;
+      // These explicitly marked broadcast surfaces update their own controls.
+      if(!node?.closest?.('[data-mbl-quiet-dom]'))pendingMutations.push(mutations[i]);
+    }
+    if (domQueued || !pendingMutations.length) return;
     domQueued = true;
     function run() {
       var batch = pendingMutations;

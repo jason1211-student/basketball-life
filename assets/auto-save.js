@@ -42,13 +42,14 @@
     var life = C.life();
     if (!life || !life.ball) return false;
     var slot = ensureForCurrent();
-    if (!slot) { showSaveFailure(); return false; }
-    if (window.MBLSlotManager.overwrite(slot.slotId)) { markSaved(); return true; }
-    showSaveFailure();
+    if (!slot) { failedSeed=life.seed;showSaveFailure(); return false; }
+    if (window.MBLSlotManager.overwrite(slot.slotId, {skipUnchanged:true})) { failedSeed=null;markSaved(); return true; }
+    failedSeed=life.seed;showSaveFailure();
     return false;
   }
 
   var timer = null;
+  var failedSeed = null;
   function schedule() {
     if (timer) clearTimeout(timer);
     timer = setTimeout(function () { timer = null; saveNow(); }, DEBOUNCE_MS);
@@ -134,6 +135,7 @@
 
   window.MBLAutoSave = {
     save: saveNow,
+    readyForMatch: function(life){return failedSeed!==life.seed || saveNow();},
     flush: flush,
     activeId: function () { return activeSlotId; }
   };

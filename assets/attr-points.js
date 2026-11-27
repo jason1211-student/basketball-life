@@ -13,7 +13,6 @@
   var GAME_POINTS_CAP = 4;
   var AWARD_POINTS_CAP = 3;
   var SKILL_KEYS = C.SKILLS;
-  var FLOOR = 25;
 
   // 8 项通用专项：所有位置共用，保留「涨两项、挤一项」的联动，不再按位置锁卡。
   var PROGRAMS = [
@@ -58,6 +57,12 @@
     return [season.year, league].join(':');
   }
 
+  function appearances(games,count=games.length) {
+    let played=0;
+    for(let i=0;i<Math.min(count,games.length);i++)
+      if(!games[i].dnp && Number.isFinite(games[i].pts))played++;
+    return played;
+  }
   function perfState(b) {
     if (!b.apPerf) {
       var season = b.season;
@@ -79,6 +84,7 @@
     if (p.key !== key) {
       p.key = key;
       p.gamesSeen = 0;
+      p.playedSeen = 0;
       p.gamePoints = 0;
       p.awardPoints = 0;
     }
@@ -97,7 +103,10 @@
     if (season && season.games) {
       var games = season.games.length;
       if (games < p.gamesSeen) p.gamesSeen = games;
-      var due = Math.floor(games / GAMES_PER_POINT) - Math.floor(p.gamesSeen / GAMES_PER_POINT);
+      if(!Number.isFinite(p.playedSeen))p.playedSeen=appearances(season.games,p.gamesSeen);
+      var played=appearances(season.games);
+      var due=Math.floor(played/GAMES_PER_POINT)-Math.floor(p.playedSeen/GAMES_PER_POINT);
+      p.playedSeen=played;
       while (due > 0 && p.gamePoints < GAME_POINTS_CAP) {
         p.gamePoints += 1;
         gained += 1;
@@ -117,11 +126,12 @@
     if (!l || !l.alive || !l.ball) return;
     var b = l.ball;
     ensure(b);
-    if (b.retiredFromPlaying) return;
-    if (l.prisonYears && l.prisonYears > 0) return;
+    if (!b.started || b.retiredFromPlaying) { b.apLastAge=l.age; return; }
+    if (l.prisonYears && l.prisonYears > 0) { b.apLastAge=l.age; return; }
     if (l.age > C.num(b.apLastAge, l.age)) {
+      var years=l.age-b.apLastAge;
       b.apLastAge = l.age;
-      if (hasRoom(b) && b.apPoints < MAX_POINTS) b.apPoints = Math.min(MAX_POINTS, b.apPoints + 2);
+      if (hasRoom(b) && b.apPoints < MAX_POINTS) b.apPoints = Math.min(MAX_POINTS, b.apPoints + 2*years);
       save(l);
     }
     performance(l, b);
@@ -129,61 +139,72 @@
 
   function points() { var b = ball(); return b ? C.num(b.apPoints, 0) : 0; }
 
-  function canGain(b, gains) {
-    return Object.keys(gains).some(function (k) { return skillOf(b, k) < capOf(b, k); });
-  }
-
-  function listFor() {
+  function listFor(b) {
     return PROGRAMS;
   }
-
+  const S = window.MBLAttrSys;
+  function programFor(id) {
+    const program=PROGRAMS.find(item=>item.id===id);
+    if(program)return program;
+    if(!id?.startsWith('skill-'))return null;
+    const key=id.slice(6);
+    return S.KEYS.includes(key)?{id,name:S.ATTR_CN[key]+'精练',gains:{[key]:2},loss:{}}:null;
+  }
+  function preview(id) {
+    const l=life(),b=ball(),program=programFor(id);
+    if(!l?.alive || !b?.started || b.retiredFromPlaying || l.prisonYears>0)
+      return {ok:false,reason:'当前生涯阶段无法训练'};
+    if(!program)return {ok:false,reason:'训练项目不存在'};
+    if((b.out||0)>0 && Object.keys(program.gains).some(k=>['speed','speedWithBall','vertical','dunk','strength'].includes(k)))
+      return {ok:false,reason:'伤停期间暂停对抗和爆发力训练'};
+    const pos=window.kn?kn(b):'wing';
+    const training=MBLDevelopment.drill(b.skills,b.potential,program.gains,program.loss);
+    if(!training)return {ok:false,reason:'该项目已达个人潜力上限'};
+    const {after,changes,cost}=training;
+    const beforeBadges=S.activeBadges(b.skills,pos),afterBadges=S.activeBadges(after,pos);
+    const badges=S.BADGES.filter(b=>beforeBadges[b.id]!==afterBadges[b.id]).map(b=>({name:b.name,
+      before:beforeBadges[b.id]||null,after:afterBadges[b.id]||null}));
+    const balance=points(), available=balance>=cost;
+    return {id,ok:available,reason:available?'':'需要 '+cost+' 点，现有 '+balance+' 点',cost,balance,
+      changes,badges,ovr:S.overall(b.skills,pos),afterOvr:S.overall(after,pos),name:program.name,
+      owner:l, stamp:JSON.stringify([id,l.seed,l.age,l.ball.out,balance,b.skills,b.potential,pos])};
+  }
   function programs() {
-    var b = ball();
-    if (!b) return [];
-    return listFor(b).map(function (p) {
-      return {
-        id: p.id, name: p.name, desc: p.desc,
-        gains: p.gains, loss: p.loss,
-        available: canGain(b, p.gains)
-      };
+    return PROGRAMS.map(p=>{
+      const quote=preview(p.id);
+      return {...p,cost:quote.cost,available:quote.ok,reason:quote.reason,changes:quote.changes||[]};
     });
   }
-
   function gainText(gains) {
-    return Object.keys(gains).map(function (k) {
-      return '+' + gains[k] + ' ' + (C.ATTR_CN[k] || k);
-    }).join(' / ');
+    return Object.keys(gains).map(k=>'+'+gains[k]+' '+S.ATTR_CN[k]).join(' / ');
   }
   function lossText(loss) {
-    return Object.keys(loss).map(function (k) {
-      return '−' + loss[k] + ' ' + (C.ATTR_CN[k] || k);
-    }).join(' / ');
+    return Object.keys(loss).map(k=>'−'+loss[k]+' '+S.ATTR_CN[k]).join(' / ');
   }
-
-  function apply(id) {
-    var l = life(), b = ball();
-    if (!l || !b || points() <= 0) return { ok: false, reason: '没有可用训练点' };
-    var program = null;
-    var list = listFor(b);
-    for (var i = 0; i < list.length; i++) if (list[i].id === id) program = list[i];
-    if (!program) return { ok: false, reason: '专项不存在' };
-    if (!canGain(b, program.gains)) return { ok: false, reason: '这项已经到潜力上限' };
-
-    var applied = {};
-    Object.keys(program.gains).forEach(function (k) {
-      var cur = skillOf(b, k), cap = capOf(b, k);
-      if (cur >= cap) return;
-      var next = Math.min(cap, cur + program.gains[k]);
-      b.skills[k] = window.re ? re(next, 0, cap) : next;
-      applied[k] = next - cur;
-    });
-    Object.keys(program.loss).forEach(function (k) {
-      var cur = skillOf(b, k);
-      if (cur > FLOOR) b.skills[k] = Math.max(FLOOR, cur - program.loss[k]);
-    });
-    b.apPoints = C.num(b.apPoints, 0) - 1;
-    save(l);
-    return { ok: true, name: program.name, gains: applied };
+  function apply(id,quoted) {
+    const plan=preview(id);
+    if(!plan.ok)return plan;
+    if(quoted && (quoted.owner!==plan.owner||quoted.stamp!==plan.stamp))
+      return {ok:false,reason:'训练条件已变化，请重新预览'};
+    const l=life(),b=l.ball, previous=b.lastTraining;
+    const note={name:plan.name,age:l.age,cost:plan.cost,changes:plan.changes,badges:plan.badges};
+    for(const change of plan.changes)b.skills[change.key]=change.to;
+    b.apPoints=plan.balance-plan.cost;
+    const path=l.flags?.mblPathway,first=path?.firstTraining;
+    window.MBLPathway?.training(l,id);
+    b.lastTraining=note;
+    try {
+      save(l);
+      if(window.MBLAutoSave && !MBLAutoSave.save())throw Error('save');
+    } catch (_) {
+      for(const change of plan.changes)b.skills[change.key]=change.from;
+      if(path&&!first)delete path.firstTraining;
+      b.apPoints=plan.balance;
+      if(previous)b.lastTraining=previous;else delete b.lastTraining;
+      try { save(l); } catch (_) { /* In-memory state already restored. */ }
+      return {ok:false,reason:'存档写入失败，已恢复训练点和能力。可释放存档空间后重试。'};
+    }
+    return {ok:true,...note};
   }
 
   window.MBLAttrPoints = {
@@ -191,7 +212,7 @@
     keys: SKILL_KEYS,
     points: points,
     capOf: function (k) { var b = ball(); return b ? capOf(b, k) : 99; },
-    programs: programs,
+    settle: grant, programs: programs, preview: preview,
     gainText: gainText,
     lossText: lossText,
     apply: apply,

@@ -47,7 +47,7 @@
     return groups;
   }
 
-  function openDetail(g) {
+  function openDetail(g, context={}) {
     ensureDialog();
     var head = el('div', 'mbl-gh-dhead');
     head.append(
@@ -56,18 +56,17 @@
     );
     var body = el('div', 'mbl-gh-body');
     if (window.MBLArenaMatch) body.append(MBLArenaMatch.report(g));
-    if (g.box) body.append(renderBox(g.box));
+    if(window.MBLMatchStory){const section=MBLMatchStory.report(g);if(section.childElementCount)body.append(section);}
+    if (g.box) body.append(renderBox(g,context));
     else body.append(renderFallback(g));
-    if ([1, 2].includes(g.matchRecord?.version)) {
+    if ([1, 2, 3].includes(g.matchRecord?.version)) {
       var replay = el('button', 'mbl-season-btn', '重播比赛');
       replay.type = 'button';
       replay.onclick = function () {
-        closeDialog();
         var opened = false;
-        try { opened = window.MBLBroadcast?.openHistorical(g); } catch (error) { console.warn('[history replay]', error); }
+        try { opened = window.MBLBroadcast?.openHistorical(g,context); } catch (error) { console.warn('[history replay]', error); }
         if (!opened) {
-          openDetail(g);
-          dialog.querySelector('.mbl-gh-body').append(el('p', 'muted', '历史引擎或比分不一致，已保留原始统计。'));
+          replay.textContent='历史回放无法核对，原始统计仍可查看';replay.disabled=true;
         }
       };
       body.prepend(replay);
@@ -95,27 +94,16 @@
     return td;
   }
 
-  // r23：历史 box 里有 en/pos/ovr 的行（新档）名字可点，复用 float-layer 的 shape 浮层；旧档无这些字段则保持纯文本
-  function nameCell(r) {
+  function nameCell(r,game,side,index,context,mu) {
     var td = document.createElement('td');
-    var ok = r.en && r.pos && r.ovr != null;
-    td.className = 'is-name' + (ok ? ' is-link' : '');
-    td.textContent = r.n;
-    if (ok) {
-      var key = 'ghshape:' + r.en + ':' + r.pos;
-      window.__boxShapes = window.__boxShapes || new Map();
-      window.__boxShapes.set(key, function () {
-        var five = my(r.en, r.pos, r.ovr, true, true);
-        return jk({ name: { en: r.en, hans: r.n, hant: r.n }, pos: r.pos, ovr: r.ovr },
-          Mp({ name: { en: r.en }, pos: r.pos }), five);
-      });
-      td.dataset.act = 'shape';
-      td.dataset.v = key;
-    }
+    td.className = 'is-name is-link';
+    var cards=window.MBLPlayerCard;
+    td.append(cards.button(()=>cards.fromBox(game,side,r,index,context,mu),r.n||r.en||'球员'));
     return td;
   }
 
-  function teamTable(team) {
+  function teamTable(game,side,context,mu) {
+    var team=game.box[side];
     var sec = el('div', 'mbl-gh-sec');
     var shead = el('div', 'mbl-gh-shead');
     shead.append(el('span', 'mbl-gh-tname', team.name),
@@ -130,11 +118,11 @@
 
     var totals = new Array(15).fill(0);
     var tbody = document.createElement('tbody');
-    team.rows.forEach(function (r) {
+    team.rows.forEach(function (r,index) {
       var s = r.s, tr = document.createElement('tr');
       if (r.me) tr.className = 'is-me';
       tr.append(
-        nameCell(r),
+        nameCell(r,game,side,index,context,mu),
         cell(Math.round(s[MIN])), cell(s[PTS]),
         cell(s[FGM] + '-' + s[FGA]), cell(s[TPM] + '-' + s[TPA]), cell(s[FTM] + '-' + s[FTA]),
         cell(s[ORE] + s[DRE]), cell(s[AST]), cell(s[STL]), cell(s[BLK]), cell(s[TO]), cell(s[PF])
@@ -159,10 +147,12 @@
     return sec;
   }
 
-  function renderBox(box) {
+  function renderBox(game,context) {
+    var box=game.box;
+    var mu=window.MBLPlayerCard.readMatchup(game);
     var wrap = el('div', 'mbl-gh-box');
     if (window.MBLArenaMatch) wrap.append(MBLArenaMatch.comparison(box));
-    wrap.append(teamTable(box.home), teamTable(box.away));
+    wrap.append(teamTable(game,'home',context,mu), teamTable(game,'away',context,mu));
     return wrap;
   }
 
@@ -213,7 +203,7 @@
           '<span class="nm">' + C.hans(g.opp) + '</span>' +
           '<span class="sc ' + (win ? 'w' : 'l') + '">' + g.us + '–' + g.them + '</span>' +
           '<span class="go">' + (g.box ? '数据' : '—') + '</span>';
-        (function (rec) { row.onclick = function () { openDetail(rec); }; })(g);
+        (function (rec) { row.onclick = function () { openDetail(rec,{year:grp.year,team:grp.team}); }; })(g);
         list.append(row);
       }
       section.append(list);

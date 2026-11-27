@@ -68,6 +68,14 @@
   let activeLife;
   let activeContact = '';
   let filterMode = 'all', searchText = '';
+  const PHONE_AGE = 12;
+  function canUsePhone(life) {
+    const age = life?.age;
+    return Number.isFinite(age) && age >= PHONE_AGE;
+  }
+  function messageStamp(age) {
+    return Number.isFinite(age) && age >= 0 ? '你 ' + age + ' 岁时' : '往日记录';
+  }
   const threadScroll = new Map();
 
   function ensureOwner(life) {
@@ -79,12 +87,20 @@
     return person.name?.en || C.hans(person.name);
   }
 
+  function friendAge(life, person) {
+    if (Number.isFinite(person.age)) return person.age;
+    if (Number.isFinite(person.gap)) return life.age + person.gap;
+    return null;
+  }
+
   function contacts(life) {
     const family = typeof window.S_ === 'function' ? window.S_(life) : [];
-    const relatives = family.filter(({ p, kin }) => p.alive && personalities[kin] && (kin !== 'child' || p.age >= 8))
-      .map(({ p, kin }) => ({ id: JSON.stringify([kin, nameKey(p)]), role: kin, person: p }));
+    const relatives = family.filter(({ p, kin }) => p.alive && personalities[kin] &&
+      (kin === 'child' ? canUsePhone(p) : !Number.isFinite(p.age) || canUsePhone(p)))
+      .map(({ p, kin }) => ({ id: JSON.stringify([kin, nameKey(p)]), role: kin, person: p, age:p.age }));
     const friends = (life.ball?.friends || []).filter(person => !person.gone && !person.rival)
-      .map(person => ({ id: JSON.stringify(['friend', nameKey(person), person.metAge ?? null]), role: person.club || person.pro ? 'teammate' : 'friend', person }));
+      .map(person => ({ id: JSON.stringify(['friend', nameKey(person), person.metAge ?? null]), role: person.club || person.pro ? 'teammate' : 'friend', person, age:friendAge(life,person) }))
+      .filter(contact => !Number.isFinite(contact.age) || contact.age >= PHONE_AGE);
     return relatives.concat(friends);
   }
 
@@ -151,6 +167,11 @@
     return (deadline.kind === 'game' ? '第 ' + deadline.game + ' 场主场赛后' : deadline.age + ' 岁结束前');
   }
 
+  function legacyPromise(promise) {
+    const age = promise?.age ?? promise?.deadline?.age;
+    return Number.isFinite(age) && age < PHONE_AGE;
+  }
+
   function finishPromise(life, contact, thread, outcome) {
     const promise = thread.promise;
     const history = thread.appointments ||= [];
@@ -176,7 +197,7 @@
   }
 
   function updatePromise(life, contact, thread, action) {
-    if (C.life() !== life || !life.alive || !thread.promise) return;
+    if (C.life() !== life || !life.alive || !canUsePhone(life) || !thread.promise) return;
     if (deadlineState(life, thread.promise.deadline) === 'missed') return;
     const promise = thread.promise;
     const meeting = promise.kind === 'meeting';
@@ -199,18 +220,21 @@
     const lease = state.lease;
     if (!lease) return;
     life.money.cash += lease.deposit;
+    window.MBLLifeCalendar?.note(life,'短租押金退回',window.Zt(lease.deposit,life)+' 已退至现金余额。');
     delete state.lease;
+    delete life.money.mblLeaseDeposit;
   }
 
   function leaseExpired(life, lease) {
     if (life.age > lease.age) return true;
     if (!lease.season) return false;
     const season = life.ball.season;
-    return season && seasonKey(season) === lease.season && season.games.length >= lease.endGame;
+    return !season || seasonKey(season)!==lease.season || season.phase!=='regular' || season.games.length>=lease.endGame;
   }
 
   function housingChoices(life, state, contact, thread, refresh) {
-    if (!thread.housing || contact.role !== 'partner' || !life.alive || typeof window.payRelocationBill !== 'function') return null;
+    const housing=state.relocation||thread?.housing;
+    if (!housing || housing.status==='moved' || (contact && contact.role !== 'partner') || !life.alive || typeof window.payRelocationBill !== 'function') return null;
     const scale = window.ve(life);
     const money = amount => window.Zt(amount, life);
     const activeLease = state.lease;
@@ -233,25 +257,32 @@
       if (bill.key === 'move' && activeLease) row.append(make('p', 'mbl-rel-meta', '付款后退回押金 ' + money(activeLease.deposit) + '，已预付租金不退。'));
       if (bill.key === 'rent') row.append(make('p', 'mbl-rel-meta', '租金一次预付。租期约 24 个常规赛场次，最迟到本年龄结束。提前解约费 ' + money(.02 * scale) + '。'));
       const confirm = button('确认支付 ' + money(total), () => {
-        if (C.life() !== life || thread.housing.status === 'moved' || state.lease !== activeLease) return;
-        if (!window.payRelocationBill(life, bill)) { refresh(); return; }
+        if (C.life() !== life || !life.alive || !canUsePhone(life) ||
+          state!==life.flags.mblMessages || housing!==(state.relocation||thread?.housing) || housing.status==='moved' || state.lease !== activeLease) return;
+        const previous=JSON.stringify(state),logLength=life.log.length;
+        const pay=()=>{
+        if (!window.payRelocationBill(life,bill))return '可用资金不足。';
         if (bill.key === 'rent') {
           const season = typeof window.Oa === 'function' ? window.Oa(life) : null;
           state.lease = { age: life.age, season: season ? seasonKey(season) : null,
             endGame: season ? Math.min(season.total, season.games.length + 24) : null,
             deposit: bill.deposit, termination: .02 * scale };
-          thread.housing.status = 'renting';
-          append(thread, life.age, '我先在新球队这边短租，等你忙完，我们再定长期住处。', true);
-          append(thread, life.age, '好，那我先把这边的项目做完。下次一起看看哪边通勤方便。');
+          life.money.mblLeaseDeposit=bill.deposit;
+          housing.status = 'renting';
+          if(thread)append(thread, life.age, '我先在新球队这边短租，等你忙完，我们再定长期住处。', true);
+          if(thread)append(thread, life.age, '好，那我先把这边的项目做完。下次一起看看哪边通勤方便。');
         } else {
           settleLease(life, state);
-          thread.housing.status = 'moved';
-          append(thread, life.age, '我把搬家的费用付了。我们再一起定行李和交接时间。', true);
-          append(thread, life.age, '行，我把项目要交接的几天圈出来，我们一起对一下。');
+          housing.status = 'moved';
+          if(thread)append(thread, life.age, '我把搬家的费用付了。我们再一起定行李和交接时间。', true);
+          if(thread)append(thread, life.age, '行，我把项目要交接的几天圈出来，我们一起对一下。');
         }
-        thread.unread = 0;
-        save();
-        refresh();
+        if(thread){thread.housing.status=housing.status;thread.unread=0;}
+        window.MBLLifeCalendar?.note(life,bill.label,parts);return '';
+        };
+        const err=window.MBLLifeCalendar?window.MBLLifeCalendar.transact(life,pay):pay();
+        if(err){life.flags.mblMessages=JSON.parse(previous);life.log.length=logLength;try{window.Nt?.saveLife(life);}catch(_){} }else if(!window.MBLLifeCalendar)save();
+        refresh();if(err){const message=make('p','mbl-rel-meta',err);message.setAttribute('role','status');document.querySelector('dialog[open] .mbl-rel-sec, [data-view=home] .mbl-tcal')?.append(message);}
       });
       confirm.disabled = window.appointmentTravelFunds(life) < total;
       row.append(confirm);
@@ -261,6 +292,9 @@
   }
 
   function observe(life) {
+    // Childhood interactions are in-person. Keep legacy phone records intact
+    // until the phone is available; never create or settle SMS during childhood.
+    if (!canUsePhone(life)) return life.flags?.mblMessages || null;
     const team = life.ball.pro?.team;
     const snapshot = {
       pro: !!team,
@@ -268,9 +302,42 @@
       injury: life.ball.injury?.age ?? null,
       allowance: life.spent?.family_allowance ?? null
     };
+    let changed = !!window.MBLLifeCalendar?.reconcile(life) || !life.flags.mblMessages;
     const state = life.flags.mblMessages ||= { threads: {}, snapshot, seenPro: snapshot.pro, lastTeam: snapshot.team };
+    if (!state.threads) {
+      state.threads = {};
+      changed = true;
+    }
+    if (!state.phoneAgeRule) {
+      changed = true;
+      // Older builds allowed children to make phone appointments. Preserve
+      // those records without charging a relationship penalty for missing them.
+      for (const thread of Object.values(state.threads)) {
+        const promise = thread.promise;
+        if (!promise) continue;
+        const createdAge = promise.age ?? promise.deadline?.age;
+        if (legacyPromise(promise)) {
+          (thread.appointments ||= []).push({
+            deadline: promise.deadline || {kind:'year', age:createdAge},
+            outcome: promise.outcome || 'legacy',
+            kind: promise.kind
+          });
+          delete thread.promise;
+        }
+      }
+      // A snapshot from a pre-phone childhood is not a new phone event.
+      if (life.age === PHONE_AGE) {
+        state.snapshot = snapshot;
+        state.seenPro = snapshot.pro;
+        state.lastTeam = snapshot.team;
+      }
+      state.phoneAgeRule = 1;
+    }
+    if(state.lease && life.money && life.money.mblLeaseDeposit!==state.lease.deposit){life.money.mblLeaseDeposit=state.lease.deposit;changed=true;}
     if (state.lease && leaseExpired(life, state.lease)) {
+      changed = true;
       settleLease(life, state);
+      if(state.relocation?.status==='renting')state.relocation.status='expired';
       for (const thread of Object.values(state.threads)) {
         if (thread.housing?.status === 'renting') {
           thread.housing.status = 'expired';
@@ -278,17 +345,22 @@
         }
       }
     }
-    const previous = state.snapshot;
+    const previous = state.snapshot || snapshot;
+    if (!state.snapshot || Object.keys(snapshot).some(key => snapshot[key] !== previous[key])) changed = true;
     state.snapshot = snapshot;
     const roster = contacts(life);
     const incoming = [];
     if (snapshot.pro && !state.seenPro) {
       state.seenPro = true;
+      changed = true;
       incoming.push('contract');
     } else if (snapshot.team && state.lastTeam && snapshot.team !== state.lastTeam) {
-      incoming.push('trade');
+      incoming.push('trade');state.relocation={status:'open',team:snapshot.team};
     }
-    if (snapshot.team) state.lastTeam = snapshot.team;
+    if (snapshot.team && state.lastTeam !== snapshot.team) {
+      state.lastTeam = snapshot.team;
+      changed = true;
+    }
     if (snapshot.injury === life.age && snapshot.injury !== previous.injury) incoming.push('injury');
     if (snapshot.allowance !== null && snapshot.allowance !== previous.allowance) incoming.push('allowance');
 
@@ -298,6 +370,7 @@
       const peer = eligible.filter(contact => ['teammate', 'friend'].includes(contact.role))
         .sort((first, second) => score(second) - score(first))[0];
       for (const contact of peer ? family.concat(peer) : family) {
+        changed = true;
         deliver(state, contact, life.age, eventName, events[eventName][contact.role]);
         if (eventName === 'trade' && contact.role === 'partner') threadFor(state, contact).housing = { status: 'open' };
       }
@@ -305,17 +378,25 @@
 
     for (const contact of roster) {
       const thread = state.threads[contact.id];
+      const follow=window.MBLConversationStories?.followUp(life,thread);
+      if(follow){append(thread,life.age,follow);changed=true;}
       const promise = thread?.promise;
       if (!promise) continue;
-      promise.deadline ||= { kind: 'year', age: promise.age };
+      if (!promise.deadline) {
+        promise.deadline = { kind: 'year', age: promise.age };
+        changed = true;
+      }
       if (promise.outcome) {
+        changed = true;
         (thread.appointments ||= []).push({ deadline: promise.deadline, outcome: promise.outcome });
         append(thread, life.age, replyText[promise.outcome]);
         delete thread.promise;
       } else if (deadlineState(life, promise.deadline) === 'missed') {
+        changed = true;
         finishPromise(life, contact, thread, 'missed');
       }
     }
+    if (changed && C.life() === life) window.Nt?.saveLife?.(life);
     return state;
   }
 
@@ -333,9 +414,13 @@
   function render(life, refresh) {
     ensureOwner(life);
     const section = make('section', 'mbl-rel-sec mbl-sms');
+    if(!canUsePhone(life)){
+      section.append(make('h3','arena-phone-title','家庭时光'),make('p','mbl-rel-muted','12 岁后开放私人手机。在此之前，可以在「关系」中与家人相处。'));
+      return section;
+    }
     const roster = contacts(life);
     const state = life.alive ? observe(life) : life.flags?.mblMessages || { threads: {} };
-    const unread = roster.reduce((total, contact) => total + (state.threads[contact.id]?.unread || 0), 0);
+    const unread = roster.reduce((total, contact) => total + pendingMessages(state.threads[contact.id]), 0);
     const selected = roster.find(contact => contact.id === activeContact);
     if (selected) {
       section.classList.add('arena-conversation');
@@ -357,23 +442,18 @@
     const empty=make('p','mbl-rel-muted','没有符合条件的联系人。');empty.hidden=true;
     const rows=[];
     for (const contact of orderedContacts(roster,state.threads)) {
-      const count = state.threads[contact.id]?.unread || 0;
+      const count = pendingMessages(state.threads[contact.id]);
       const label = C.hans(contact.person.name) || personalities[contact.role].label;
       const profile=personalities[contact.role]; const last=state.threads[contact.id]?.messages?.at(-1);
       const item = button('', () => {
-        activeContact = contact.id;
-        const thread = state.threads[contact.id];
-        if (thread?.unread) {
-          thread.unread = 0;
-          save();
-        }
-        refresh();
+        if (C.life() === life && selectConversation(contact.id)) refresh();
       });
       item.className='arena-contact-row';
       const avatar=make('span','arena-contact-avatar',label.slice(0,1));
       const copy=make('span','arena-contact-copy');
       copy.append(make('b','',label),make('small','',profile.label+' · '+(last?.text||'还没有聊天记录')));
-      const meta=make('span','arena-contact-meta');meta.append(make('small','',last?.age!=null?last.age+' 岁':''));
+      const meta=make('span','arena-contact-meta');
+      meta.append(make('small','',last ? (Number.isFinite(last.age) && last.age < PHONE_AGE ? '旧档 · ' : '') + messageStamp(last.age) : ''));
       if(count)meta.append(make('b','arena-unread',String(count)));
       else meta.append(make('span','arena-contact-chevron','›'));
       item.append(avatar,copy,meta);
@@ -388,15 +468,42 @@
     return section;
   }
 
+  function pendingMessages(thread){
+    return Math.max(thread?.dialogue?.question ? 1 : 0, Number(thread?.unread)||0);
+  }
   function orderedContacts(roster,threads){
     return roster.slice().sort((a,b)=>{
       const at=threads[a.id],bt=threads[b.id];
-      return Number(!!bt?.unread)-Number(!!at?.unread) || (bt?.messages?.at(-1)?.age??-1)-(at?.messages?.at(-1)?.age??-1) || Number(!!bt?.messages?.length)-Number(!!at?.messages?.length);
+      return Number(!!pendingMessages(bt))-Number(!!pendingMessages(at)) || (bt?.messages?.at(-1)?.age??-1)-(at?.messages?.at(-1)?.age??-1) || Number(!!bt?.messages?.length)-Number(!!at?.messages?.length);
     });
   }
   function summary(life){
+    if (!canUsePhone(life)) return {contacts:0,unread:0,appointments:0};
     const roster=contacts(life),threads=life.flags?.mblMessages?.threads||{};
-    return {contacts:roster.length,unread:roster.reduce((n,c)=>n+Math.max(0,Number(threads[c.id]?.unread)||0),0),appointments:roster.filter(c=>threads[c.id]?.promise&&!threads[c.id].promise.outcome).length};
+    return {contacts:roster.length,unread:roster.reduce((n,c)=>n+pendingMessages(threads[c.id]),0),appointments:roster.filter(c=>threads[c.id]?.promise&&!threads[c.id].promise.outcome&&!legacyPromise(threads[c.id].promise)).length};
+  }
+  // Read-only projection for the global inbox; the conversation and calendar
+  // still own read receipts and appointment settlement.
+  function notifications(life) {
+    const messages = [], appointments = [];
+    if (!canUsePhone(life)) return {messages,appointments};
+    const threads = life.flags?.mblMessages?.threads || {};
+    for (const contact of contacts(life)) {
+      const thread = threads[contact.id];
+      if (!thread) continue;
+      const name = C.hans(contact.person.name) || personalities[contact.role].label;
+      const count = pendingMessages(thread);
+      if (count) messages.push({id:contact.id,name,count});
+      const promise = thread.promise;
+      if (!life.alive || !promise || promise.outcome || legacyPromise(promise)) continue;
+      const deadline = promise.deadline || {kind:'year',age:promise.age};
+      if (!Number.isFinite(deadline.age)) continue;
+      const status = deadlineState(life,deadline);
+      if (status === 'missed') continue;
+      appointments.push({id:contact.id,name,kind:promise.kind==='meeting'?'见面':'通话',
+        deadline:deadlineLabel(deadline),due:status==='due'||(deadline.kind==='year'&&deadline.age===life.age)});
+    }
+    return {messages,appointments};
   }
   function restoreThreadScroll(root){
     const node=root.querySelector('.mbl-sms-thread');if(!node)return;
@@ -405,16 +512,24 @@
   }
 
   function save() {
-    if (window.MBLAutoSave) window.MBLAutoSave.save();
-    else if (window.Nt?.saveLife) window.Nt.saveLife(C.life());
+    const life = C.life();
+    if (!life) return;
+    // Slots snapshot the core memory store, not the mutable life object.
+    // Commit the new messages and relationship changes before copying the slot.
+    window.Nt?.saveLife?.(life);
+    window.MBLAutoSave?.save();
   }
 
   function renderThread(life, state, contact, refresh) {
+    const stories=window.MBLConversationStories;
     const profile = personalities[contact.role];
     const thread = state.threads[contact.id] || { messages: [] };
     const card = make('div', 'mbl-rel-card arena-chat-card');
     const label=C.hans(contact.person.name)||profile.label;
-    const hero=make('div','arena-chat-profile');const copy=make('div');copy.append(make('b','',label),make('p','mbl-rel-meta',profile.label+' · '+profile.trait));
+    const hero=make('div','arena-chat-profile');const copy=make('div');
+    const age = contact.age;
+    const role = profile.label + (Number.isFinite(age) && age >= 0 ? ' · '+age+' 岁' : '');
+    copy.append(make('b','',label),make('p','mbl-rel-meta',role),make('p','mbl-rel-meta',stories ? stories.temperament(life,contact,thread) : profile.trait));
     hero.append(make('span','arena-contact-avatar',label.slice(0,1)),copy,make('strong','arena-bond-score',score(contact)+'/100'));
     const bond=make('div','arena-bond-track');const fill=make('span');fill.style.width=score(contact)+'%';bond.append(fill);
     card.append(hero,make('p','mbl-rel-meta','亲密度'),bond);
@@ -428,7 +543,9 @@
     messages.addEventListener('scroll',()=>{if(messages.isConnected)threadScroll.set(messages.dataset.mblScrollKey,{top:messages.scrollTop,bottom:messages.scrollHeight-messages.clientHeight-messages.scrollTop<8});});
     for (const entry of thread.messages) {
       const bubble = make('li', 'mbl-sms-bubble' + (entry.fromPlayer ? ' is-sent' : ''));
-      bubble.append(make('small', '', (entry.fromPlayer ? '你' : C.hans(contact.person.name) || profile.label) + ' · ' + entry.age + ' 岁'));
+      const sender = entry.fromPlayer ? '我' : C.hans(contact.person.name) || profile.label;
+      const legacy = Number.isFinite(entry.age) && entry.age < PHONE_AGE ? '旧档 · ' : '';
+      bubble.append(make('small', '', sender + ' · ' + legacy + messageStamp(entry.age)));
       bubble.append(make('div', '', entry.text));
       messages.append(bubble);
     }
@@ -437,7 +554,10 @@
     if (!life.alive) return card;
 
     function send(text, response, delta, reason, update) {
-      if (C.life() !== life) return;
+      if (C.life() !== life || !life.alive || !canUsePhone(life)) return;
+      if (!contacts(life).some(c=>c.id===contact.id) || state!==life.flags.mblMessages) return;
+      const before=state.threads[contact.id] ? JSON.stringify(state.threads[contact.id]) : null;
+      const fields=['bond','rel','relMax'].map(k=>[k,contact.person[k]]);
       const current = threadFor(state, contact);
       append(current, life.age, text, true);
       if (response) append(current, life.age, response);
@@ -447,14 +567,33 @@
         if (actual) current.lastChange = { delta: actual, reason };
       }
       update(current);
-      save();
+      try {
+        window.Nt.saveLife(life);
+        if (window.MBLAutoSave && !window.MBLAutoSave.save()) throw Error('save');
+      } catch (_) {
+        if (before) state.threads[contact.id]=JSON.parse(before);
+        else delete state.threads[contact.id];
+        for (const [k,v] of fields) {if (v===undefined) delete contact.person[k]; else contact.person[k]=v;}
+        try {window.Nt.saveLife(life);} catch (_) {}
+        refresh();
+        const status=make('p','mbl-rel-meta','这条消息未能保存，请再发一次。');
+        status.setAttribute('role','status');document.querySelector('.arena-chat-card')?.append(status);
+        return;
+      }
       refresh();
     }
 
     const actions = make('div', 'mbl-rel-btn-row');
     if (thread.inbox?.length) {
       const [label, text] = eventReplies[thread.inbox[0]];
-      actions.append(button(label, () => send(text, warmReplies[contact.role], 2, '认真回应了对方', current => current.inbox.shift())));
+      const event=thread.inbox[0];
+      actions.append(button(label, () => {
+        if (state.threads[contact.id]?.inbox?.[0]!==event) return;
+        send(text, stories?.eventReply(contact.role,event)||warmReplies[contact.role], 2, '认真回应了对方', current => {
+          current.inbox.shift();
+          stories?.rememberEvent(life,current,event);
+        });
+      }));
       actions.append(button('先报个平安', () => send('我这边有安排了，先和你说一声。', replyText.brief, 0, '', current => current.inbox.shift())));
       if (!thread.promise) {
         if (thread.inbox[0] === 'trade' && contact.role === 'partner' && typeof window.ve === 'function') {
@@ -477,7 +616,17 @@
           window.MBLTeamCalendar?.refresh();
         }));
       }
-    } else if (thread.helloAge !== life.age) {
+    }
+    if (stories && (thread.dialogue?.question || !thread.inbox?.length)) {
+      const view=stories.menu(life,contact,thread,score(contact));
+      for (const item of view.items) actions.append(button(item.label,()=>{
+        const current=state.threads[contact.id]||{};
+        const exchange=stories.respond(life,contact,current,score(contact),view.token,item.key);
+        if (!exchange) {refresh();return;}
+        send(exchange.sent,exchange.reply,exchange.delta,exchange.reason,t=>{t.dialogue=exchange.memory;});
+      }));
+      if (view.hint) card.append(make('p','mbl-rel-meta',view.hint));
+    } else if (!stories && !thread.inbox?.length && thread.helloAge !== life.age) {
       actions.append(button('发条消息问候', () => send('最近怎么样？想起来还没问问你。', profile.hello, 1, '主动问候', current => { current.helloAge = life.age; })));
       if(life.ball?.started)actions.append(button('分享训练近况',()=>send('今天的训练很有收获，想和你分享一下。',warmReplies[contact.role]||profile.hello,1,'分享日常',current=>{current.helloAge=life.age;})));
     }
@@ -493,7 +642,7 @@
     return card;
   }
 
-  const outcomeLabels = { kept: '已完成', moved: '已改期', cancelled: '已取消', missed: '已错过' };
+  const outcomeLabels = { kept: '已完成', moved: '已改期', cancelled: '已取消', missed: '已错过', legacy:'旧档约定 · 已归档' };
 
   function appendAppointmentActions(row, life, contact, thread, refresh) {
     const meeting = thread.promise.kind === 'meeting';
@@ -512,7 +661,7 @@
   }
 
   function renderAppointments(life, refresh, openConversation) {
-    if (!life.flags?.mblMessages) return null;
+    if (!canUsePhone(life) || !life.flags?.mblMessages) return null;
     const state = life.alive ? observe(life) : life.flags.mblMessages;
     const section = make('section', 'mbl-rel-sec mbl-appointments');
     const active = [];
@@ -521,7 +670,7 @@
       const thread = state.threads[contact.id];
       if (!thread) continue;
       const name = C.hans(contact.person.name) || personalities[contact.role].label;
-      if (thread.promise && !thread.promise.outcome) active.push({ contact, thread, name });
+      if (thread.promise && !thread.promise.outcome && !legacyPromise(thread.promise)) active.push({ contact, thread, name });
       for (const entry of thread.appointments || []) recent.push({ ...entry, name });
     }
     if (!active.length && !recent.length) return null;
@@ -529,6 +678,7 @@
     for (const { contact, thread, name } of active) {
       const deadline = thread.promise.deadline || { kind: 'year', age: thread.promise.age };
       const card = make('div', 'mbl-rel-card');
+      card.dataset.mblAppointmentId = contact.id;
       const status = deadlineState(life, deadline);
       card.append(make('b', '', '和' + name + (thread.promise.kind === 'meeting' ? '见面' : '通话')));
       card.append(make('p', 'mbl-rel-meta', deadlineLabel(deadline) + (status === 'due' ? ' · 现在可赴约' : ' · 已安排')));
@@ -546,20 +696,25 @@
   }
 
   function plannedTravel(life) {
+    if (!canUsePhone(life)) return 0;
     const threads = life.flags?.mblMessages?.threads || {};
     return contacts(life).reduce((total, contact) => {
       const promise = threads[contact.id]?.promise;
-      return total + (promise?.kind === 'meeting' && deadlineState(life, promise.deadline) !== 'missed' ? promise.cost : 0);
+      return total + (promise?.kind === 'meeting' && !legacyPromise(promise) &&
+        Number.isFinite(promise.cost) && deadlineState(life, promise.deadline || {kind:'year',age:promise.age}) !== 'missed' ? promise.cost : 0);
     }, 0);
   }
 
   function gameAppointmentIndex(life, season) {
     const index = new Map();
+    if (!canUsePhone(life)) return index;
     const threads = life.flags?.mblMessages?.threads;
     if (!threads) return index;
     const key = seasonKey(season);
     for (const contact of contacts(life)) {
-      const deadline = threads[contact.id]?.promise?.deadline;
+      const promise = threads[contact.id]?.promise;
+      if (legacyPromise(promise)) continue;
+      const deadline = promise?.deadline;
       if (deadline?.kind !== 'game' || deadline.season !== key) continue;
       if (!index.has(deadline.game)) index.set(deadline.game, []);
       index.get(deadline.game).push(C.hans(contact.person.name) || personalities[contact.role].label);
@@ -568,13 +723,16 @@
   }
 
   function selectConversation(id) {
-    ensureOwner(C.life());
+    const life = C.life();
+    if (!canUsePhone(life) || !contacts(life).some(contact => contact.id === id)) return false;
+    ensureOwner(life);
     activeContact = id;
     const thread = activeLife?.flags?.mblMessages?.threads[id];
     if (thread?.unread) {
       thread.unread = 0;
       save();
     }
+    return true;
   }
 
   let observing = false;
@@ -582,11 +740,21 @@
     if (observing) return;
     observing = true;
     queueMicrotask(() => {
-      observing = false;
-      const life = C.life();
-      if (life?.alive && life.flags && life.ball) observe(life);
+      try {
+        const life = C.life();
+        if (life?.alive && life.flags && life.ball) observe(life);
+      } finally {
+        observing = false;
+      }
     });
   });
 
-  window.MBLRelationsMessages = { render, renderAppointments, gameAppointmentIndex, selectConversation, plannedTravel, summary, orderedContacts, restoreThreadScroll, viewKey:()=>activeContact?'chat:'+activeContact:'contacts' };
+  function calendarHousing(life,refresh){
+    const state=life.flags?.mblMessages;
+    if(!state||!life.alive||!canUsePhone(life))return null;
+    const c=contacts(life).find(c=>c.role==='partner'),thread=c&&state.threads[c.id];
+    if(!state.relocation&&!thread?.housing)return null;
+    return housingChoices(life,state,thread?.housing?c:null,thread?.housing?thread:null,refresh);
+  }
+  window.MBLRelationsMessages = { calendarHousing,render, renderAppointments, gameAppointmentIndex, selectConversation, plannedTravel, summary, notifications, orderedContacts, restoreThreadScroll, canUsePhone, messageStamp, viewKey:()=>activeContact?'chat:'+activeContact:'contacts' };
 })();

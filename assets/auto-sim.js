@@ -6,6 +6,7 @@
   // 重大节点：合同续约、交易/转会/裁员、选秀/转职业、升学/俱乐部转折、退役转行、重大伤病、重大财务危机。
   // 这些抉择在自动模拟中暂停，留给玩家手动确认；其余日常教练/媒体/社交/比赛小事继续自动处理。
   var MAJOR_TIDS = new Set([
+    'mbl_room_conversation',
     // 合同 / 续约 / 代言
     'coach_extend', 'coach_extension', 'gm_extend', 'gm_star_contract',
     'money_contract', 'media_network', 'media_sponsor', 'pl_shoe_deal',
@@ -69,10 +70,13 @@
     var lastSig = '';
     var stopped = { reason: 'maxsteps' };
     window.__mblAutoSim = true;
+    window.__mblPauseLifePlan=!!opts.pauseAppointments;
+    window.__mblPausePath=!!(opts.pauseMajor||opts.onChoice);
 
     return new Promise(function (resolve) {
       function finish(reason) {
         window.__mblAutoSim = false;
+        window.__mblPauseLifePlan=false;window.__mblPausePath=false;
         stopped.reason = reason;
         // 收口王朝历史时刻：补全当前年份，不暂停口径下标记剩余节点、避免结束后弹窗残留
         var curLife = window.de && de.life;
@@ -89,6 +93,7 @@
         if (guard++ > maxSteps) return finish('maxsteps');
 
         // 停止条件
+        if(window.__mblPausePath&&(life.flags?.mblPathway?.review||life.flags?.mblPathway?.observationDue))return finish('choice');
         if (stopWhen && stopWhen(life, stopped)) return finish('stopwhen');
 
         // 停滞看门狗：内核与弹窗状态连续多步无任何变化即结束，避免点击无效导致永久转圈
@@ -128,6 +133,13 @@
         if (draftDone) { idleTries = 0; draftDone.click(); return schedule(); }
 
         // 3) 抉择
+        var reveal = document.querySelector('[data-act="showdecision"]');
+        if (life.pending?.length && reveal && !reveal.disabled) {
+          // A hidden decision still blocks progression. Reveal it and use the
+          // same pause/choice rules as a visible decision on the next step.
+          reveal.click();
+          return schedule();
+        }
         var choice = currentChoice(life);
         if (choice && choice.buttons.length) {
           // 重大节点：暂停自动模拟，保留抉择卡片等玩家手动选择（仅全自动模拟入口开启）
@@ -150,6 +162,9 @@
         }
 
         // 推进：next 常被视觉隐藏但可用，可见的 cta-next 作备选
+        if (opts.pauseAppointments && (window.MBLRelationsMessages?.notifications(life).appointments.some(item=>item.due)||window.MBLLifeCalendar?.notifications(life).some(item=>item.due))) {
+          return finish('appointment');
+        }
         var realNext = document.querySelector('main.play [data-act="next"]');
         if (realNext && !realNext.disabled) { idleTries = 0; realNext.click(); return schedule(); }
         var ctaNext = visibleNode(Array.from(document.querySelectorAll('.mbl-cta-next')));

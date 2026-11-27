@@ -28,6 +28,7 @@
     if(info.travel)notes.append(h('p','',`尚未支付的私人行程 · ${money(info.travel,l)}`));
     if(info.deposit)notes.append(h('p','',`暂扣可退住房押金 · ${money(info.deposit,l)}`));
     if(info.queue.parents)notes.append(h('p','',`${info.queue.parents} 项由家长安排，不计入个人现金账单`));
+    if(l.age>=18&&kind==='money'){const budget=l.money.budget; if(budget?.inc&&budget?.out)notes.append(h('p','','最近结算 · 合同收入 '+money(budget.inc.contract||0,l)+' · 税费 '+money(budget.out.tax||0,l)+' · 经纪费 '+money(budget.out.agent||0,l)));const saving=l.flags?.mblLifeCalendar?.items?.find(a=>a.kind==='savings'&&window.MBLLifeCalendar?.status(l,a)!=='失效');if(saving)notes.append(h('p','','待转入储蓄 · '+money(saving.amount,l)+' · '+window.MBLLifeCalendar.deadline(saving)));}
     if(info.debt&&kind==='money')notes.append(h('p','',`未偿债务 · ${money(info.debt,l)}`));
     if(notes.children.length)box.append(notes);return box;
   }
@@ -41,7 +42,7 @@
     for(const [sel,kind] of [['.modal.moneysheet','money'],['.modal.spend','spend']]){
       const modal=document.querySelector(sel);if(!modal)continue;
       const info=read(life),tab=window.de?.moneyTab||'home';
-      const sig=JSON.stringify([info,kind,tab,window.MBLCurrency?.label?.()]);
+      const sig=JSON.stringify([info,kind,tab,life.flags?.mblLifeCalendar?.items,life.money.budget,window.MBLCurrency?.label?.()]);
       const previous=modal.querySelector('.arena-finance-hero');if(previous?.dataset.sig===sig)continue;
       const hero=panel(life,info,kind);hero.dataset.sig=sig;
       if(previous)previous.replaceWith(hero);else (modal.querySelector(kind==='money'?'.plantabs':'.modal-top')||modal.querySelector('.modal-top'))?.after(hero);

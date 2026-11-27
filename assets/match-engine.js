@@ -62,11 +62,31 @@
       if (!ov) { var s = 0; KEYS.forEach(function (k) { s += rat(p, k); }); ov = KEYS.length ? s / KEYS.length : 70; }
       return { p: p, ov: ov, w: Math.max(.08, Math.pow(ov / 60, 2.2)) };
     });
-    list.sort(function (a, b) { return b.ov - a.ov; });
+    if(!players.some(p=>p.id==='me' && typeof p.rotation?.starter==='boolean'))list.sort(function (a, b) { return b.ov - a.ov; });
     list.slice(5).forEach(function (x) { x.w *= .5; });
     var sum = list.reduce(function (s, x) { return s + x.w; }, 0);
     list.forEach(function (x, i) { x.w = x.w / sum; x.min = r1(clamp(x.w * 240, 1, 42)); });
+    const designated=list.find(x=>x.p.id==='me' && Number.isFinite(x.p.rotation?.minutes));
+    if(designated && list.length>=6){
+      designated.min=clamp(designated.p.rotation.minutes,1,42);
+      let remaining=240-designated.min;
+      let others=list.filter(x=>x!==designated);
+      while(others.length){
+        const weights=others.reduce((a,x)=>a+x.w,0);
+        const capped=others.filter(x=>remaining*x.w/weights>48);
+        if(!capped.length){others.forEach(x=>{x.min=remaining*x.w/weights;});break;}
+        capped.forEach(x=>{x.min=48;remaining-=48;});
+        others=others.filter(x=>!capped.includes(x));
+      }
+      for(const x of list)x.w=x.min/240;
+    }
     return list;
+  }
+  function possessionWeights(rotation) {
+    if(!rotation.some(x=>x.p.rotation))return rotation;
+    const scaled=rotation.map(x=>({...x,w:x.w*clamp(num(x.p.rotation?.usage,1),.5,1.5)}));
+    const total=scaled.reduce((sum,x)=>sum+x.w,0);
+    return scaled.map(x=>({...x,w:x.w/total}));
   }
   function pick(rot, rng) {
     var r = rng(), acc = 0;
@@ -130,9 +150,11 @@
   function simulate(home, away, opts) {
     opts = opts || {};
     var rng = opts.rng || Math.random;
+    var developmentRules = opts.engine === 2 || opts.engine === 3;
     var pace = num(opts.pace, 100);
     var ppt = Math.round(clamp(pace * .99, 80, 112)); // 每队回合数（真实节奏约 99）
     var rotH = buildRotation(home.players), rotA = buildRotation(away.players);
+    const offense={home:possessionWeights(rotH),away:possessionWeights(rotA)};
     var boxH = {}, boxA = {}, hot = {};
     home.players.forEach(function (p) { boxH[pid(p)] = emptyBox(); });
     away.players.forEach(function (p) { boxA[pid(p)] = emptyBox(); });
@@ -233,6 +255,7 @@
         (o.transition ? .16 : 0) + boost(scorer, 'firststep') * .5 + boost(scorer, 'ankle') * .4, .2, .9);
       var isOpen = rng() < openChance;
       var prob = openRate(scorer, zone), fired = [];
+      var baseRate = prob;
 
       // 三分的子情境：底角 / 超远 / 普通
       var sub = null;
@@ -263,6 +286,12 @@
         if (sub === 'deep') fired.push(fire(scorer, 'limitless'));
         if (!isOpen) fired.push(fire(scorer, 'difficult'));
       }
+      if (developmentRules) {
+        const shotBadges = fired.filter(Boolean);
+        prob += shotBadges.reduce((sum,b)=>sum+boost(scorer,b.id)*.4,0);
+        if(zone==='rim' && !isOpen)prob += boost(scorer,'iron')*.3;
+        if(o.transition)prob += boost(scorer,'workhorse')*.3;
+      }
       // 助攻：十美分
       if (o.assisted) {
         var dm = boost(o.assisted, 'dimer');
@@ -276,8 +305,9 @@
         var cl = fire(scorer, 'clutch'); if (cl) { prob += boost(scorer, 'clutch'); fired.push(cl); }
         if (!isOpen) { var cb = fire(scorer, 'coldblooded'); if (cb) { prob += boost(scorer, 'coldblooded'); fired.push(cb); } }
       }
+      if(developmentRules)prob=baseRate+Math.min(.08,prob-baseRate);
       prob -= defensePress(def, zone);
-      if (!isOpen) prob -= (zone === 'rim' ? .1 : zone === 'three' ? .1 : .08) - boost(scorer, 'contactfin') * .6;
+      if (!isOpen) prob -= (zone === 'rim' ? .1 : zone === 'three' ? .1 : .08) - (developmentRules ? 0 : boost(scorer, 'contactfin') * .6);
       fired = fired.filter(Boolean);
       prob = clamp(prob, .08, .9);
 
@@ -371,7 +401,7 @@
       var other = side === 'home' ? 'away' : 'home';
       currentQ = period;
       var transition = rng() < .16;
-      var actor = pick(rot(side), rng);
+      var actor = pick(offense[side], rng);
       var def = pickDefender(rot(other), actor.pos, rng);
       var b = B(side, actor), bd = B(other, def);
 
@@ -399,7 +429,7 @@
       var assistChance = clamp(.72 + (rat(actor, 'pass') - 75) * .005 + boost(actor, 'dimer') * .3 +
         boost(actor, 'flashypass') * .25, .3, .9);
       var scorer = actor, assister = null;
-      if (rng() < assistChance) { assister = actor; scorer = pick(rot(side), rng); }
+      if (rng() < assistChance) { assister = actor; scorer = pick(offense[side], rng); }
       var sdef = pickDefender(rot(other), scorer.pos, rng);
       var zone = pickZone(shotMix(scorer), rng);
       doShot(side, scorer, sdef, zone, { q: currentQ, clock: clock, transition: transition, assisted: assister, putback: false });
@@ -425,16 +455,16 @@
       }
     }
 
-    function finalize(players, box) {
+    function finalize(players, box, rotation) {
       players.forEach(function (p) {
         var b = box[pid(p)]; if (!b) return;
         b.pts = (b.fgm - b.tpm) * 2 + b.tpm * 3 + b.ftm;
-        var rx = buildRotation(players).filter(function (x) { return x.p === p; })[0];
+        var rx = rotation.find(x=>x.p===p);
         b.min = rx ? r1(rx.min * (48 + 5 * overtime) / 48) : 0;
       });
     }
-    finalize(home.players, boxH);
-    finalize(away.players, boxA);
+    finalize(home.players, boxH, rotH);
+    finalize(away.players, boxA, rotA);
 
     var winner = score.home === score.away ? null : (score.home > score.away ? 'home' : 'away');
     return {

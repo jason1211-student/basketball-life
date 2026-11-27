@@ -18,7 +18,7 @@
   }
 
   function eligible(life, template) {
-    if (!template) return false;
+    if (!template || window.MBLTeamRoom?.eligible(life,template.id)===false) return false;
     if (template.pool === 'campus' || schoolEvents.has(template.id)) {
       if (!life.inSchool || life.ball?.pro || life.ball?.retiredFromPlaying) return false;
     }

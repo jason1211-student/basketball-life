@@ -14,6 +14,12 @@
   }
   function fn(name) { return typeof window[name] === 'function' ? window[name] : null; }
   var a = fn('a') || window.a;
+  function hasPhone(life) {
+    return !!window.MBLRelationsMessages?.canUsePhone(life);
+  }
+  function ageLabel(age) {
+    return Number.isFinite(age) && age >= 0 ? age + ' 岁' : '年龄未记录';
+  }
 
   // 好感档位（展示层，不改内核）
   function relStage(rel) {
@@ -56,6 +62,12 @@
   [['messages','短信'],['relationships','关系'],['appointments','约定']].forEach(function(pair){
     var b=make('button','arena-phone-tab',pair[1]);b.type='button';b.onclick=function(){showSection(pair[0]);};nav.append(b);buttons[pair[0]]=b;
   });
+  nav.setAttribute('role','tablist');
+  body.id='mbl-phone-tab-content';
+  for(const [key,button] of Object.entries(buttons)){
+    button.id='mbl-phone-tab-'+key;button.setAttribute('role','tab');button.setAttribute('aria-controls',body.id);
+  }
+  window.MBLInteraction?.tabKeys(nav,()=>Object.values(buttons));
   var tip = make('p', 'mbl-rel-tip', '');
   tip.setAttribute('role','status');
   dialog.append(head, nav, body, tip);
@@ -91,7 +103,7 @@
       top.append(make('b', '', nm(partner.name)));
       top.append(make('span', 'mbl-rel-tag', '伴侣'));
       card.append(top);
-      var meta = make('p', 'mbl-rel-meta', '年龄 ' + (Number(partner.age) || '?') + ' · 在一起 ' + (Number(partner.years) || 0) + ' 年');
+      var meta = make('p', 'mbl-rel-meta', ageLabel(partner.age) + ' · 在一起 ' + (Number(partner.years) || 0) + ' 年');
       card.append(meta);
       card.append(make('div', 'mbl-rel-meta', '感情'));
       card.append(barRow(partner.bond, 100));
@@ -176,16 +188,17 @@
       top.append(make('b', '', nm(f.name)));
       top.append(make('span', 'mbl-rel-tag', relLabel(f)));
       card.append(top);
-      card.append(make('p', 'mbl-rel-meta', relStage(f.rel) + ' · 认识于 ' + (Number(f.metAge) || life.age) + ' 岁'));
+      card.append(make('p', 'mbl-rel-meta', relStage(f.rel) + (Number.isFinite(f.metAge) ? ' · 你 ' + f.metAge + ' 岁时认识' : '')));
       card.append(barRow(f.rel, 100));
       var rival = (Number(f.rival) || 0) > 0;
       var fRow = make('div', 'mbl-rel-btn-row');
       if (!rival) {
         var key = 'fb-' + (f.name && f.name.en || f.name);
         var cool = coolOn(life, key);
-        var btn = make('button', 'mbl-rel-btn', cool ? '今年已联络' : '约聚联络');
+        var btn = make('button', 'mbl-rel-btn', cool ? '今年已相处' : hasPhone(life) ? '约聚联络' : '一起玩耍');
         btn.type = 'button'; btn.disabled = cool;
         btn.onclick = function () {
+          if (L() !== life || !life.alive || f.gone) return;
           if (coolOn(life, key)) { flash('今年已经和 ' + nm(f.name) + ' 聚过了，来年再说吧。'); return; }
           var Xe = fn('Xe'), l = fn('l'), d = fn('d');
           if (Xe) Xe(f, 4);
@@ -245,6 +258,32 @@
 
   // ---------- D. 家人 ----------
   var KIN_CN = { mother: '母亲', father: '父亲', child: '孩子', sibling: '兄弟姐妹' };
+  function familyActivity(life, relative) {
+    const age = life.age;
+    const person = relative.p;
+    const key = 'family-time:' + relative.kin + ':' + (person.name?.en || nm(person.name));
+    const completed = coolOn(life, key);
+    let label = '一起度过家庭时光';
+    if (age >= 3 && age < 6) label = '一起玩耍';
+    if (age >= 6) label = relative.kin === 'sibling' ? '一起活动' : '分享今天的生活';
+    const btn = make('button', 'mbl-rel-btn', completed ? '今年已相处' : label);
+    btn.type = 'button';
+    btn.disabled = completed || !life.alive;
+    btn.onclick = function () {
+      if (L() !== life || !life.alive || life.age !== age || hasPhone(life) ||
+          !person.alive || !fn('S_')?.(life).some(item => item.p === person) || coolOn(life, key)) return;
+      const before = fn('Cn')?.(person) ?? person.bond ?? 60;
+      fn('Ie')?.(life, person, 2);
+      fn('l')?.(life, 'happiness', 1);
+      fn('d')?.(life, a('You spent some time with {who}.', '你和 {who} 度过了一段轻松的家庭时光。', '你和 {who} 度過了一段輕鬆的家庭時光。'), {who:person.name});
+      setCool(life, key);
+      const after = fn('Cn')?.(person) ?? person.bond ?? before;
+      save(life);
+      flash(after > before ? '亲密度 +' + Math.round(after - before) : '一起度过了愉快的时光');
+      render();
+    };
+    return btn;
+  }
   function renderFamily(life) {
     var S = fn('S_'); if (!S) return null;
     var list = S(life).filter(function (x) { return x.p.alive && x.kin !== 'partner'; });
@@ -257,8 +296,14 @@
       top.append(make('b', '', nm(x.p.name)));
       top.append(make('span', 'mbl-rel-tag', KIN_CN[x.kin] || x.kin));
       card.append(top);
-      card.append(make('p', 'mbl-rel-meta', '年龄 ' + (Number(x.p.age) || '?')));
-      card.append(barRow(x.p.bond, 100));
+      card.append(make('p', 'mbl-rel-meta', ageLabel(x.p.age)));
+      const bond = Math.round(C.clamp(fn('Cn')?.(x.p) ?? x.p.bond ?? 60, 0, 100));
+      card.append(make('p', 'mbl-rel-meta', '亲密度 ' + bond + '/100'),barRow(bond, 100));
+      if (!hasPhone(life)) {
+        const actions = make('div','mbl-rel-btn-row');
+        actions.append(familyActivity(life,x));
+        card.append(actions);
+      }
       sec.append(card);
     });
     return sec;
@@ -284,6 +329,12 @@
 
   function render() {
     var life=L();
+    renderedLife=life;
+    renderedAge=life?.age;
+    var phone=hasPhone(life);
+    if(!phone)section='relationships';
+    title.textContent=phone?'私人通讯中心':'家庭与亲友';
+    nav.hidden=!phone;
     if(owner!==life){owner=life;sectionScroll.clear();currentView='';}
     if(currentView&&dialog.open)sectionScroll.set(currentView,body.scrollTop);
     var result=window.MBLInteraction.preserveScroll(dialog, renderContents);
@@ -292,7 +343,11 @@
     currentView=next;
     var unread=life?window.MBLRelationsMessages?.summary(life).unread||0:0;
     buttons.messages.textContent=unread?'短信 · '+unread:'短信';
-    Object.keys(buttons).forEach(function(key){buttons[key].setAttribute('aria-pressed',String(key===section));});
+    buttons.messages.disabled=!phone;
+    buttons.appointments.disabled=!phone;
+    Object.keys(buttons).forEach(function(key){const selected=key===section;buttons[key].tabIndex=selected?0:-1;buttons[key].setAttribute('aria-selected',String(selected));});
+    if(phone){body.setAttribute('role','tabpanel');body.setAttribute('aria-labelledby',buttons[section].id);}
+    else{body.removeAttribute('role');body.removeAttribute('aria-labelledby');}
     return result;
   }
 
@@ -301,6 +356,14 @@
     body.replaceChildren();
     if (!life) {
       body.append(make('p', 'mbl-rel-muted', '开始一段人生后，这里会显示你的关系网。'));
+      return;
+    }
+    if (!hasPhone(life)) {
+      body.append(make('p','arena-childhood-note','12 岁解锁私人手机。在成长过程中，可以当面和家人、朋友相处。'));
+      const family = renderFamily(life);
+      if (family) body.append(family);
+      else body.append(make('p','mbl-rel-muted','目前没有可以陪伴的家人。'));
+      body.append(renderFriends(life));
       return;
     }
     if(section==='messages'){
@@ -324,6 +387,16 @@
   function showSection(key){if(!buttons[key])return;section=key;render();}
   function open(key) { if(buttons[key])section=key;else section='messages';render(); if (!dialog.open) {dialog.showModal();body.scrollTop=sectionScroll.get(currentView)||0;if(section==='messages')window.MBLRelationsMessages?.restoreThreadScroll(body);} }
   function close() { if (dialog.open) {if(currentView)sectionScroll.set(currentView,body.scrollTop);dialog.close();} }
+
+  // A loaded career or an age transition may change which destinations exist.
+  var renderedAge = null, renderedLife = null;
+  C.onDom(function () {
+    if (!dialog.open) return;
+    const life = L();
+    if (renderedLife !== life || renderedAge !== life?.age) {
+      render();
+    }
+  }, 'play');
 
   window.MBLRelationsPanel = { open: open, close: close, refresh: render, showSection:showSection };
   if (window.MBLDockPanels) window.MBLDockPanels.relations = { open: open, close: close };

@@ -156,10 +156,11 @@
   }
 
   function scrollToDecision() {
-    var card = document.querySelector('main.play article.card.decide') ||
-      document.querySelector('main.play .modal-backdrop') ||
-      document.querySelector('main.play [data-act="dismiss"]');
-    if (card) card.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+    var card = document.querySelector('[data-act="noticeok"]') ||
+      document.querySelector('[data-act="dismiss"]') ||
+      document.querySelector('main.play article.card.decide');
+    const control = card?.matches('button') ? card : card?.querySelector('button:not(:disabled)');
+    control?.focus();
   }
 
   /* ---------- 操作区：场间门控 / 夺冠横幅 / 当前系列赛 ---------- */
@@ -172,7 +173,17 @@
 
   function renderAction(o, l) {
     var wrap = el('div', 'mbl-pb-action');
+    if (o.phase === 'done') {
+      var record = hi(o);
+      var banner = el('div', 'mbl-pb-done');
+      banner.append(el('b', '', o.finish ? Lt(o.finish, o.finishParams).hans : '赛季结束'),
+        el('span', '', '常规赛 ' + record.w + ' 胜 ' + record.l + ' 负'));
+      if (o.champion) banner.append(el('span', '', Be(o.champion) + ' 夺冠'));
+      wrap.append(banner);
+    }
     if (blocked(l)) {
+      var upcoming = o.phase === 'playoffs' && cy(o);
+      if (upcoming) wrap.append(el('b', '', C.hans(upcoming.round) + ' · 对阵 ' + Be(upcoming.opp)));
       var m = (l.pending && l.pending[0]) || null;
       var inter = el('button', 'mbl-pb-gate');
       inter.type = 'button';
@@ -186,10 +197,13 @@
       return wrap;
     }
     if (o.phase === 'done') {
-      var banner = el('div', 'mbl-pb-done');
-      banner.innerHTML = '<b>' + (o.champion ? Be(o.champion) + ' 夺冠' : '季后赛结束') + '</b>' +
-        '<span>' + (o.finish ? (o.finish.hans || '') : '') + '</span>';
-      wrap.append(banner);
+      var proceed = el('button', 'mbl-pb-btn sim', '继续休赛期');
+      proceed.type = 'button';
+      proceed.onclick = function () {
+        if (season() !== o || blocked(l)) return;
+        document.querySelector('main.play [data-act="next"]:not(:disabled)')?.click();
+      };
+      wrap.append(proceed);
       return wrap;
     }
     var ctx = cy(o);

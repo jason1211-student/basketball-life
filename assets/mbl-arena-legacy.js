@@ -23,7 +23,8 @@
   }
   function honors(life){
     const a=list(life.ball?.awards),data=aggregate([],a),box=h('section','arena-honors-cover');
-    box.append(h('span','arena-eyebrow','HALL OF HONOR'),h('h3','','荣誉陈列室'));
+    if(a.length&&life.flags?.soldTrophies===undefined&&window.MBLCareerArt)box.prepend(MBLCareerArt.picture('trophy',500));
+    box.append(h('h3','','荣誉陈列室'));
     const stats=h('div','arena-legacy-grid');stats.append(metric('全部荣誉',data.awards),metric('冠军类荣誉',data.titles));box.append(stats);
     if(a.length){const latest=a.slice().sort((a,b)=>(b.year||0)-(a.year||0))[0];box.append(h('p','arena-honors-latest','最新记录 · '+(latest.year||'')+' · '+(C.hans(latest.text)||'荣誉')));}
     if(life.flags?.soldTrophies!==undefined)box.append(h('p','arena-muted','实体奖杯已出售；历史荣誉记录仍保留。'));
@@ -47,7 +48,7 @@
   }
   function entries(log,mode,age){return list(log).filter(e=>e&&((mode==='all')||e.kind==='milestone'||!!e.hl)&&(age===''||String(e.age)===String(age))).slice().reverse();}
   function timeline(life){
-    const root=h('section','arena-timeline');root.append(h('h3','arena-block-title','人生时间轴'));
+    const root=h('section','arena-timeline');root.append(h('h3','arena-block-title','人生时间轴'));const path=window.MBLPathwayPanel?.entry(life);if(path)root.append(path);
     const state=filters.get(life)||{mode:'milestones',age:'',limit:12};filters.set(life,state);
     const toolbar=h('div','arena-timeline-tools'),modes=h('div','arena-timeline-modes'),select=h('select','arena-timeline-select');select.setAttribute('aria-label','按年龄筛选');
     const all=h('option','','所有年龄');all.value='';select.append(all);

@@ -1,7 +1,7 @@
 /* ARENA / performance and franchise centers */
 .mbl-arena .arena-subnav {display:flex;gap:4px;padding:5px;background:var(--card);border:1px solid var(--line);margin:0 0 14px;border-radius:7px;}
 .mbl-arena .arena-subnav-btn {flex:1;min-width:0;min-height:44px;padding:7px 3px;border:0;border-radius:4px;background:transparent;color:var(--muted);font:700 13px/1.25 var(--sans);cursor:pointer;}
-.mbl-arena .arena-subnav-btn[aria-pressed=true] {color:var(--accent-ink);background:var(--accent);font-weight:850;}
+.mbl-arena .arena-subnav-btn[aria-selected=true] {color:var(--accent-ink);background:var(--accent);font-weight:850;}
 .mbl-arena .arena-subpanel[hidden] {display:none!important;}
 .mbl-arena .arena-subpanel {min-width:0;}
 .mbl-arena .arena-subpanel .mbl-badge-ovr {display:grid;grid-template-columns:1fr 1fr;gap:8px;}

@@ -14,7 +14,7 @@
   }
   function report(g){
     const hero=h('section','arena-report-hero');
-    const label=h('span','arena-eyebrow','FINAL / MATCH REPORT');
+    const label=h('span','arena-eyebrow','终场战报');
     const score=h('div','arena-report-score');
     const mine=h('div'),opp=h('div');
     mine.append(h('small','','我方'),h('b','',String(g.us??'—')));

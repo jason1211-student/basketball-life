@@ -1,0 +1,62 @@
+.mbl-arena .mbl-alert-entry {
+  display:flex;align-items:center;gap:9px;min-height:44px;width:100%;min-width:0;
+  padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);text-align:left;
+}
+.mbl-arena .mbl-alert-entry b {font-size:14px;white-space:nowrap;}
+.mbl-arena .mbl-alert-entry small {flex:1;min-width:0;font-size:11px;color:var(--muted);}
+.mbl-arena .mbl-alert-entry-count {
+  flex:0 0 auto;min-width:28px;height:24px;padding:0 6px;display:grid;place-items:center;
+  border-radius:999px;background:var(--soft);color:var(--muted);font-weight:850;font-variant-numeric:tabular-nums;
+}
+.mbl-arena .mbl-alert-entry.has-alerts {border-left:3px solid #f45b62;}
+.mbl-arena .mbl-alert-entry.has-alerts .mbl-alert-entry-count,
+.mbl-arena .mbl-alert-badge,
+.mbl-arena .mbl-alert-indicator,
+.mbl-arena .arena-unread {
+  background:#c52e3d;color:#fff;border:1px solid #ff8090;
+  font-variant-numeric:tabular-nums;font-weight:800;border-radius:999px;
+}
+.mbl-arena .mbl-alert-indicator {
+  position:absolute;top:3px;right:5px;min-width:19px;height:19px;padding:0 4px;
+  display:grid;place-items:center;line-height:1;font-size:10px;box-sizing:border-box;pointer-events:none;
+  z-index:2;
+}
+.mbl-arena .arena-social-entry {position:relative;}
+.mbl-arena .arena-action:has(.mbl-alert-indicator) .arena-arrow {visibility:hidden;}
+.mbl-arena .pending-pill .mbl-alert-indicator {position:static;flex:0 0 auto;}
+.mbl-arena .mbl-alert-center {
+  width:min(560px,calc(100% - 24px));height:min(700px,calc(100dvh - 24px));
+  max-height:var(--panel-height,calc(100dvh - 24px));padding:0;border:1px solid var(--line);
+  border-radius:10px;background:var(--bg);color:var(--ink);overflow:hidden;box-sizing:border-box;
+}
+.mbl-arena .mbl-alert-center[open] {display:flex;flex-direction:column;}
+.mbl-arena .mbl-alert-center::backdrop {background:var(--backdrop);}
+.mbl-arena .mbl-alert-head {
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line);border-top:4px solid var(--accent);
+}
+.mbl-arena .mbl-alert-head h2 {margin:0;font:850 24px/1.2 var(--sans);}
+.mbl-arena .mbl-alert-close {min-height:44px;padding:5px 14px;border:1px solid var(--line);border-radius:5px;color:var(--ink);background:var(--soft);}
+.mbl-arena .mbl-alert-body {flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;overflow-anchor:none;padding:12px;display:flex;flex-direction:column;gap:15px;}
+.mbl-arena .mbl-alert-intro {display:flex;align-items:center;gap:10px;background:var(--card);border-left:3px solid var(--accent);padding:12px;}
+.mbl-arena .mbl-alert-intro strong {font:900 32px/1 var(--display);color:var(--accent);font-variant-numeric:tabular-nums;}
+.mbl-arena .mbl-alert-intro span,.mbl-arena .mbl-alert-hint,.mbl-arena .mbl-alert-empty {color:var(--muted);font-size:12px;margin:0;}
+.mbl-arena .mbl-alert-group {display:grid;gap:5px;}
+.mbl-arena .mbl-alert-group h3 {font:800 14px var(--sans);margin:0 0 5px;color:var(--muted);}
+.mbl-arena .mbl-alert-row {
+  display:flex;align-items:center;gap:8px;min-height:56px;min-width:0;width:100%;text-align:left;
+  padding:10px;background:var(--card);border:1px solid var(--line);border-radius:5px;color:var(--ink);
+}
+.mbl-arena .mbl-alert-copy {display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.mbl-arena .mbl-alert-copy b {font-size:14px;overflow-wrap:anywhere;}
+.mbl-arena .mbl-alert-copy small {font-size:12px;color:var(--muted);overflow-wrap:anywhere;}
+.mbl-arena .mbl-alert-badge {display:grid;place-items:center;min-width:24px;height:24px;padding:0 5px;font-size:11px;}
+.mbl-arena .mbl-alert-arrow {color:var(--accent);font-size:24px;}
+.mbl-arena .mbl-alert-modal-link {
+  align-self:flex-start;min-height:32px;padding:4px 10px;border:1px solid #c52e3d;
+  background:var(--card);color:#ff9aa2;font-size:12px;font-weight:750;border-radius:5px;
+}
+@media(max-width:500px) {
+  .mbl-arena .mbl-alert-center {width:calc(100% - 16px);height:var(--panel-height,calc(100dvh - 16px));}
+  .mbl-arena .mbl-alert-indicator {top:1px;right:2px;}
+}

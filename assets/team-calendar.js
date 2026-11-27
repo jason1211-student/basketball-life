@@ -31,7 +31,6 @@
   var box = el('section', 'mbl-tcal');
   var busy = false;
   var lastRenderKey = '';
-  var POS8 = ['guard', 'guard', 'wing', 'wing', 'big', 'guard', 'wing', 'big'];
   var POS_CN = { guard: '后卫', wing: '侧翼', big: '内线' };
 
   function home() { return document.querySelector('main.play .mbl-view[data-view="home"]'); }
@@ -177,7 +176,7 @@
       b.append(marker);
     }
     b.onclick = function () {
-      if (e.played) { if (window.MBLGameHistory) window.MBLGameHistory.openDetail(e.g); }
+      if (e.played) { if (window.MBLGameHistory) window.MBLGameHistory.openDetail(e.g,{year:s.year,team:s.team}); }
       else if (e.isNext) { scrollToAction(); }
       else { openPreview(s, e.idx); }
     };
@@ -198,6 +197,9 @@
 
   function renderGrid(life, s, ng) {
     var appointments = window.MBLRelationsMessages?.gameAppointmentIndex(life, s);
+    for(const a of life.flags?.mblLifeCalendar?.items||[]) if(a.room===window.MBLLifeCalendar?.teamKey(s)&&appointments&&window.MBLLifeCalendar.status(life,a)!=='失效'){
+      appointments.set(a.dueGame,[...(appointments.get(a.dueGame)||[]),a.title]);
+    }
     var wrap = el('div', 'mbl-tcal-gridwrap');
     var cm = buildCalendarMap(s);
     var seasonKey = [s.year, s.leagueId, s.team && s.team.en].join('|');
@@ -278,40 +280,32 @@
     return { pts: pts.toFixed(1), reb: reb.toFixed(1), ast: ast.toFixed(1) };
   }
 
-  // 对手无存档名单：按球队强度用 iH 生成 8 人预估阵容（与直播同口径）
-  function buildOppPlayers(s, oppIdx) {
-    var l = C.life();
-    var base = C.clamp(Math.round(Number(s.strength[oppIdx])) || 70, 50, 98);
-    return POS8.map(function (pos) {
-      var r = iH(base, pos, Math.random);
-      var nm = Ed(l, 'NBA');
-      return { name: nm, pos: pos, ovr: window.MBLAttrSys.overall(r.ratings, pos) };
+  function playerRows(players,context) {
+    return players.map(function (p) {
+      var a = projAvg(p.ovr, p.pos);
+      var row=el('div','mbl-tcp-row');
+      var cards=window.MBLPlayerCard;
+      var name=cards.button(()=>context.matchKey!=null?cards.fromMatch(p,{...context,source:'preview'}):
+        cards.fromRoster(C.life(),context.season,p),C.hans(p.name));
+      name.classList.add('mbl-tcp-pname');
+      row.append(el('span','mbl-tcp-pos',POS_CN[p.pos]||'—'),name,
+        el('span','mbl-tcp-ovr',String(p.ovr)),el('span','mbl-tcp-avg',a.pts+'/'+a.reb+'/'+a.ast));
+      return row;
     });
   }
 
-  function playerRows(players) {
-    return players.map(function (p) {
-      var a = projAvg(p.ovr, p.pos);
-      return '<div class="mbl-tcp-row">' +
-        '<span class="mbl-tcp-pos">' + POS_CN[p.pos] + '</span>' +
-        '<span class="mbl-tcp-pname">' + C.hans(p.name) + '</span>' +
-        '<span class="mbl-tcp-ovr">' + p.ovr + '</span>' +
-        '<span class="mbl-tcp-avg">' + a.pts + '/' + a.reb + '/' + a.ast + '</span>' +
-      '</div>';
-    }).join('');
-  }
-
-  function teamBlock(title, sub, players, isOpp) {
+  function teamBlock(title, sub, players, isOpp,context) {
     var sec = el('div', 'mbl-tcp-team' + (isOpp ? ' is-opp' : ''));
     sec.innerHTML =
       '<div class="mbl-tcp-thead"><b>' + title + '</b><span>' + sub + '</span></div>' +
       '<div class="mbl-tcp-colhead"><span>位置</span><span>球员</span><span>总评</span><span>得分/篮板/助攻</span></div>';
     var list = el('div', 'mbl-tcp-plist');
-    list.innerHTML = playerRows(players);
+    list.append(...playerRows(players,context));
+    if(!players.length)list.append(el('p','mbl-tcp-note','当前没有可用的预计名单。'));
     sec.append(list);
     if (isOpp) {
       var note = el('p', 'mbl-tcp-note');
-      note.textContent = '对手名单游戏内未存档，此处为按球队强度生成的预估阵容，场均为预估口径。';
+      note.textContent = '赛前预计阵容使用当前比赛建队规则；正式名单可能随出勤或赛季变化。场均为预估口径。';
       sec.append(note);
     }
     return sec;
@@ -322,18 +316,22 @@
     var oppIdx = s.schedule[idx], isHome = idx % 2 === 0;
     var rec = hi(s);
     var rank = L_(s).findIndex(function (x) { return x.mine; }) + 1;
-    var mine = (s.roster || []).slice().sort(function (a, b) { return b.ovr - a.ovr; })
-      .map(function (pl) { return { name: pl.name, pos: pl.pos, ovr: pl.ovr }; });
-    var opp = buildOppPlayers(s, oppIdx);
+    var matchup=window.MBLBroadcast?._buildReal(undefined,idx);
+    var mine=matchup?matchup[matchup.mySide].players:(s.roster||[]);
+    var other=matchup?.mySide==='home'?'away':'home';
+    var opp=matchup?.[other]?.players||[];
     var head = el('div', 'mbl-tcp-dhead');
     head.append(
       el('b', '', '第 ' + (idx + 1) + ' 场 · ' + (isHome ? '主场' : '客场')),
       (function () { var x = el('button', 'mbl-tcp-x', '关闭'); x.type = 'button'; x.onclick = function () { dlg.close(); }; return x; })()
     );
     var body = el('div', 'mbl-tcp-body');
+    if(matchup&&window.MBLMatchStory)body.append(MBLMatchStory.preview(C.life(),s,matchup));
     body.append(
-      teamBlock('我方 · ' + Be(s.team), '战绩 ' + rec.w + '–' + rec.l + ' · 排名 #' + (rank > 0 ? rank : '—'), mine, false),
-      teamBlock('对手 · ' + Be(s.teams[oppIdx]), '球队总评 ' + Math.round(Number(s.strength[oppIdx]) || 0) + ' · ' + (isHome ? '我方主场' : '我方客场'), opp, true)
+      teamBlock('我方 · ' + Be(s.team), '战绩 ' + rec.w + '–' + rec.l + ' · 排名 #' + (rank > 0 ? rank : '—'), mine, false,
+        {team:s.team,year:s.year,side:matchup?.mySide,matchKey:matchup?.seed,season:s}),
+      teamBlock('对手 · ' + Be(s.teams[oppIdx]), '球队总评 ' + Math.round(Number(s.strength[oppIdx]) || 0) + ' · ' + (isHome ? '我方主场' : '我方客场'), opp, true,
+        {team:s.teams[oppIdx],year:s.year,side:other,matchKey:matchup?.seed,season:s})
     );
     dlg.replaceChildren(head, body);
     if (!dlg.open) dlg.showModal();
@@ -362,7 +360,7 @@
     });
     return JSON.stringify([l.seed, l.age, l.alive, l.log?.length, l.ball?.out,
       s && [s.year, s.leagueId, s.team?.en, s.phase, s.games.length, s.total],
-      l.pending?.map(function (p) { return p.tid; }), !!de.outcome, de.notices.length, privateState]);
+      l.pending?.map(function (p) { return p.tid; }), !!de.outcome, de.notices.length, privateState,l.flags?.mblPathway?.active,l.flags?.mblPathway?.review,l.flags?.mblLifeCalendar,l.flags?.mblMessages?.relocation,l.flags?.mblMessages?.lease]);
   }
 
   function render() {
@@ -374,9 +372,12 @@
       window.MBLRelationsMessages.selectConversation(id);
       window.MBLRelationsPanel?.open('messages');
     });
+    const plan=window.MBLLifeCalendar?.render(l,()=>window.MBLInteraction.preserveScroll(box,render));
+    const housing=window.MBLRelationsMessages?.calendarHousing?.(l,render);
+    const personal=[window.MBLPathwayPanel?.entry(l),appointments,plan,housing].filter(Boolean);
     if (!s) {
-      box.style.display = appointments ? '' : 'none';
-      box.replaceChildren(...(appointments ? [appointments] : []));
+      box.style.display = personal.length ? '' : 'none';
+      box.replaceChildren(...personal);
       return;
     }
     box.style.display = '';
@@ -387,7 +388,7 @@
       renderHead(s),
       renderGrid(l, s, ng),
       ...(window.MBLSeasonCommand ? [window.MBLSeasonCommand.render(s)] : []),
-      ...(appointments ? [appointments] : []),
+      ...personal,
       renderAction(l, s, ng),
       renderRecord(l),
       renderScene(l)
@@ -424,5 +425,5 @@
     mount();
   }, 1200);
   mount();
-  window.MBLTeamCalendar = { refresh: render, mount: mount, simOne: advanceOneGame };
+  window.MBLTeamCalendar = { refresh: render, mount: mount, simOne: advanceOneGame, restDays: index => index>0?GAP[(index-1)%GAP.length]:3 };
 })();

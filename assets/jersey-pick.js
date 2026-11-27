@@ -29,6 +29,7 @@
     var box = document.getElementById('mbl-jpick');
     if (!box) return;
     var num = window.MBLJerseyPick.num;
+    window.MBLCareerArt?.setNumber(box, num);
     box.querySelectorAll('.mbl-jpick-num').forEach(function (b) {
       b.classList.toggle('on', b.dataset.num === num);
     });
@@ -49,6 +50,8 @@
     var box = el('div', 'mbl-jpick');
     box.id = 'mbl-jpick';
 
+    const art=window.MBLCareerArt?.jersey(l.ball.pro?.team);
+    if(art)box.append(art);
     box.append(el('p', 'mbl-jpick-label', '自选号码（灰色＝已被队友占用）'));
 
     var grid = el('div', 'mbl-jpick-grid');
@@ -76,7 +79,6 @@
     });
     box.append(ok);
 
-    refreshSelection();
     return box;
   }
 
@@ -85,7 +87,9 @@
     var card = document.querySelector('article.card.decide');
     if (!l || !isJerseyPending(l) || !card) return;
     if (card.querySelector('#mbl-jpick')) return;
+    window.MBLJerseyPick.num = null;
     card.append(buildPanel(l));
+    refreshSelection();
   }
 
   // 统一 DOM 调度（仅 play）+ 800ms 心跳双保险，替代独立 observer 与 setInterval
